@@ -11,7 +11,6 @@ in [docs/science/](docs/science/).
 
 - Deep Viewer: OpenSeadragon over pre-cut tiles of the Hubble Andromeda (M31) PHAT+PHAST
   panorama released on 2025-01-16 (42208 x 9870 px, a quarter-resolution rendition).
-- Spectral Gallery: a plain gallery of NASA images served by NASA.
 - `/api/images` and `/api/image/[id]`: image metadata, including the credit line.
 - Unit and integration tests (Vitest) and end-to-end tests (Playwright).
 

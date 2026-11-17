@@ -46,7 +46,7 @@ Each item leaves the app working.
 | B-06 | Remove unused `react-leaflet` | done | | Not in `package.json` |
 | B-07 | Dev server on 127.0.0.1:8434 in `npm run dev`; README rewritten for the relaunch | done | | README states what is built and links the plan |
 | B-08 | Upgrade to Next 16 to clear the PostCSS advisory bundled with Next 15 (critical Next advisories already fixed by 15.5.29) | done | B-02 | `npm audit --audit-level=high` clean; CI green |
-| B-09 | Remove the Spectral Gallery (its titles are not validated; Light replaces it) and the unused slider component; clear lint warnings | todo | | No unvalidated image text on the page; 0 lint warnings |
+| B-09 | Remove the Spectral Gallery (its titles are not validated; Light replaces it) and the unused slider component; clear lint warnings | done | | No unvalidated image text on the page; 0 lint warnings |
 
 ## M2. Data pipeline
 

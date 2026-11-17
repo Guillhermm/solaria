@@ -18,3 +18,9 @@ test("the unlabeled comparison slider is gone", async ({ page }) => {
   await expect(page.getByText("Comparison Slider")).toHaveCount(0);
   await expect(page.locator("img-comparison-slider")).toHaveCount(0);
 });
+
+test("the unvalidated gallery is gone", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("Spectral Gallery")).toHaveCount(0);
+  await expect(page.getByText("PIA")).toHaveCount(0);
+});

@@ -37,17 +37,3 @@ export interface DeepViewerProps {
   initialFlags?: Flag[];
   onFlagsChange?: (flags: Flag[]) => void;
 }
-
-// Spectral Gallery types and interfaces
-export interface NasaImage {
-  id: string;
-  title: string;
-  url: string;
-  thumbnailUrl?: string;
-}
-
-export interface SpectralGalleryProps {
-  title: string;
-  images: NasaImage[];
-  initialImageId?: string;
-}
