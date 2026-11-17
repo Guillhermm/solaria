@@ -595,8 +595,11 @@ keyboard, desktop at 4x CPU). Home loads no OpenSeadragon: the lens is plain til
 get `poster.jpg`, pyramid level 1 stitched by `generate-tiles` (1319 by 308, 46 KB);
 before it, the 2048 px preview shared the line with the fonts and scripts and Home LCP was
 2.5 s. Gap: About's CLS comes from the swap from the metric-matched Arial fallback to Geist,
-which rewraps a paragraph. Closing it means `font-display: optional` (a first visit on a slow
-line may then keep Arial) or a closer fallback; that is a design decision, still open.
+which rewraps a paragraph. The fallback is already metric-matched (`next/font/local` writes
+`size-adjust: 106.28%` on Arial), and no single `size-adjust` from 104 to 108 % keeps every
+About paragraph on the same lines from 320 to 430 px wide, so a closer fallback cannot close it.
+Closing it means `font-display: optional` (a first visit on a slow line may then keep Arial);
+that is a design decision, still open.
 `tests/e2e/quality.spec.ts` checks all of this, and axe-core (WCAG 2.2 A and AA tags) on
 Home and About at phone and desktop width in both themes.
 
