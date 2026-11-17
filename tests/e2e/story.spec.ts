@@ -136,6 +136,24 @@ test.describe("reduced motion", () => {
     await page.goto(PATH);
     await ready(page);
     await atStop(page, 0);
+    // Stop 0 is framed again when the card and the bar settle, and a late reframe would show up as an
+    // extra zoom below, so start recording once the readout has been still for a few frames.
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) => {
+          const el = document.querySelector('[data-testid="readout"]')!;
+          let last = performance.now();
+          const observer = new MutationObserver(() => (last = performance.now()));
+          observer.observe(el, { childList: true, characterData: true, subtree: true });
+          const check = () => {
+            if (performance.now() - last > 250) {
+              observer.disconnect();
+              resolve();
+            } else requestAnimationFrame(check);
+          };
+          check();
+        }),
+    );
     // Record every zoom the readout shows while the camera moves to the next stop.
     await page.evaluate(() => {
       const seen = new Set<string>();

@@ -152,4 +152,4 @@ C-05 waits for R2: the Webb frame is about 2,566 tiles and 110 MB (estimated), t
 | F-04 | Search by feature name, then by coordinates | todo |
 | F-05 | Mars Journey from HiRISE orthorectified pairs only | todo |
 | F-06 | Brazilian Portuguese | todo |
-| T-01 | Fix the two intermittent e2e failures (tile-outage retry toast, story cut) | todo |
+| T-01 | Fix the two intermittent e2e failures (tile-outage retry toast, story cut) | done |

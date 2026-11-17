@@ -534,7 +534,10 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       opened.addHandler("open-failed", () => {
         if (!cancelled) setFailed(true);
       });
-      opened.addHandler("tile-load-failed", () => {
+      opened.addHandler("tile-load-failed", (event) => {
+        // A request started before a Retry resets the image can still fail after it, and must not count.
+        const { time, tiledImage } = event as unknown as { time: number; tiledImage?: { lastResetTime?: number } };
+        if (time < (tiledImage?.lastResetTime ?? 0)) return;
         failuresRef.current += 1;
         if (failuresRef.current === TILE_ERROR_LIMIT) setToast(TILE_ERRORS);
       });
