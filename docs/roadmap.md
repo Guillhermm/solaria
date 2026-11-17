@@ -87,7 +87,9 @@ Each item leaves the app working.
 | S-01 | Journey player: stops, camera flights, pause and resume, progress | done | X-02 | Unit tests on stop logic; end-to-end test runs a Journey |
 | S-02 | Reduced-motion version (cuts instead of flights) | done | S-01 | Honors `prefers-reduced-motion` |
 | S-03 | Andromeda Journey text, 5 to 8 stops, with sources | done | S-01 | Every stop validated |
-| S-04 | Decide whether to tile the half-resolution file (84416 x 19739) for more depth | todo | D-04 | Decision recorded with tile count and size |
+| S-04 | Decide whether to tile the half-resolution file (84416 x 19739) for more depth | done | D-04 | Decision recorded with tile count and size |
+
+S-04 decision (2026-11-17): tiling the half-resolution file gives about 34,400 tiles and about 700 MB, four times the current 8,670 tiles and 174 MB. Tiles of that size do not belong in git, so the half-resolution set is tiled only once tiles are served from R2 (R-02), and gets a new image id there.
 
 ## M6. Home, About and launch
 
