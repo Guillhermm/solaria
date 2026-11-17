@@ -67,6 +67,12 @@ const Kiosk = ({ journeys }: { journeys: string[] }) => {
         return;
       }
       if (attractOn()) return;
+      // A press on the countdown itself is left to its button: closing on pointerdown would drop
+      // the sheet before the click, and the tap would land on whatever lies beneath.
+      if ((e.type === "pointerdown" || e.type === "touchstart") && overlayRef.current?.contains(e.target as Node)) {
+        armIdle();
+        return;
+      }
       setLeft(null);
       armIdle();
     };

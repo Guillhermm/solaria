@@ -295,7 +295,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       await assertDocked(page, countdown(page));
       await page.clock.runFor(1_000);
       await expect(countdown(page).locator("p").first()).toHaveText("Still exploring? Returning to the start in 9 s.");
-      // The button itself (a real pointer would close the sheet on its way there: any input does).
+      // The button itself (a mouse would close the sheet on its way there: any movement does).
       await keep.dispatchEvent("click");
       await expect(countdown(page)).toHaveCount(0);
       await page.clock.runFor(89_000);
@@ -318,3 +318,28 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
     });
   });
 }
+
+test.describe("touch", () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+
+  test("K13: a tap on Keep exploring reaches the button, not what lies beneath, and restarts the timer", async ({ page }) => {
+    await page.clock.install();
+    await page.goto(`/andromeda-phat-phast-2025/?kiosk=1`);
+    await ready(page);
+    await stopAttract(page);
+    await page.clock.runFor(90_200);
+    await expect(countdown(page)).toBeVisible();
+    await page.evaluate(() => {
+      const w = window as unknown as { clicks: string[] };
+      w.clicks = [];
+      window.addEventListener("click", (e) => w.clicks.push((e.target as Element).closest("button")?.textContent ?? (e.target as Element).tagName), true);
+    });
+    await countdown(page).getByRole("button", { name: "Keep exploring" }).tap();
+    await expect(countdown(page)).toHaveCount(0);
+    expect(await page.evaluate(() => (window as unknown as { clicks: string[] }).clicks)).toEqual(["Keep exploring"]);
+    await page.clock.runFor(89_000);
+    await expect(countdown(page)).toHaveCount(0);
+    await page.clock.runFor(1_200);
+    await expect(countdown(page)).toBeVisible();
+  });
+});
