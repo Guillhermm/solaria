@@ -12,7 +12,7 @@ records that check (see `docs/vision.md`, section 7).
 | ID | Item | Status | Done when |
 |---|---|---|---|
 | P-01 | Product vision, design direction, science checks of sources and comparisons | done | `docs/vision.md`, `docs/design.md`, `docs/science/` committed |
-| P-02 | Mockup of Home and Andromeda Journey (desktop and phone, dark and light) | todo | Screenshots approved by the maintainer |
+| P-02 | Mockup of Home and Andromeda Journey (desktop and phone, dark and light) | doing | Mockups approved by the maintainer; direction C chosen, final pass pending |
 
 ## M1. Clean base
 

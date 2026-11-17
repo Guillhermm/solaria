@@ -47,6 +47,10 @@ Three ideas carry it:
    "Back to the story" control resumes it.
 3. **Every view is a place.** The URL holds the image, the mode and the viewport.
 
+Andromeda is the first image, not the only one. The viewer, the panorama strip, the
+minimap and the manifests work for any massive image of any aspect ratio, wide or tall,
+so a new image is added by adding its manifest and tiles, not by changing code.
+
 The viewer has four modes on the same image: **Story**, **Explore**, **Compare** (only
 with a validated pair) and **Light** (only with a validated band set).
 
@@ -145,7 +149,8 @@ first month, no targets claimed up front.
 | Decision | Status |
 |---|---|
 | Journeys as the organizing concept | decided 2026-11-17 |
-| Dark-first, Instrument Serif titles, Inter, JetBrains Mono | decided 2026-11-17 |
+| Dark-first palette with amber accent | decided 2026-11-17 |
+| Direction C "Instrument" (Geist and Geist Mono, technical readouts, lens on Home) | chosen 2026-11-17, pending final mockup approval |
 | English only at launch | decided 2026-11-17 |
 | Host: GitHub Pages or Vercel, static export works on both | open, decided at launch |
 | Which Journeys follow Andromeda | proposed: Pillars of Creation, the Sun |

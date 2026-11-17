@@ -1,7 +1,7 @@
 # Solaria relaunch: experience and visual direction
 
-Status: direction approved on 2026-11-17 (Journeys, dark-first, serif titles, English only).
-Nothing here is built yet; a mockup is approved before the first build step.
+Status: Journeys concept approved on 2026-11-17. Visual direction C "Instrument" chosen on
+2026-11-17, pending final mockup approval. Nothing here is built yet.
 Date: 2026-11-17. Target: solaria.zenus.systems.
 
 ## 1. Where we start (read from the repo)
@@ -61,9 +61,9 @@ already on screen at stop 4 with its caption card at the bottom. Swipes up on th
 stop 5 flies in. At the last stop: "Now it's yours. Pinch anywhere." Taps Share; the
 current view is copied as a link.
 
-**J2, first visit (laptop).** Home opens on a slow live drift across a deep-zoom image
-with one line of copy and one button, "Begin the journey". Below the fold, the other
-Journeys as large image cards. Picks Andromeda, scrolls through the story, presses E to
+**J2, first visit (laptop).** Home opens on the whole Andromeda panorama with the loupe
+on the first stop, one line of copy and one button, "Begin at stop 01". Hovering the
+stops aims the loupe. Below the fold, the Journeys index. Picks Andromeda, scrolls through the story, presses E to
 explore, then Compare to wipe between two observations.
 
 **J3, researcher.** Lands on `/andromeda?mode=explore`, uses keyboard zoom and arrow pan,
@@ -78,7 +78,7 @@ as an attract loop, any touch takes control, 90 s idle returns to the loop with 
 ## 4. Information architecture
 
 ```
-/                      Home: live hero + Journey cards
+/                      Home: hero with loupe and panorama strip, Journeys index
 /[journey]             Journey viewer (mode via ?mode=story|explore|compare|light)
                        viewport via ?x=&y=&z=  (image coordinates, 0..1 width units)
 /about                 What Solaria is, credits, data sources, accessibility statement
@@ -92,34 +92,48 @@ No separate "tools" pages. Removing them is the main structural change.
 
 ```
 +--------------------------------------------------------------------------------+
-| SOLARIA                                              Journeys   About   [moon] |  transparent bar over image
+| <> SOLARIA                                         JOURNEYS   ABOUT   [sun]    |  hairline under the bar
 |                                                                                |
-|                                                                                |
-|        (full-bleed deep-zoom image, slow drift, 0.5 % scale per second)        |
-|                                                                                |
-|   Some pictures are too big                                                    |  display serif, 4rem
-|   to see at once.                                                              |
-|   Andromeda, as Hubble saw it: 2.5 billion pixels. Zoom until you find a star. |  body, 1.125rem, max 36ch
-|   [ Begin the journey  -> ]   or explore freely                                |  primary + text link
-|                                                                                |
-|                                                    credit line, 0.75rem   [||] |  pause drift control
+|  JOURNEY 01 / 04 . HUBBLE . PHAT+PHAST      |18 000 . . . |18 500 . . .        |  ruler, image px
+|  Andromeda,                               - +----------------+  LOUPE . AIMED AT|
+|  one stop at a time.                      : |[STOP 02]       |  02 / 06  [DRAFT]|
+|  Hubble's largest Andromeda panorama...   : |      -+-       |  Just off the    |
+|  +-----------+-----------------+          : |                |  center          |
+|  | RELEASED  | RENDITION       |          - +----------------+  ZOOM | FIELD    |
+|  | 2025-01-16| 42 208 x 9 870px|              \              \   CENTER X | Y  |
+|  [ Begin at stop 01 -> ]  Explore freely      \              \ [GO TO STOP 02] |
+|  0 . . . . |5 000 . . . . |10 000 . . . . |15 000 . . . . |20 000 . . . .      |  ruler over the strip
+|  (whole panorama, full bleed)  [01]   [02]=view box    [05]       [06]         |  bracket stops, route
+|  credit line                                                                   |
 +--------------------------------------------------------------------------------+
-|  More journeys                                                                 |
-|  +------------------------+ +------------------------+ +------------------------+
-|  | [image crop, 4:5]      | | [image crop]           | | [image crop]           |
-|  |                        | |                        | |                        |
-|  | ANDROMEDA  Hubble      | | THE SUN IN 7 COLORS    | | MARS DUST STORM        |
-|  | 6 stops, 4 min         | | Light mode             | | Compare 2 dates        |
-|  +------------------------+ +------------------------+ +------------------------+
-|  footer: About, Sources and credits, Accessibility                              |
+|  Journeys                                     [ALL . 4] [READY . 1] [PLANNED . 3]
+|  NO.  FRAME        JOURNEY                    SOURCE          SIZE, PX         |
+|  01   [strip]      Andromeda                  Hubble          42 208 x 9 870 [Begin]
+|  02   [tall box]   Pillars of Creation DRAFT  Hubble, Webb    8 423 x 14 589 Planned
+|  03   [hatched]    The Sun in seven channels  SDO, HMI, AIA   to be checked  Planned
+|  04   [hatched]    Mars: moving dunes DRAFT   MRO, HiRISE     to be checked  Planned
+|  SHOWING 4 OF 4                 A journey joins once tiled and science reviewed |
++--------------------------------------------------------------------------------+
+|  Reading the instrument: Stop, View box, Loupe, Zoom, Position                  |
+|  footer: credit, About, Sources, Accessibility                                  |
 +--------------------------------------------------------------------------------+
 ```
 
-Journey names and numbers above are placeholders until product picks them and the science
-team validates them (the 2.5 billion figure included).
-
-Cards are image-first, no borders: the crop fills the card, title and meta sit on a
-bottom scrim. Hover: crop scales 1.03 over 320 ms; focus: 2px accent ring.
+- The hero is the image twice: the whole panorama as a full-bleed strip along the bottom,
+  and the loupe, a magnified square on one stop, tied to its view box on the strip by two
+  leader lines. The loupe sits above the strip, never on it, so it hides nothing.
+- Journey titles, stop titles and captions are placeholders marked Draft until the
+  science review validates them.
+- The Journeys index is a list, not a card grid, so it holds one entry or forty. Rows
+  share one grid: number, frame thumbnail, title with status meta, source, size in
+  pixels, action. The filter (All, Ready, Planned) shows counts; past 12 entries the list
+  pages 12 at a time, and "Showing n of m" sits under it.
+- The frame thumbnail follows the aspect-ratio rule (6.4): a slot of 10.5 by 4rem with the
+  image contained at its true proportions. An image not yet tiled shows a hatched box at
+  its true proportions when its size is verified, and a full hatched slot with
+  "Not yet tiled" when it is not. A size is shown only when `docs/science/sources.md`
+  verifies it; otherwise the row reads "Size to be checked".
+- Only Ready rows carry the primary action. Planned rows show a neutral "Planned" tag.
 
 ### 5.2 Home, phone (390 wide)
 
@@ -129,46 +143,51 @@ bottom scrim. Hover: crop scales 1.03 over 320 ms; focus: 2px accent ring.
 |                           |
 |   (live image, drifting)  |
 |                           |
-| Some pictures are         |
-| too big to see at once.   |  2.5rem
-| 2.5 billion pixels...     |
-| [ Begin the journey -> ]  |  full width, 3rem tall
+| Andromeda,                |
+| one stop at a time.       |  2.5rem
+| [ Begin at stop 01 -> ]   |  full width, 3rem tall
 +---------------------------+
-| More journeys             |
-| [card, full width, 4:3]   |
-| [card]                    |
+| Journeys   [All|Ready|..] |
+| 01 [frame] Andromeda      |  one row per journey,
+| 02 [frame] Pillars ...    |  meta on a second line
 +---------------------------+
 ```
+
+On the phone the loupe is not shown on Home (no hover, and the strip is too short to
+aim); tapping a stop opens the Journey at that stop.
 
 ### 5.3 Journey, Story mode, desktop
 
 ```
-+--------------------------------------------------------------------------------+
-| <- SOLARIA   Andromeda Galaxy           Story  Explore  Compare  Light    [^] |  mode switcher = segmented, glass
-|                                                                                |
-|  +---------------------------+                                                 |
-|  | 3 / 6                     |          (camera flown to stop 3,               |
-|  | A cluster of young stars  |           area of interest kept in the          |
-|  |                           |           right 2/3 of the frame)               |
-|  | The blue knot here is ... |                                                 |
-|  | 80 words max              |                  ( ring marker on the feature ) |
-|  |                           |                                                 |
-|  | [<-]  o o * o o o  [->]   |                                                 |
-|  +---------------------------+                                                 |
-|                                                          +-------+             |
-|  Hubble, NASA, ESA ... (credit)            scale bar     |minimap|  [-][+][[]] |
-+--------------------------------------------------------------------------------+
++-------------------+------------------------------------------------------------+
+| <- SOLARIA        | 18 000 . . . . |18 500 . . . . |19 000      (ruler, image px)|
+|                   |4 000                                                       |
+| HUBBLE . PHAT ... | . [credit]                           [STORY|EXPLORE] [^][o]|
+| Andromeda Galaxy  | .                                                          |
+| ROUTE   STOP 02/06| .                  +-          -+  STOP 02                 |
+| ==|==|--|--|--|-- |4 500                    -+-       (bracket reticle)        |
+| 01 The bright ... | .                  +-          -+                          |
+|[02 Just off ...  ]| .                                                          |
+|[  draft caption  ]| .  +-OVERVIEW------------------+                    [+]     |
+| 03 A small ...    | .  | [strip with route, box]   |                    [-]     |
+| 04 ...            | .  | ZOOM  CENTER X  Y   VIEW  |                    [[]]    |
+| [<-] [Next: 03 ->]| .  +---------------------------+                            |
++-------------------+------------------------------------------------------------+
 ```
 
-- Caption card: left column, 22rem wide, vertically centered. The camera target for each
-  stop is offset so the feature sits in the visible area right of the card (pass the
-  card's width to the viewer as padding when computing the fit).
-- Progress dots are buttons (stop names in their accessible labels).
-- Scroll wheel advances stops only while the pointer is over the card; over the image,
-  the wheel zooms. This avoids the classic scrollytelling conflict where scroll both
-  moves the story and zooms the map.
-- Marker: a 2px ring with a dark outer halo, white, pulsing once on arrival (none under
-  reduced motion). Never filled, so it never hides the feature.
+- Left column, 25rem: back and wordmark, mission line, Journey title, route progress
+  (one segment per stop, amber for the current one), the stop list with the current stop
+  expanded into its caption, Previous and Next at the bottom.
+- The image fills the rest. Rulers run along the top and left edges and are labeled in
+  image pixels. The current stop is an amber bracket reticle at the view center.
+- The overview follows the aspect-ratio rule (6.4): a card at the bottom left for a wide
+  image, a rail docked to the right edge for a tall one (artboard
+  `C-Journey-Story-tall`, the Webb Pillars of Creation frame at 8 423 x 14 589 px).
+- The readout under the overview shows only computed values (6.3).
+- Scroll wheel advances stops only while the pointer is over the stop list; over the
+  image, the wheel zooms. This avoids the classic scrollytelling conflict.
+- Marker states: current stop amber, others white, both drawn as open brackets with a
+  dark halo, so they never cover the feature.
 
 ### 5.4 Journey, Story mode, phone
 
@@ -203,7 +222,7 @@ bottom scrim. Hover: crop scales 1.03 over 320 ms; focus: 2px accent ring.
 |                                                                                |
 |                                                                                |
 |  [i] About this image                                     +-------+            |
-|  x 0.4213  y 0.1170   zoom 38x   (mono)                    |minimap| [-][+][[]] |
+|  CENTER X 19 199  Y 4 926  ZOOM 14.3x  (mono)             |overview| [-][+][[]]|
 +--------------------------------------------------------------------------------+
 ```
 
@@ -247,7 +266,7 @@ bottom scrim. Hover: crop scales 1.03 over 320 ms; focus: 2px accent ring.
 |                                                                                |
 |  +--------------------------------------------------------------------------+  |
 |  | Visible   |  Extreme UV   |   Extreme UV    ...                          |  |
-|  |  6173 A   |    171 A      |     94 A                                     |  |
+|  |  6173 Å   |    171 Å      |     94 Å                                     |  |
 |  |----o-------------*---------------o-------------------o----------------   |  |
 |  | Shows: the corona at about 600,000 K             (from validated note)   |  |
 |  +--------------------------------------------------------------------------+  |
@@ -278,49 +297,64 @@ bottom scrim. Hover: crop scales 1.03 over 320 ms; focus: 2px accent ring.
 | Reduced motion | camera cuts with a 200 ms crossfade, no home drift, no pulse | none |
 | Kiosk idle | countdown sheet | "Still exploring? Returning to the start in 10 s. [Keep exploring]" |
 
-## 6. Visual language
+## 6. Visual language: Instrument
+
+The interface reads as a precise instrument laid over the image: hairline rulers labeled
+in image pixels, open bracket markers, a route line between stops, and monospace
+readouts. Precision carries the modern, technical feel; the image keeps all the color.
 
 **Dark-first, with a real light theme.** Space images sit on black; a light frame around
 them lowers perceived contrast and makes the image look washed out. The viewer canvas is
-always near-black in both themes (like a photo editor), and only the chrome, cards and
-the About page switch. The light theme follows the system setting and the toggle.
+always near-black in both themes (like a photo editor), and only the chrome, lists and
+the About page switch. Rulers, markers and readouts over the viewer always use the dark
+values. The light theme follows the system setting and the toggle.
 
-**One accent, for action only.** A warm solar amber marks buttons, focus and selection.
-It is never used on data or markers, so it never competes with the image's own colors
-(lesson kept from earlier work: one hue cannot mean both "action" and "data").
+**One accent, for action only.** A warm solar amber marks buttons, focus, selection and
+the current stop. It is never used on data, so it never competes with the image's own
+colors (one hue cannot mean both "action" and "data").
 
-**Editorial type.** A serif display face for Journey titles and stop headings gives the
-storytelling register of a science magazine; a neutral grotesque runs the interface; a
-monospace with tabular figures shows coordinates and zoom so numbers do not jitter.
+**Two faces from one family.** Geist runs titles and interface text; Geist Mono, with
+tabular figures, runs labels, rulers and every number. Titles are set tight and
+semibold; labels are small, uppercase and tracked.
 
 ### 6.1 Tokens (draft)
 
-Contrast ratios computed against WCAG 2.x relative luminance; perceived contrast on the
-amber still to be judged on the mockup.
+Contrast ratios computed against WCAG 2.x relative luminance on `--ground`; perceived
+contrast over bright image areas still to be judged on the final mockup.
 
 ```css
-:root {                                   /* dark, default */
-  --ground:        #07090D;               /* page and viewer canvas */
-  --surface:       #141821;               /* solid panels, cards meta */
-  --glass:         rgb(12 15 22 / 0.72);  /* overlays on the image; backdrop-filter: blur(1rem) saturate(1.2) */
-  --hairline:      rgb(255 255 255 / 0.08);
-  --text:          #E9ECF2;               /* 16.8:1 on ground */
-  --text-muted:    #9BA3B4;               /* 7.9:1 on ground, 7.0:1 on surface */
-  --accent:        #FFB547;               /* 11.3:1 on ground; text on accent uses --ground */
+:root {                                    /* dark, default */
+  --ground:        #07090D;                /* page and viewer canvas */
+  --surface:       #0C0F16;                /* panels, current stop row, ruler bars on Home */
+  --surface-2:     #1A1F2A;                /* small diagram fills */
+  --glass:         rgb(10 13 19 / 0.78);   /* overlays on the image; backdrop-filter: blur(1.25rem) saturate(1.3) */
+  --ruler-bar:     rgb(7 9 13 / 0.72);     /* ruler background over the viewer */
+  --hairline:      rgb(255 255 255 / 0.18);/* rulers, grids, panel and row borders, minor ticks */
+  --hairline-soft: rgb(255 255 255 / 0.10);/* header rule, dividers in the stop list */
+  --tick-major:    rgb(255 255 255 / 0.55);
+  --text:          #E9ECF2;                /* 16.8:1 */
+  --text-2:        #C9CED8;                /* body copy, 12.6:1 */
+  --text-muted:    #9BA3B4;                /* labels, 7.9:1 */
+  --accent:        #FFB547;                /* 11.3:1; text on accent uses --ground */
   --accent-press:  #E89A22;
-  --marker:        #FFFFFF;               /* rings, with 0 0 0 2px rgb(0 0 0 / 0.6) halo */
+  --marker:        #FFFFFF;                /* brackets, view box, crosshair */
+  --halo:          rgb(0 0 0 / 0.55);      /* 1px outline or 3px under-stroke on everything drawn over the image */
   --danger:        #FF7A6B;
-  --viewer-canvas: #07090D;               /* same in both themes */
+  --viewer-canvas: #07090D;                /* same in both themes */
   color-scheme: dark;
 }
 [data-theme="light"] {
   --ground:        #F7F6F2;
   --surface:       #FFFFFF;
-  --glass:         rgb(247 246 242 / 0.82);
-  --hairline:      rgb(17 20 26 / 0.10);
-  --text:          #11141A;               /* 17.1:1 */
-  --text-muted:    #5A6272;               /* 5.7:1 */
-  --accent:        #8F5200;               /* 5.8:1 on ground; white on it 6.2:1 */
+  --surface-2:     #ECEAE4;
+  --glass:         rgb(247 246 242 / 0.86);
+  --hairline:      rgb(17 20 26 / 0.18);
+  --hairline-soft: rgb(17 20 26 / 0.10);
+  --tick-major:    rgb(17 20 26 / 0.55);
+  --text:          #11141A;                /* 17.1:1 */
+  --text-2:        #2E3440;
+  --text-muted:    #5A6272;                /* 5.7:1 */
+  --accent:        #8F5200;                /* 5.8:1 on ground; white on it 6.2:1 */
   --accent-press:  #6F3F00;
   color-scheme: light;
 }
@@ -333,41 +367,120 @@ only, always with a labeled legend; never the accent, never a rainbow.
 
 | Role | Face | Size / line height | Use |
 |---|---|---|---|
-| Display XL | Instrument Serif | 4rem / 1.05 (phone 2.5rem) | home headline |
-| Display | Instrument Serif | 2.25rem / 1.1 (phone 1.75rem) | Journey title |
-| Title | Inter 600 | 1.25rem / 1.3 | stop heading on card, sheet titles |
-| Body | Inter 400 | 1.0625rem / 1.55, max 60ch (cards 36ch) | captions |
-| Label | Inter 500, +0.04em, uppercase | 0.75rem / 1.2 | mode switcher, card meta |
-| Numeric | JetBrains Mono, tabular | 0.8125rem | coordinates, zoom, band wavelengths |
+| Display XL | Geist 600, -0.035em | 3.75rem / 1.02 (phone 2.5rem) | Home headline |
+| Display | Geist 600, -0.035em | 2.375rem / 1.05 (phone 1.75rem) | Journey title |
+| Section | Geist 600, -0.03em | 2.5rem / 1.1 | Home section headings |
+| Title | Geist 600, -0.02em | 1.375rem / 1.2 | stop heading, list row title |
+| Body | Geist 400 | 1rem / 1.55, max 60ch (captions 42ch) | captions, intro |
+| Label | Geist Mono 400, +0.08em, uppercase | 0.6875rem / 1.2 (rulers and readout names 0.625rem) | eyebrows, mode switch, tags |
+| Numeric | Geist Mono, tabular figures | 0.8125rem (tables 0.875rem) | zoom, coordinates, sizes |
+
+Thousands use a narrow no-break space (U+202F): "42 208", never a comma.
 
 **Spacing**: 0.25rem steps: 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4, 6rem. Viewer overlays sit
-1rem from the edges (1.5rem from 64rem up) plus the safe-area insets.
+1rem from the edges plus the safe-area insets; Home side margin 4rem.
 
-**Radius**: 0.5rem controls, 0.75rem panels and cards, 999px pills and the divider handle.
+**Radius**: 0.125rem for buttons, tags and segmented controls; 0.25rem for panels and
+glass. Markers are square. No pills.
 
-**Elevation**: no drop shadows on the dark theme; panels separate by glass plus hairline.
-Light theme: `0 0.25rem 1.5rem rgb(17 20 26 / 0.10)` on floating panels only.
+**Elevation**: no drop shadows. Panels separate by glass plus hairline; everything drawn
+over the image (markers, view box, leader lines, crosshair) carries the dark halo.
 
 **Motion**
 
 | Token | Value | Use |
 |---|---|---|
 | `--dur-fast` | 120 ms | hover, press |
-| `--dur-base` | 200 ms | toggles, fades, focus ring |
-| `--dur-panel` | 320 ms | sheets, cards entering |
+| `--dur-base` | 200 ms | toggles, fades, focus ring, readouts settling, loupe content |
+| `--dur-panel` | 320 ms | sheets, panels entering |
+| `--dur-route` | 600 ms | route line drawing from one stop to the next |
 | `--dur-flight` | 1200 to 1800 ms, scaled by zoom distance | camera flights between stops |
 | `--ease-standard` | cubic-bezier(0.2, 0, 0, 1) | everything UI |
 | `--ease-exit` | cubic-bezier(0.3, 0, 1, 1) | elements leaving |
 
-Camera flights zoom out, pan, zoom in when the stops are far apart (a "fly-over"), so
-the user keeps their place; close stops pan directly. Under `prefers-reduced-motion`
-every flight becomes a 200 ms crossfade cut and nothing drifts or pulses.
+Camera flights zoom out, pan, zoom in when the stops are far apart, so the user keeps
+their place; close stops pan directly. Under `prefers-reduced-motion` every flight
+becomes a 200 ms crossfade cut, the route appears without drawing, readouts jump to
+their value and the loupe swaps content without a fade.
 
-**Iconography**: one outline icon set, 1.25rem in 2.75rem hit areas. Replace the current
-mixed `react-icons` sets with Lucide or keep one react-icons family; decide on bundle size.
+**Iconography**: one outline icon set, 1.5 stroke, 1.125rem in 2.75rem hit areas (Lucide
+fits).
 
-**Brand**: wordmark "SOLARIA" in Inter 600 with wide tracking; no NASA insignia or
-NASA-like marks anywhere (NASA's brand guidelines restrict them). Credits are text.
+**Brand**: wordmark "SOLARIA" in Geist 600 with 0.3em tracking, after a small rotated
+square. No NASA insignia or NASA-like marks anywhere (NASA's brand guidelines restrict
+them). Credits are text.
+
+### 6.2 Instrument elements
+
+| Element | Spec |
+|---|---|
+| Ruler | 1.375rem bar on `--ruler-bar` along the top and left edges of an image view, hairline on its inner edge. Labels in image pixels. Labeled step is 1, 2 or 5 times a power of ten, chosen so labels sit 7 to 12rem apart; 4 or 5 minor ticks per step. Major tick 8px at `--tick-major`, minor 4px at `--hairline`. |
+| Stop marker | Open square bracket, 1.25rem, arms 7px, 1.5px stroke, white; the current stop 1.625rem in amber. Two-digit number on a tag beside it (amber tag for the current stop). Hit area 2.75rem. |
+| Route | Way ahead: 1px white at 0.55, dashed 3 4, over a 3px halo. Travelled: 1.5px amber over a 3.5px halo. |
+| View box | 1px white rectangle with a 1px halo: the part of the image on screen, or in the loupe. |
+| Reticle | Amber bracket, 5.5rem, at the view center, with four white ticks outside it, a center dot and a "STOP 02" tag. Story only. |
+| Draft tag | 1px dashed border at 0.45, Label type. Every text not yet validated carries it. |
+| Placeholder | Field hatched with 1px lines at 135 degrees, labeled "Placeholder". Mockups only. |
+
+### 6.3 Readouts show computed values only
+
+A readout states only what the app computes from the image file and the viewport:
+
+- **Zoom**: current scale divided by the scale at which the whole image fits the viewer,
+  one decimal, "14.3×". Andromeda Home loupe: 42 208 / 2 960 = 14.3×. Tall frame in a
+  1 040 by 900 px viewer: fit scale min(1 040 / 8 423, 900 / 14 589) = 0.0617; at 0.8
+  screen px per image px the zoom is 13.0×.
+- **Center x, Center y**: the image pixel at the view center, counted from the top-left
+  corner of the image file, integers.
+- **View** (viewer) or **Field** (loupe): image pixels across and down.
+- **Size**: the pixel size of the file, only as verified in `docs/science/sources.md`.
+
+Not shown until the science review validates the transform and the claim: sky
+coordinates, physical scale bars, distances, and any date other than the verified
+release date. Readouts update from a ref, one per animation frame at most; the live
+region is debounced to 500 ms.
+
+### 6.4 Aspect-ratio rule
+
+Andromeda launches first, but nothing in the layout assumes its 4.28 to 1 shape. With
+r = width / height of the image file:
+
+| Shape | Overview on Home | Overview in Story and Explore |
+|---|---|---|
+| Wide, r of 2 or more | horizontal strip, full width, height = width / r capped at 24rem (beyond the cap the image is contained and centered, rulers span only the image) | card at the bottom left, image 21.5rem wide |
+| Tall, r of 0.8 or less | vertical rail on the right of the hero at full hero height, copy on the left, loupe between them with leader lines to the rail | rail docked to the right edge under the mode switch, image 13rem wide, capped at 60 % of the viewport height (above the cap the rail narrows) |
+| Near square, between | card, image contained in a 15rem square | same card at the bottom left |
+
+- Markers, route and view box are placed in normalized image coordinates
+  (u = x / W, v = y / H) times the drawn overview size. Stop data stores image pixels,
+  never overview pixels.
+- Markers keep a fixed screen size on any overview. A number tag flips to the other side
+  of its marker when it would leave the overview.
+- Rulers on the viewer label image pixels on both axes for every image.
+- Journeys index thumbnails: a fixed slot with the image contained at true proportions.
+- The loupe stays square; its view box on the overview is square in image pixels.
+- Mockup `C-Journey-Story-tall` shows the tall case with the Webb Pillars of Creation
+  frame, 8 423 by 14 589 px (r = 0.58), as a labeled placeholder.
+
+### 6.5 Loupe
+
+- A square magnified view of one stop beside the panorama strip on Home, 21.25rem on
+  desktop. Rulers on its top and left edges label image pixels; an amber bracket frame
+  sits 0.375rem outside its corners (the current-stop marker at loupe scale); a white
+  crosshair marks its center. Two leader lines (1px white at 0.7 over a 3px halo) run
+  from its bottom corners to the corners of its view box on the strip.
+- Beside it, a readout panel: stop number and title with its Draft tag, Zoom, Field,
+  Center x, Center y, and "Go to stop".
+- The loupe never sits on the overview, so it hides no part of the image being aimed at.
+- Hover or keyboard focus on a stop marker aims the loupe there: content and readouts
+  cross-fade in 200 ms and the leader lines move to the new view box; the frame itself
+  does not move. Leaving the strip returns the loupe to the current stop after 600 ms.
+  Click or Enter opens the Journey at that stop.
+- Stop markers form one roving-tabindex group: Tab enters at the current stop, Left and
+  Right step along the route order. The readout panel is a polite live region ("Stop 3,
+  zoom 14.3×"), debounced to 500 ms.
+- The loupe draws from the same tile pyramid as the viewer, never from a separate crop.
+- Not on phone Home (no hover, strip too short to aim): a tap on a stop opens the Journey.
 
 ## 7. Interaction specs
 
@@ -390,7 +503,8 @@ NASA-like marks anywhere (NASA's brand guidelines restrict them). Credits are te
 - A visually hidden live region announces the stop title on arrival and "Zoom 38x"
   after zoom settles (debounced 500 ms), never on every frame.
 - URL updates with `history.replaceState`, debounced 400 ms after the viewport settles.
-- Minimap: hidden on phone, toggle on desktop, click to jump.
+- Overview (strip, rail or card, by 6.4): toggle on desktop, inside the bottom sheet on
+  phone; click or tap to jump.
 - Controls: 2.75rem targets (beyond WCAG 2.5.8's 24px minimum, since this is touch-first).
 
 ### 7.2 Story
@@ -415,7 +529,7 @@ NASA-like marks anywhere (NASA's brand guidelines restrict them). Credits are te
 ### 7.4 Light rail
 
 - Also a slider pattern, with discrete stops per band plus continuous crossfade between
-  them for pointer users; keyboard moves stop to stop. `aria-valuetext`: "171 angstroms, extreme
+  them for pointer users; keyboard moves stop to stop. `aria-valuetext`: "171 Å, extreme
   ultraviolet". Wavelength units as the source states them.
 
 ## 8. Accessibility (WCAG 2.2 AA)
@@ -461,7 +575,7 @@ NASA-like marks anywhere (NASA's brand guidelines restrict them). Credits are te
    viewport state, keyboard and live region, loading and error states. Home links to it.
 3. **Story**: stops JSON, caption card and bottom sheet, camera flights, reduced motion.
    One Journey (Andromeda) with validated text.
-4. **Home**: live hero with poster, Journey cards.
+4. **Home**: hero with poster, panorama strip and loupe, Journeys index.
 5. **Compare** in OpenSeadragon with one validated pair.
 6. **Light** with one validated band set.
 7. **Kiosk** flag and attract loop.
@@ -520,7 +634,11 @@ Guidelines and research
   card-to-viewer transition from Home into a Journey, progressive enhancement only.
 - NASA image use guidelines, https://www.nasa.gov/nasa-brand-center/images-and-media/ :
   credit lines and no insignia.
-- Fonts: Instrument Serif, Inter (https://rsms.me/inter/), JetBrains Mono, all open licenses.
+- Fonts: Geist and Geist Mono, https://vercel.com/font and
+  https://github.com/vercel/geist-font , SIL Open Font License.
+- Zoom insets in scientific figures, for example Matplotlib's inset with connector
+  lines, https://matplotlib.org/stable/gallery/subplots_axes_and_figures/zoom_inset_axes.html :
+  the model for the loupe and its leader lines, read as an instrument rather than a toy.
 
 All links resolved on 2026-11-17. The references were not re-audited screen by screen.
 
@@ -530,8 +648,17 @@ Decided on 2026-11-17:
 
 1. "Journeys" is the organizing concept: story first, then free exploration.
 2. Dark-first, with an always-dark viewer canvas and a light theme for the chrome.
-3. Instrument Serif for titles, Inter for the interface, JetBrains Mono for numbers.
-4. English only at launch; strings are kept in one place so pt-BR can follow.
+3. Visual direction C "Instrument" is chosen, pending final mockup approval: Geist and
+   Geist Mono, hairline rulers in image pixels, bracket stop markers, a route line, and
+   readouts limited to computed values (6.3).
+4. The loupe from direction D joins C, drawn in C's language (6.5).
+5. Andromeda launches first, and the viewer serves images of any shape: the
+   aspect-ratio rule (6.4) governs the overview, markers and thumbnails.
+6. English only at launch; strings are kept in one place so pt-BR can follow.
 
-Still open (tracked in `docs/roadmap.md`): which Journeys launch after Andromeda,
-whether launch waits for Light, and kiosk scope.
+Superseded on 2026-11-17: Instrument Serif for titles, Inter for the interface and
+JetBrains Mono for numbers, decided earlier the same day, are replaced by Geist and
+Geist Mono with direction C.
+
+Still open (tracked in `docs/roadmap.md`): final approval of the C mockups, which
+Journeys launch after Andromeda, whether launch waits for Light, and kiosk scope.
