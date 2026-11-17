@@ -582,7 +582,7 @@ npm run sync-r2 -- [--dir public/tiles] [--apply]
   already committed stay tracked and are the same bytes the workflow cuts (checked for
   `pillars-hubble-1995`, `pillars-hubble-2014` and `sun-sdo-2024-05-10-aia-171`).
 - `build-tiles` never cuts `andromeda-phat-phast-2025` (`NOT_REBUILT`): the quarter set stays on
-  R2 as it is, and H-01 replaces it under a new id. `all` leaves it out and logs why; naming it
+  R2 as it is (H-01, which would have replaced it, is blocked by the science review). `all` leaves it out and logs why; naming it
   is an error. Checked 2026-11-17: at 416 Mpx it opens sequentially and the cut stops with
   `out of order read`, and opened for random access its tiles differ in pixels from the
   committed set (248 MB against 163 MB).
@@ -844,6 +844,10 @@ rule for the site's origin (R-01), and `sync-r2` running in the "Sync tiles to R
 (section 12). The workflow cuts the tiles itself from the NASA originals (R-03).
 
 ### Script change (H-01, follow-up)
+
+Not built: H-01 is blocked. The science review found the half PNG's single 256-color palette
+shifts colors and bands faint regions (`docs/science/andromeda.md`, "Half-resolution file
+(H-01)"), so the quarter set stays. The tool decision below stands if a better source appears.
 
 `generate-tiles` cannot cut this file today:
 

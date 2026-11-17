@@ -39,7 +39,7 @@ describe("parseTargets", () => {
     expect(() => parseTargets("a-1 b-2", known, { "b-2": "kept on R2" })).toThrow("b-2: not rebuilt, kept on R2"));
   it("never rebuilds the quarter Andromeda by default", () => {
     expect(parseTargets("all", imageIds(process.cwd())).skipped).toEqual(["andromeda-phat-phast-2025"]);
-    expect(() => parseTargets("andromeda-phat-phast-2025", imageIds(process.cwd()))).toThrow(/H-01/);
+    expect(() => parseTargets("andromeda-phat-phast-2025", imageIds(process.cwd()))).toThrow(/stays on R2 as cut/);
   });
   it("rejects an unknown id", () => expect(() => parseTargets("zzz", known)).toThrow(/no data\/images\/zzz.json/));
   it("rejects anything that is not an id", () => expect(() => parseTargets("a-1;rm", known)).toThrow(/not an image id/));

@@ -28,7 +28,8 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 Deferred on 2026-11-17, not needed for now: analytics (L-08), sky coordinates in search (F-09)
 and offline support (F-08).
 
-Still open: keeping new tiles out of git (R-03), half-resolution Andromeda (H-01), and the Pillars Journey (C-05).
+Still open: the first CI run of the tile build (R-03) and the Pillars Journey (C-05).
+Blocked: half-resolution Andromeda (H-01), by the science review of the half file.
 
 ## M0. Plan
 
@@ -146,8 +147,8 @@ C-05 waited for R2, which now exists: the Webb frame is about 2,566 tiles and 11
 |---|---|---|---|---|
 | R-01 | Create the R2 bucket, public domain for tiles, CORS for the site | done | D-08 | Tiles load from R2 in a preview build |
 | R-02 | Switch production to R2 | done | R-01 | The live site loads its tiles from tiles.solariadata.com |
-| R-03 | Stop committing new tiles (owner: Guilherme): the sync workflow cuts tiles from the NASA originals (`build-tiles`) and `public/tiles/` is ignored; built; `all` skips the quarter Andromeda, which stays on R2 until H-01; still to do: run `all` once in CI; HiRISE tiles decode via `opj_decompress` but differ from the committed ones in 8 EXIF bytes per tile | doing | R-02 | New images never enter git |
-| H-01 | Half-resolution Andromeda on R2 (owner: Guilherme): `generate-tiles` gets `--max-level` and a level and column range, is tested on a PNG, then the set is tiled in pieces and synced (architecture.md section 15) | todo | R-01, S-04 | Half set loads from R2 in a preview build and its stops are validated |
+| R-03 | Stop committing new tiles (owner: Guilherme): the sync workflow cuts tiles from the NASA originals (`build-tiles`) and `public/tiles/` is ignored; built; `all` skips the quarter Andromeda, which stays on R2 as cut; still to do: run `all` once in CI; HiRISE tiles decode via `opj_decompress` but differ from the committed ones in 8 EXIF bytes per tile | doing | R-02 | New images never enter git |
+| H-01 | Half-resolution Andromeda on R2 (owner: Guilherme): `generate-tiles` gets `--max-level` and a level and column range, is tested on a PNG, then the set is tiled in pieces and synced (architecture.md section 15). Blocked 2026-11-17: its 256-color palette shifts colors and bands faint regions (`docs/science/andromeda.md`), so the quarter set stays | blocked | R-01, S-04 | Half set loads from R2 in a preview build and its stops are validated |
 
 ## Later
 

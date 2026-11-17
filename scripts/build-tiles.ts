@@ -43,7 +43,7 @@ export const imageIds = (root: string) =>
 
 // Tile sets already on R2 that this script must not cut again, with the reason.
 export const NOT_REBUILT: Record<string, string> = {
-  "andromeda-phat-phast-2025": "stays on R2 as cut; H-01 replaces it under a new id (architecture.md section 15)",
+  "andromeda-phat-phast-2025": "stays on R2 as cut: a rebuild differs in pixels (architecture.md section 12)",
 };
 
 export const skipMessage = (id: string, reasons = NOT_REBUILT) => `${id}: not rebuilt, ${reasons[id]}`;
