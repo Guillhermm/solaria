@@ -21,8 +21,8 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 | 6 | Home and About, launch-ready | L-01, L-02, L-05 | done |
 | 7 | Compare | C-01 to C-04 (C-05 waits for R2) | done |
 | 8 | Light | G-01 to G-04 | done |
-| 9 | Labeled features, kiosk, test hardening | F-03, F-01, T-01 | doing |
-| 10 | Search and detail of the week | F-04, F-02 | todo |
+| 9 | Labeled features, kiosk, test hardening | F-03, F-01, T-01 | done |
+| 10 | Search and detail of the week | F-04, F-02 | doing |
 | 11 | Mars Journey | F-05 | todo |
 | 12 | Brazilian Portuguese | F-06 | todo |
 
