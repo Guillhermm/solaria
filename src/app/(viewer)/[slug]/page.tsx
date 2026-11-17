@@ -5,6 +5,7 @@ import Explore from "@/components/explore/Explore";
 import type { LightView } from "@/components/light/types";
 import { getContent } from "@/content/load";
 import { resolveTileBase } from "@/content/tiles";
+import { nextJourney } from "@/kiosk/kiosk";
 import { infoFor } from "@/viewer/info";
 
 interface Params {
@@ -80,7 +81,7 @@ const ViewerPage = async ({ params }: Params) => {
       bandSets={bandSets}
       labels={labels}
       labelStops={labelStops}
-      nextJourney={journey ? content.journeys[(content.journeys.indexOf(journey) + 1) % content.journeys.length].slug : undefined}
+      nextJourney={journey ? nextJourney(content.journeys.map((j) => j.slug), journey.slug) : undefined}
     />
   );
 };
