@@ -84,6 +84,10 @@ in [docs/science/](docs/science/).
   checked note per band.
 - The Sun Journey at `/sun/`: seven stops through the SDO bands; each stop can switch the band,
   with a crossfade (a cut under reduced motion), and the rail stays in hand to switch freely.
+- Feature labels in Explore and Light: the Feature labels button (above Reset view) draws
+  the validated labels of `data/labels/` on the image, as rings or measured circles with
+  chips placed clear of the controls; a chip opens its description, and About this image
+  lists every label with a Show button. `labels=1` in the URL keeps them on.
 - Unit and integration tests (Vitest) and end-to-end tests (Playwright). The end-to-end suite
   also runs axe-core on Home and About and measures LCP, CLS and interaction latency on a
   throttled phone profile (`tests/e2e/quality.spec.ts`; results in `docs/design.md` section 9).
