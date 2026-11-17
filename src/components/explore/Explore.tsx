@@ -52,7 +52,7 @@ import { sides } from "@/viewer/compare";
 import { dividerValueText } from "@/viewer/divider";
 import { reticleSide } from "@/viewer/route";
 import { type Bounds, flightPlan, parseStop, stepStop, stopNumber, stopOf, stopTarget, storySearch, viewBounds, zoomSpan } from "@/viewer/story";
-import { formatInt, formatZoom, homeView, osdFromView, type Size, viewFromOsd, waitsForTiles } from "@/viewer/view";
+import { fitScale, formatInt, formatZoom, homeView, osdFromView, type Size, viewFromOsd, waitsForTiles } from "@/viewer/view";
 import { DWELL_MS, storySearch1 } from "@/kiosk/kiosk";
 import { useAttract, useKiosk } from "@/kiosk/useKiosk";
 import { labelView, parseLabelsParam } from "@/viewer/labels";
@@ -104,6 +104,10 @@ const TILE_ERRORS: Toast = { text: "Some detail could not load.", retry: true, s
 // design.md 5.8: missing tiles stay at the lower level; only after this many does the user hear of it.
 const TILE_ERROR_LIMIT = 10;
 const IDLE_MS = 5000;
+// design.md 15.5, D10: by hand the camera stops at 1.1 screen pixels per image pixel (OpenSeadragon's
+// default). A held link view that needs more raises the cap to exactly its own ratio until the
+// user zooms out below 1.1.
+const ZOOM_CAP = 1.1;
 
 // The settled view (OpenSeadragon's target, not the frame in flight).
 const settledView = (viewer: OpenSeadragon.Viewer, size: Size) => {
@@ -297,6 +301,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   const [labelsOn, setLabelsOn] = useState(false);
   const [openLabel, setOpenLabel] = useState<string | null>(null);
   const [viewerReady, setViewerReady] = useState(false);
+  const [atMaxZoom, setAtMaxZoom] = useState(false);
   const painterRef = useRef<LabelPainter | null>(null);
   const kiosk = useKiosk();
   const attract = useAttract();
@@ -398,6 +403,8 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       // Bounds cover the area inside the margins; screen pixels count from the host's corner.
       const bounds = vp.getBoundsNoRotate(true);
       const scale = (host.clientWidth - margins.left - margins.right) / (bounds.width * width);
+      // Screen pixels per image pixel on screen now, for the zoom cap's tests (design.md 15.5, D10).
+      host.dataset.scale = scale.toFixed(4);
       const top = rulerTopRef.current;
       const left = rulerLeftRef.current;
       if (top && top.offsetParent)
@@ -475,9 +482,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         // Light pages take the same drawer, so both modes read and draw the same way.
         ...(pairs.length || bandSets.length ? { drawer: "canvas" } : {}),
         gestureSettingsMouse: { clickToZoom: false, dblClickToZoom: true },
-        // A link's zoom can ask past native on a wide screen (a label's z on the 4096 px Sun is
-        // about 1.25 screen pixels per image pixel at 1440x900); OpenSeadragon's default is 1.1.
-        maxZoomPixelRatio: 2,
+        maxZoomPixelRatio: ZOOM_CAP,
       });
       viewerRef.current = viewer;
       const opened = viewer;
@@ -508,8 +513,17 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         width: host.clientWidth - margins.left - margins.right,
         height: host.clientHeight - margins.top - margins.bottom,
       });
+      // Screen pixels per image pixel at the settled zoom.
+      const ratioNow = () => (opened.viewport.getZoom() * viewerPx().width) / width;
+      const markMax = () => setAtMaxZoom(opened.viewport.getZoom() >= opened.viewport.getMaxZoom() * 0.995);
+      // A link's view past the cap raises it to exactly what that view needs.
+      const allow = (view: Viewport) => {
+        const vp = opened.viewport as unknown as { maxZoomPixelRatio: number };
+        vp.maxZoomPixelRatio = Math.max(ZOOM_CAP, fitScale(viewerPx(), size) * view.z * 1.0001);
+      };
       const fly = (view: Viewport, done?: () => void, exact = false) => {
         const cap = exact ? Infinity : 1;
+        if (exact) allow(view);
         nextLeg = null;
         fitted = false;
         flying = true;
@@ -560,6 +574,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
             else fitImageBounds(viewBounds(j.stops[at].viewport, size, viewerPx()), 0);
           } else if (heldViewRef.current) {
             const held = heldViewRef.current;
+            allow(held);
             if (flying) fly(held, afterFlight ?? undefined, true);
             else fitImageBounds(viewBounds(held, size, viewerPx(), Infinity), 0);
           } else if (fitted) opened.viewport.goHome(true);
@@ -662,6 +677,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           requestAnimationFrame(() => landedRef.current());
         } else if (view) {
           heldViewRef.current = view;
+          allow(view);
           const vp = opened.viewport;
           const target = osdFromView(view, vp.getHomeZoom(), { width, height });
           vp.zoomTo(target.zoom, undefined, true);
@@ -672,9 +688,16 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         // L2: a link with labels=1 opens with them on, in the modes that show them.
         if (parseLabelsParam(window.location.search)) setLabelsOn(true);
         setViewerReady(true);
+        markMax();
         schedule();
         // design.md 5.8: Compare is hidden where the drawer cannot rotate an image.
         if (pairs.length || bandSets.length) setOpened({ OSD, viewer: opened, margins: () => margins, rotates: opened.drawer.canRotate() });
+      });
+      // Zooming out below 1.1 by hand puts the cap back.
+      opened.addHandler("zoom", () => {
+        const vp = opened.viewport as unknown as { maxZoomPixelRatio: number };
+        if (!heldViewRef.current && !flying && vp.maxZoomPixelRatio > ZOOM_CAP && ratioNow() <= ZOOM_CAP) vp.maxZoomPixelRatio = ZOOM_CAP;
+        if (!flying) markMax();
       });
       opened.addHandler("animation-start", () => {
         started = true;
@@ -688,6 +711,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         }
         const wasFlying = flying;
         flying = false;
+        markMax();
         const done = afterFlight;
         afterFlight = null;
         done?.();
@@ -1570,7 +1594,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         </div>
 
         <div ref={controlsRef} className={`${styles.controls} ${styles.glass} ${styles.dim}`} role="group" aria-label="View controls">
-          <button type="button" className={styles.iconButton} onClick={() => zoomBy(2)} aria-label="Zoom in">
+          <button type="button" className={styles.iconButton} onClick={() => zoomBy(2)} aria-label="Zoom in" disabled={atMaxZoom}>
             <LuPlus aria-hidden />
           </button>
           <button type="button" className={styles.iconButton} onClick={() => zoomBy(0.5)} aria-label="Zoom out">

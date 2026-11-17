@@ -143,6 +143,13 @@
   color: var(--accent);
 }
 
+/* Zoom in at the cap (design.md 15.5, D10). */
+.iconButton:disabled {
+  color: var(--text-muted);
+  opacity: 0.5;
+  cursor: default;
+}
+
 .iconButton:active {
   color: var(--accent-press);
 }

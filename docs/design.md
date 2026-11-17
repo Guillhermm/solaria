@@ -1254,11 +1254,21 @@ descriptions, stop bodies and credits, all from validated data.
   phone the panel opens 0.5rem under it (all states: empty, results, no match, point).
   While the dialog is open the viewer's notes ("Still loading the detail.", tile errors) are
   hidden rather than cut by the panel; they return when it closes.
-- **D10, a link's zoom is kept exactly.** A URL or a search row with x, y, z lands on that
-  zoom (readout within 1%), on a fresh load and in place, and keeps it when the frame changes
-  after opening (the Light bar, the phone sheet) until the user moves. Journey stops still
-  stop at native zoom; OpenSeadragon's zoom limit is 2 screen pixels per image pixel
-  (was its default 1.1) so a label's z fits on a wide screen.
+- **D10, a link's zoom is kept exactly; by hand the cap stays 1.1.** A URL or a search row
+  with x, y, z lands on that zoom (readout within 1%), on a fresh load and in place, and
+  keeps it when the frame changes after opening (the Light bar, the phone sheet) until the
+  user moves. By hand (wheel, pinch, +, double-click, Zoom in) the camera stops at 1.1
+  screen pixels per image pixel, OpenSeadragon's default. A held link view that needs more
+  raises the cap to exactly its own ratio (the Sun label at 1440x900 is about 1.25), where
+  Zoom in is disabled and + does nothing; zooming out below 1.1 puts the cap back. Journey
+  stops still stop at native zoom.
+- **D11, minor: the Sun label's circle meets the Light bar on desktop.** At 1440x900 the
+  label link's z 5.69 (Q3: the radius fills a third of the shorter side) draws the circle
+  about 300px in radius around the view's center, and its lower arc passes under the Light
+  bar, which floats over the image on desktop and is not a margin of the view there. Keeping
+  it clear would mean moving the view off the label's center (Q21 wants the URL's x and y)
+  or making the bar a margin of every Light view on desktop, a layout change beyond this
+  sprint. Left as is; the label's chip and center stay clear of the bar.
 - **D8, the active row's context is `--text-2`.** `--text-muted` on the `--hairline` ground
   of the active row measures 3.9:1 in the light theme, under Q20's 4.5:1; the other rows
   keep `--text-muted` (Q19).
