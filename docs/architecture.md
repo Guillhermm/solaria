@@ -1,6 +1,6 @@
 # Architecture: Sprint 2 (Next 16, content from manifests, static export)
 
-Covers roadmap items B-08 and D-01 to D-07. Status: planned. Plan and rules come from
+Covers roadmap items B-08 and D-01 to D-07. Status: in progress (see `docs/roadmap.md`). Plan and rules come from
 `docs/vision.md` (sections 5 and 7), `docs/science/compare-and-light.md` (section 3) and
 `docs/design.md` (sections 4, 6.3, 6.4, 7.2).
 
@@ -287,16 +287,20 @@ tsx scripts/generate-tiles.ts <input> <imageId> [--no-pyramid]
 
 - Output: `public/tiles/<imageId>/<level>/<x>/<y>.jpg`, plus `thumbnail.jpg` and
   `preview.jpg` in the same directory.
-- Level math moves to `src/content/pyramid.ts`, matching what OpenSeadragon computes:
+- Level math moves to `src/content/pyramid.ts`. Level sizes round to the nearest pixel, as
+  libvips does (levels 0 and 1 of Andromeda are 154 and 308 px high, not 155 and 309).
+  Tile counts divide the unrounded size, as OpenSeadragon does (`ceil(w / 2^(maxLevel -
+  level) / tileSize)`):
 
   ```ts
-  export const levelSize = (w: number, h: number, maxLevel: number, level: number) =>
-    ({ width: Math.ceil(w / 2 ** (maxLevel - level)), height: Math.ceil(h / 2 ** (maxLevel - level)) });
-  export const tileCount = (w: number, h: number, tileSize: number, maxLevel: number, level: number);
+  export const levelSize = (w: number, h: number, maxLevel: number, level: number); // rounded
+  export const tileCount = (w: number, h: number, tileSize: number, maxLevel: number, level: number); // { cols, rows }
+  export const assertGrid = (size, grid, tileSize, label); // throws if the level cannot fill the grid
   ```
 
   The script resizes each level to exactly `levelSize` and throws if libvips returns a
-  different size, rather than cutting from whatever it got.
+  different size, or if the rounded level cannot fill the grid OpenSeadragon will ask for,
+  rather than cutting from whatever it got.
 - `maxLevel` stays 6 and `tileSize` 256, as today.
 - After writing, it reads `data/images/<imageId>.json`, replaces only the `tiles` key and
   writes it back (2-space JSON, trailing newline). If the manifest does not exist, it
