@@ -1,0 +1,188 @@
+{
+  "slug": "andromeda",
+  "imageId": "andromeda-phat-phast-2025",
+  "title": "Andromeda, star by star",
+  "summary": "Seven stops from the disk of the Andromeda Galaxy down to its brightest stars.",
+  "stops": [
+    {
+      "id": "whole-galaxy",
+      "title": "The Andromeda Galaxy",
+      "body": "This is the largest photomosaic ever assembled from Hubble observations. It shows the Andromeda Galaxy, about 2.5 million light-years away, a distance of roughly 25 Milky Way diameters. It was assembled from about 600 fields of view. The colors are assigned to two filters, so this is not natural color.",
+      "viewport": {
+        "x": 21104,
+        "y": 4935,
+        "z": 1
+      },
+      "sources": [
+        {
+          "label": "NASA image page",
+          "url": "https://science.nasa.gov/asset/hubble/hubble-m31-phatphast-mosaic/"
+        },
+        {
+          "label": "ESA release heic2501",
+          "url": "https://esahubble.org/news/heic2501/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Validated: see docs/science/andromeda-journey.md"
+      }
+    },
+    {
+      "id": "central-core",
+      "title": "The bright center",
+      "body": "The glow at the center is the blended light of a great many stars, not a single object. It looks yellower than the outer disk: NASA describes yellowish older stars toward the center and young blue stars around the outer rim. Dark, dusty clouds thread through this region.",
+      "viewport": {
+        "x": 17461,
+        "y": 5600,
+        "z": 6
+      },
+      "sources": [
+        {
+          "label": "NASA image page",
+          "url": "https://science.nasa.gov/asset/hubble/hubble-m31-phatphast-mosaic/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Validated: see docs/science/andromeda-journey.md"
+      },
+      "marker": {
+        "x": 17461,
+        "y": 6482,
+        "r": 300
+      }
+    },
+    {
+      "id": "dust-lanes",
+      "title": "Dust lanes",
+      "body": "Dark, dusty filaments wrap around the galaxy's disk. They appear dark against the yellow stars. Dust blocks part of the light of the stars behind it, so the dark lanes mark where dust lies in front of them.",
+      "viewport": {
+        "x": 13190,
+        "y": 7935,
+        "z": 10
+      },
+      "sources": [
+        {
+          "label": "NASA image page",
+          "url": "https://science.nasa.gov/asset/hubble/hubble-m31-phatphast-mosaic/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Validated: see docs/science/andromeda-journey.md"
+      }
+    },
+    {
+      "id": "m32",
+      "title": "The companion galaxy M32",
+      "body": "The small, fuzzy yellow patch to the upper left of the center is Messier 32, a compact satellite galaxy of Andromeda. The release names it as a possible culprit behind Andromeda's more active history of interaction and star formation.",
+      "viewport": {
+        "x": 11412,
+        "y": 2448,
+        "z": 12
+      },
+      "sources": [
+        {
+          "label": "ESA release heic2501",
+          "url": "https://esahubble.org/news/heic2501/"
+        },
+        {
+          "label": "NASA image page",
+          "url": "https://science.nasa.gov/asset/hubble/hubble-m31-phatphast-mosaic/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Validated: see docs/science/andromeda-journey.md"
+      },
+      "marker": {
+        "x": 11412,
+        "y": 2448,
+        "r": 250
+      }
+    },
+    {
+      "id": "ngc-206",
+      "title": "NGC 206",
+      "body": "NGC 206 is a concentration of bright blue stars in Andromeda, one of the regions NASA marks on this mosaic. Blue marks areas where young stars dominate on average; a single blue dot does not tell you that star's age or temperature.",
+      "viewport": {
+        "x": 5330,
+        "y": 7260,
+        "z": 15
+      },
+      "sources": [
+        {
+          "label": "NASA image page",
+          "url": "https://science.nasa.gov/asset/hubble/hubble-m31-phatphast-mosaic/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Validated: see docs/science/andromeda-journey.md"
+      },
+      "marker": {
+        "x": 5330,
+        "y": 7260,
+        "r": 250
+      }
+    },
+    {
+      "id": "toward-single-stars",
+      "title": "Toward single stars",
+      "body": "Zoom this far and the glow breaks into points. At this resolution many specks blend several stars; the brightest isolated points are mostly single luminous stars. Hubble distinguishes about 200 million stars in the full-resolution mosaic, still a fraction of Andromeda's total, and detects only stars brighter than the Sun. This view uses a quarter-resolution rendition.",
+      "viewport": {
+        "x": 26880,
+        "y": 3586,
+        "z": 29
+      },
+      "sources": [
+        {
+          "label": "NASA image page",
+          "url": "https://science.nasa.gov/asset/hubble/hubble-m31-phatphast-mosaic/"
+        },
+        {
+          "label": "ESA release heic2501",
+          "url": "https://esahubble.org/news/heic2501/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Validated: see docs/science/andromeda-journey.md"
+      }
+    },
+    {
+      "id": "your-turn",
+      "title": "Your turn",
+      "body": "You have just moved from Andromeda's disk down to its brightest stars. The black stepped border marks where no data were taken. Everything inside it is open: drag to move, zoom in anywhere, and open About this image for the details and the credit.",
+      "viewport": {
+        "x": 21104,
+        "y": 4935,
+        "z": 1
+      },
+      "sources": [
+        {
+          "label": "NASA image page",
+          "url": "https://science.nasa.gov/asset/hubble/hubble-m31-phatphast-mosaic/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Validated: see docs/science/andromeda-journey.md"
+      }
+    }
+  ],
+  "validation": {
+    "status": "approved",
+    "date": "2026-11-17",
+    "notes": "Validated: see docs/science/andromeda-journey.md"
+  },
+  "mock": false
+}

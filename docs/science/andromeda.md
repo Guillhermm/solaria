@@ -31,7 +31,7 @@ recomputation from the tiles. Verdict: **accepted with caveats**.
   data were taken, not structure.
 - The viewer shows a quarter-resolution rendition, not the 2.5 billion pixel original.
 - Color describes regions on average (bluer where young stars dominate, yellower where
-  older stars do, brown dust lanes); a single dot's color does not give one star's age or
+  older stars do, dark dust lanes); a single dot's color does not give one star's age or
   temperature.
 - The bright bulge is the blended light of many stars, not one object.
 
