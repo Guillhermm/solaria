@@ -3,9 +3,8 @@
 Status: Journeys concept approved on 2026-11-17. Visual direction C "Instrument" chosen on
 2026-11-17, pending final mockup approval. Built so far: the tokens of 6.1 in
 `src/styles/tokens.css`, the Geist fonts and the dark and light themes (V-01), and
-Bootstrap replaced by CSS Modules (V-02), and the header and footer (V-03), the Explore
-viewer (X-01 to X-05), and Story mode with the Andromeda Journey (S-01, 5.3, 5.4, 7.2).
-Until
+Bootstrap replaced by CSS Modules (V-02), the header and footer (V-03), the Explore
+viewer (X-01 to X-05), and Story mode with the Andromeda Journey (S-01, 5.3, 5.4, 7.2). Until
 their pages exist, the header leaves out Journeys and About, and the footer links to the
 team, the challenge and the code instead of About, Sources and Accessibility.
 Date: 2026-11-17. Target: solaria.zenus.systems.
@@ -86,7 +85,7 @@ as an attract loop, any touch takes control, 90 s idle returns to the loop with 
 ```
 /                      Home: hero with loupe and panorama strip, Journeys index
 /[slug]                Image viewer; the slug is the image id (mode via ?mode=story|explore|compare|light;
-                       only explore is built). A Journey slug (/andromeda) opens Story on
+                       explore and story are built). A Journey slug (/andromeda) opens Story on
                        its image, ?mode=story&stop=N (N from 1), and Explore on the same page
                        viewport via ?x=&y=&z=  (image pixels; z is zoom relative to fit)
 /about                 What Solaria is, credits, data sources, accessibility statement
@@ -199,7 +198,9 @@ aim); tapping a stop opens the Journey at that stop.
 - As built (S-01): the current stop's reticle sits on its marker, or at its view center
   when it has none, and grows to frame the marker's radius; markers never take a gesture
   from the image. A stop at the fit view (z = 1, the first and last Andromeda stops) has no
-  marker on the image or the strip, since it shows the whole image. While the story is
+  marker on the image or the strip, since it shows the whole image. A flight stops at native
+  zoom (one screen pixel per image pixel), so on a large screen a deep stop shows more
+  around it instead of magnified pixels. While the story is
   paused on desktop, the "back to the story" pill takes the title bar's place (the column
   already holds the title), so it covers neither the overview nor the controls. Not built:
   the scroll wheel over the stop list advancing stops (the list itself scrolls when the

@@ -40,9 +40,11 @@ export interface Bounds {
   height: number;
 }
 
-// The part of the image (in image pixels) a view shows in a viewer of the given size or aspect.
+// The part of the image (in image pixels) a view shows in a viewer of the given size in screen
+// pixels. The camera never goes past one screen pixel per image pixel, so on a large screen a
+// deep stop shows more around it rather than magnified pixels.
 export const viewBounds = (view: Viewport, image: Size, viewer: Size): Bounds => {
-  const scale = fitScale(viewer, image) * view.z;
+  const scale = Math.min(fitScale(viewer, image) * view.z, 1);
   const width = viewer.width / scale;
   const height = viewer.height / scale;
   return { x: view.x - width / 2, y: view.y - height / 2, width, height };

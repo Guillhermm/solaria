@@ -317,19 +317,24 @@ const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
         opened.viewport.fitBoundsWithConstraints(rect, ms === 0);
         all.forEach((s, i) => (s.animationTime = before[i]));
       };
+      // The part of the canvas inside the margins, in screen pixels.
+      const viewerPx = () => ({
+        width: host.clientWidth - margins.left - margins.right,
+        height: host.clientHeight - margins.top - margins.bottom,
+      });
       const fly = (view: Viewport) => {
         nextLeg = null;
         const vp = opened.viewport;
         const b = vp.getBounds();
-        const aspect = { width: b.width, height: b.height };
+        const px = viewerPx();
         // design.md 5.8: under reduced motion a flight becomes a cut with a 200 ms fade.
         if (window.matchMedia(REDUCED).matches) {
-          fitImageBounds(viewBounds(view, size, aspect), 0);
+          fitImageBounds(viewBounds(view, size, px), 0);
           host.animate([{ opacity: 0.2 }, { opacity: 1 }], { duration: 200, easing: "ease-out" });
           return;
         }
         const from = { x: b.x * width, y: b.y * width, width: b.width * width, height: b.height * width };
-        const [first, second] = flightPlan(from, settledView(opened, size).z, view, size, aspect, span);
+        const [first, second] = flightPlan(from, settledView(opened, size).z, view, size, px, span);
         fitImageBounds(first.bounds, first.ms);
         if (second) nextLeg = () => fitImageBounds(second.bounds, second.ms);
       };
@@ -389,7 +394,7 @@ const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
         const { view, mode: asked } = parseViewerParams(window.location.search, { width, height }, journey ? STORY_MODES : EXPLORE_MODES);
         syncMargins();
         if (journey && asked === "story") {
-          fitImageBounds(viewBounds(journey.stops[parseStop(window.location.search, journey.stops.length)].viewport, size, opened.viewport.getBounds()), 0);
+          fitImageBounds(viewBounds(journey.stops[parseStop(window.location.search, journey.stops.length)].viewport, size, viewerPx()), 0);
         } else if (view) {
           const vp = opened.viewport;
           const target = osdFromView(view, vp.getHomeZoom(), { width, height });

@@ -84,11 +84,14 @@ describe("camera flights (design.md 6.1)", () => {
     expect(tall.y).toBeCloseTo(0);
   });
 
-  it("depends on the viewer's aspect only, not its unit", () => {
-    const a = viewBounds({ x: 100, y: 100, z: 4 }, ANDROMEDA, { width: 1440, height: 900 });
-    const b = viewBounds({ x: 100, y: 100, z: 4 }, ANDROMEDA, { width: 1.6, height: 1 });
-    expect(b.width).toBeCloseTo(a.width);
-    expect(b.height).toBeCloseTo(a.height);
+  it("never goes past native zoom, one screen pixel per image pixel", () => {
+    // 2560 px wide fits Andromeda at 0.061 px per image px; z = 29 would be 1.76.
+    const deep = viewBounds({ x: 26880, y: 3586, z: 29 }, ANDROMEDA, { width: 2560, height: 1440 });
+    expect(deep.width).toBeCloseTo(2560);
+    expect(deep.height).toBeCloseTo(1440);
+    // Below native the stop's own zoom holds.
+    const laptop = viewBounds({ x: 26880, y: 3586, z: 29 }, ANDROMEDA, { width: 1440, height: 900 });
+    expect(laptop.width).toBeCloseTo(42208 / 29);
   });
 
   it("scales the duration by zoom distance within 1200 to 1800 ms", () => {
