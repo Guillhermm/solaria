@@ -92,12 +92,7 @@ Playwright runs `npm run build && npm start`. No `serve` or `http-server` depend
 ```ts
 export type Mode = "production" | "development";
 
-export interface Content {
-  sources: Source[];
-  images: ImageManifest[];
-  journeys: Journey[];
-}
-
+// Content is defined in types.ts and re-exported here.
 export const loadContent = (opts: { root: string; mode: Mode }): Content;
 export const getContent = (): Content; // root = process.cwd(), mode from NODE_ENV, memoized
 ```
@@ -119,6 +114,7 @@ export const getContent = (): Content; // root = process.cwd(), mode from NODE_E
 `src/content/types.ts`. These are the contract; the validator enforces them.
 
 ```ts
+// Content = { sources: Source[]; images: ImageManifest[]; journeys: Journey[] } is exported too.
 export type IsoDate = string; // YYYY-MM-DD, UTC
 
 // Review of a whole record (source, image, Journey, stop) by science review.
@@ -205,6 +201,7 @@ export interface ImageManifest {
   pixelScale?: Claim<{ value: number; unit: "arcsec/px" | "m/px" }>;
   fieldOfView?: Claim<string>;
   orientation?: Claim<string>;
+  caveats?: string[]; // what users must see beside the image, from the science review
   tiles: TilePyramid;
   validation: Validation;
   mock: boolean;

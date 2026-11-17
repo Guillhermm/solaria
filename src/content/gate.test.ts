@@ -1,0 +1,64 @@
+import { describe, expect, it } from "vitest";
+import * as fx from "./__fixtures__/content";
+import { publishProblems } from "./gate";
+import type { Content } from "./types";
+
+const content = (): Content => ({ sources: [fx.source()], images: [fx.image()], journeys: [fx.journey()] });
+
+describe("publishProblems", () => {
+  it("is empty for an approved set", () => {
+    expect(publishProblems(content())).toEqual([]);
+  });
+
+  it("flags mock records", () => {
+    const c = content();
+    c.images[0].mock = true;
+    expect(publishProblems(c)).toEqual(["image demo: mock content cannot be published"]);
+  });
+
+  it.each(["draft", "in-review", "rejected"] as const)("flags a %s source", (status) => {
+    const c = content();
+    c.sources[0].validation.status = status;
+    expect(publishProblems(c)).toEqual([`source demo: validation.status is "${status}", expected "approved"`]);
+  });
+
+  it("flags an unapproved image and the journey that uses it", () => {
+    const c = content();
+    c.images[0].validation.status = "draft";
+    expect(publishProblems(c)).toEqual([
+      'image demo: validation.status is "draft", expected "approved"',
+      'journey demo: image "demo" is not approved',
+    ]);
+  });
+
+  it("flags an unapproved stop", () => {
+    const c = content();
+    c.journeys[0].stops[3].validation.status = "in-review";
+    expect(publishProblems(c)).toEqual(['journey demo stop d: validation.status is "in-review", expected "approved"']);
+  });
+
+  it("flags an unverified claim, optional ones included", () => {
+    const c = content();
+    c.images[0].bands.status = "unverified";
+    c.images[0].pixelScale = { value: { value: 0.2, unit: "arcsec/px" }, source: "https://example.org/x", status: "unverified" };
+    expect(publishProblems(c)).toEqual(["image demo: bands is unverified", "image demo: pixelScale is unverified"]);
+  });
+
+  it("accepts supported and verified claims", () => {
+    const c = content();
+    c.images[0].bands.status = "verified";
+    expect(publishProblems(c)).toEqual([]);
+  });
+
+  it.each([4, 9])("flags a journey with %i stops", (n) => {
+    const c = content();
+    c.journeys[0].stops = Array.from({ length: n }, (_, i) => fx.stop(`s${i}`));
+    expect(publishProblems(c)).toEqual([`journey demo: has ${n} stops, expected 5 to 8`]);
+  });
+
+  it.each([5, 8])("accepts a journey with %i stops", (n) => {
+    const c = content();
+    c.journeys[0].stops = Array.from({ length: n }, (_, i) => fx.stop(`s${i}`));
+    expect(publishProblems(c)).toEqual([]);
+  });
+});

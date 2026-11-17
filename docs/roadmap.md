@@ -52,7 +52,7 @@ Each item leaves the app working.
 
 | ID | Item | Status | Depends | Done when |
 |---|---|---|---|---|
-| D-01 | JSON schemas for source, image manifest and Journey; validator script | todo | B-01 | Invalid fixtures fail, valid ones pass |
+| D-01 | JSON schemas for source, image manifest and Journey; validator script | done | B-01 | Invalid fixtures fail, valid ones pass |
 | D-02 | `data/sources/andromeda-phat-phast-2025.json` | todo | D-01 | Origin URL, credit, terms, checksum recorded |
 | D-03 | Fetch script into an ignored cache with checksum check | todo | D-02 | Cache ignored; tests use a local fixture |
 | D-04 | `generate-tiles` writes thumbnail, preview and the manifest's dimensions and levels | todo | D-01 | Manifest generated for a small test image |
