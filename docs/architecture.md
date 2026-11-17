@@ -707,7 +707,7 @@ the browser menu in Chrome 108 on Android and 112 on desktop (developer.chrome.c
 lists the Chromium requirements as `name` or `short_name`, 192px and 512px icons,
 `start_url`, `display`, and no `prefer_related_applications`, plus HTTPS, and says a
 service worker is not required. A service worker would only add the risk of serving stale
-tiles or pages, so none ships; offline support is F-08, planned.
+tiles or pages, so none ships; offline support is F-08, deferred.
 
 The local static server (`scripts/serve-static.ts`) serves `.webmanifest` as
 `application/octet-stream`; Chrome reads the manifest either way, and the production host
@@ -965,7 +965,7 @@ the ones in the repository today.
   (`17461, 6482`). Results open the image, the stop or the labeled feature; on the page
   already open the view moves in place. The index is built from validated content at build
   time and travels in the page, so searching makes no request. Sky coordinates (RA and Dec)
-  are planned.
+  are deferred (F-09).
 - Detail of the week on Home: one stop from a validated pool (`data/weekly.json`, checked by
   the content validator) is picked by the ISO week of the build date (`SOLARIA_BUILD_DATE`,
   else today in UTC) and drawn as a square crop from the tile pyramid with its rulers,

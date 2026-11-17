@@ -959,8 +959,8 @@ Not re-fetched for this section.
 ## 15. Search and detail of the week: acceptance
 
 Specified on 2026-11-17 for roadmap F-04 and F-02, in direction C. Status: built in Sprint
-10; 15.5 records the decisions and the as-built deviations. Sky coordinates (RA and Dec) are planned
-beyond Sprint 10: they need a validated sky mapping per image (6.3). The conventions of 14
+10; 15.5 records the decisions and the as-built deviations. Sky coordinates (RA and Dec) are deferred (F-09)
+for now: they need a validated sky mapping per image (6.3). The conventions of 14
 hold: four cells per rule (390x844 and 1440x900, dark and light), boxes from
 `boundingBox()` in CSS pixels, 1px tolerance.
 
@@ -1108,7 +1108,7 @@ S1 to S4 (14.1) hold for every element added here. Three more apply to every rul
   frame is 1518 by 1497).
 - Q25. Sky coordinates are detected, not converted: a query with a digit followed by `h`,
   `m`, `s`, `°`, `′`, `″`, `'` or `"`, or with the word `ra` or `dec`, shows the sky note
-  (copy below) and no point row. Converting RA and Dec to pixels is planned.
+  (copy below) and no point row. Converting RA and Dec to pixels is deferred (F-09).
 
 **States** (each a non-selectable status line in the panel, `--text-2`, Body type).
 

@@ -24,7 +24,7 @@ is where development continues.
 - Light: slide through the bands of one image, for example the Sun in seven SDO channels.
 - Labels: draw the validated feature labels on the image, each with a description.
 - Search: find images, features and Journey stops by name, or go to a pixel by typing two
-  numbers. Press `/` to open it. Sky coordinates are planned.
+  numbers. Press `/` to open it. Sky coordinates are deferred (F-09).
 - Detail of the week: one stop from a validated pool, shown on Home and changed at build time.
 - Kiosk mode (`?kiosk=1`): attract loop, large targets and an idle reset for a shared
   screen. It is not linked from the app yet.

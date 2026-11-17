@@ -25,10 +25,11 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 | 10 | Search and detail of the week | F-04, F-02 | done |
 | 11 | Mars Journey, installable app, smooth zoom | F-05, F-07, T-02, T-03 | done |
 
-Deferred: analytics (L-08), not needed for now (2026-11-17).
+Deferred on 2026-11-17, not needed for now: analytics (L-08), sky coordinates in search (F-09)
+and offline support (F-08).
 
-Still open: keeping new tiles out of git (R-03), half-resolution Andromeda (H-01), the Pillars Journey (C-05),
-the weekly scheduled rebuild, sky coordinates in search, and offline support (F-08).
+Still open: keeping new tiles out of git (R-03), half-resolution Andromeda (H-01), the Pillars Journey (C-05)
+and the weekly scheduled rebuild (W-01).
 
 ## M0. Plan
 
@@ -159,9 +160,9 @@ C-05 waited for R2, which now exists: the Webb frame is about 2,566 tiles and 11
 | F-04 | Search by feature name, then by coordinates (image pixels; sky coordinates planned) | done |
 | F-05 | Mars Journey from HiRISE orthorectified pairs only | done |
 | F-07 | Installable app: web app manifest, favicon and icon set from the header mark (`scripts/generate-icons.ts`) | done |
-| F-08 | Offline support with a service worker that never serves stale tiles or pages | planned |
+| F-08 | Offline support with a service worker that never serves stale tiles or pages | deferred |
 | W-01 | Weekly scheduled rebuild so the detail of the week changes | planned |
-| F-09 | Sky coordinates (RA and Dec) in search | planned |
+| F-09 | Sky coordinates (RA and Dec) in search | deferred |
 | T-01 | Fix the two intermittent e2e failures (tile-outage retry toast, story cut) | done |
 | T-02 | Keep desktop Light views clear of the Light bar (design.md §15.5 D11) | done |
 | T-03 | Smooth deep zoom: the canvas drawer on every viewer and a 500-tile cache (architecture.md §8) | done |
