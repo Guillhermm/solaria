@@ -4,7 +4,8 @@ import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createStaticServer, resolvePath } from "./serve-static";
+import { gunzipSync } from "node:zlib";
+import { acceptsGzip, createStaticServer, resolvePath } from "./serve-static";
 
 let dir: string;
 let base: string;
@@ -47,7 +48,31 @@ describe("resolvePath", () => {
   });
 });
 
+describe("acceptsGzip", () => {
+  it("reads the Accept-Encoding header, honoring q=0", () => {
+    expect(acceptsGzip("gzip, deflate, br")).toBe(true);
+    expect(acceptsGzip("br;q=1.0, gzip;q=0.8")).toBe(true);
+    expect(acceptsGzip("gzip;q=0")).toBe(false);
+    expect(acceptsGzip("x-gzip, br")).toBe(false);
+    expect(acceptsGzip(undefined)).toBe(false);
+  });
+});
+
 describe("static server", () => {
+  it("gzips text when the client accepts it, and never images", async () => {
+    const raw = await new Promise<{ encoding?: string; body: Buffer }>((ok, ko) => {
+      get({ host: "127.0.0.1", port: new URL(base).port, path: "/", headers: { "accept-encoding": "gzip" } }, (res) => {
+        const chunks: Buffer[] = [];
+        res.on("data", (c) => chunks.push(c));
+        res.on("end", () => ok({ encoding: res.headers["content-encoding"], body: Buffer.concat(chunks) }));
+      }).on("error", ko);
+    });
+    expect(raw.encoding).toBe("gzip");
+    expect(gunzipSync(raw.body).toString()).toBe("<h1>home</h1>");
+    const jpg = await fetch(`${base}/tiles/x/0/0.jpg`);
+    expect(jpg.headers.get("content-encoding")).toBeNull();
+  });
+
   it("serves the index for / and for a directory", async () => {
     expect(await (await fetch(`${base}/`)).text()).toBe("<h1>home</h1>");
     const about = await fetch(`${base}/about/`);

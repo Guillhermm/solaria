@@ -63,6 +63,14 @@ test("footer anchors land on the credits and accessibility sections, at phone wi
   expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe("light");
 });
 
+test("the accessibility statement names only the automated checks that exist", async ({ page }) => {
+  await page.goto("/about/");
+  const section = page.locator("#accessibility");
+  await expect(section).toContainText("checked with axe-core at phone and desktop width");
+  await expect(section).toContainText("an audit with screen readers is planned, not yet done");
+  await expect(section).not.toContainText("Home page lens: planned");
+});
+
 test("no NASA or ESA logo is shown", async ({ page }) => {
   await page.goto("/about/");
   await expect(page.locator("main img")).toHaveCount(0);

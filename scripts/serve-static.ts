@@ -2,6 +2,7 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { createServer } from "node:http";
 import { extname, join, resolve, sep } from "node:path";
+import { createGzip } from "node:zlib";
 
 const TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -16,6 +17,16 @@ const TYPES: Record<string, string> = {
   ".woff2": "font/woff2",
   ".map": "application/json",
 };
+
+// Text is gzipped, as GitHub Pages and Vercel (L-03) both do, so local measurements of
+// load time (L-05) see the bytes a visitor would download.
+const COMPRESSIBLE = new Set([".html", ".js", ".css", ".json", ".txt", ".svg", ".map"]);
+
+export const acceptsGzip = (header: string | string[] | undefined) =>
+  String(header ?? "")
+    .split(",")
+    .map((part) => part.trim().toLowerCase().split(";"))
+    .some(([coding, ...params]) => coding.trim() === "gzip" && !params.some((p) => /^\s*q=0(\.0*)?\s*$/.test(p)));
 
 // Maps a request path to a file under root, or null when it would leave root.
 export const resolvePath = (root: string, urlPath: string): string | null => {
@@ -37,13 +48,17 @@ const isDir = (path: string) => stat(path).then((s) => s.isDirectory(), () => fa
 export const createStaticServer = (root: string) =>
   createServer(async (req, res) => {
     const send = (status: number, file: string | null, body?: string) => {
+      const gzip = file !== null && COMPRESSIBLE.has(extname(file)) && acceptsGzip(req.headers["accept-encoding"]);
       res.writeHead(status, {
         "Content-Type": TYPES[extname(file ?? ".txt")] ?? "application/octet-stream",
         "X-Content-Type-Options": "nosniff",
+        Vary: "Accept-Encoding",
+        ...(gzip ? { "Content-Encoding": "gzip" } : {}),
       });
       if (req.method === "HEAD") return res.end();
-      if (file) createReadStream(file).on("error", () => res.destroy()).pipe(res);
-      else res.end(body);
+      if (!file) return res.end(body);
+      const stream = createReadStream(file).on("error", () => res.destroy());
+      (gzip ? stream.pipe(createGzip()) : stream).pipe(res);
     };
 
     if (req.method !== "GET" && req.method !== "HEAD") {

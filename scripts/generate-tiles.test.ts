@@ -5,7 +5,7 @@ import Vips from "wasm-vips";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { jpegSize } from "../src/content/__fixtures__/jpeg";
 import { levelSize, tileCount } from "../src/content/pyramid";
-import { cutPyramid, tilesBlock, updateManifestTiles, writeThumbnails } from "./generate-tiles";
+import { cutPyramid, stitchPoster, tilesBlock, updateManifestTiles, writeThumbnails } from "./generate-tiles";
 
 const W = 1000;
 const H = 300;
@@ -62,6 +62,18 @@ describe("cutPyramid on a 1000 x 300 image", () => {
       expect((rows - 1) * TILE + lastRow).toBe(height);
     }
   });
+});
+
+describe("stitchPoster", () => {
+  it("joins one level's tiles, edge tiles included, into a poster of that level's size", async () => {
+    const out = join(dir, "poster");
+    await cutPyramid(image(W, H), out, { tileSize: TILE, maxLevel: MAX_LEVEL });
+    const tiles = tilesBlock(W, H, TILE, MAX_LEVEL, { thumbnail: { width: 1, height: 1 }, preview: { width: 1, height: 1 } });
+    // Level 2 of 1000 x 300 is 500 x 150: two columns, the second one 244 px wide.
+    const poster = await stitchPoster(vips, out, tiles, 400);
+    expect(poster).toEqual({ level: 2, ...levelSize(W, H, MAX_LEVEL, 2) });
+    expect(jpegSize(join(out, "poster.jpg"))).toEqual({ width: 500, height: 150 });
+  }, 60_000);
 });
 
 describe("cutPyramid on a 1 px image", () => {

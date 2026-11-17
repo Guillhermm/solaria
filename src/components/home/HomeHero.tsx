@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { preload } from "react-dom";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import { LuArrowRight } from "react-icons/lu";
+import { levelSize, posterLevel } from "@/content/pyramid";
 import type { Stop, TilePyramid } from "@/content/types";
 import { tileUrl } from "@/content/tiles";
 import { aimableStops, fieldBox, lensAnnouncement, lensField, lensTicks, lensTiles, stepAim } from "@/home/lens";
@@ -33,6 +35,17 @@ const LABEL_GAP_PX = 7 * 16;
 const RETURN_MS = 600;
 const ANNOUNCE_MS = 500;
 
+// The strip spans the window until its 24rem height cap (design.md 6.4).
+const POSTER_SIZES = "100vw";
+
+// design.md 9: the poster is the largest paint, so it is preloaded. Phones get poster.jpg (one
+// pyramid level, about 46 KB for Andromeda), wider screens the 2048 px preview.
+const posterFor = (base: string, id: string, tiles: TilePyramid) => {
+  const small = levelSize(tiles.width, tiles.height, tiles.maxLevel, posterLevel(tiles.width, tiles.height, tiles.maxLevel));
+  const src = `${base}/${id}/preview.jpg`;
+  return { src, srcSet: `${base}/${id}/poster.jpg ${small.width}w, ${src} ${tiles.preview.width}w` };
+};
+
 const remPx = () => parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
 
 const pct = (n: number) => `${n}%`;
@@ -45,6 +58,8 @@ const Bracket = () => (
 );
 
 const HomeHero = ({ eyebrow, journeySlug, stops, image, tileBaseUrl, credit }: HomeHeroProps) => {
+  const poster = posterFor(tileBaseUrl, image.id, image.tiles);
+  preload(poster.src, { as: "image", imageSrcSet: poster.srcSet, imageSizes: POSTER_SIZES, fetchPriority: "high" });
   const aimable = aimableStops(stops);
   const home = aimable[0];
   const [aim, setAim] = useState(home);
@@ -188,14 +203,16 @@ const HomeHero = ({ eyebrow, journeySlug, stops, image, tileBaseUrl, credit }: H
             if (!e.currentTarget.contains(e.relatedTarget as Node | null)) scheduleReturn();
           }}
         >
-          <Image
+          {/* next/image cannot take a hand-made srcset; the poster needs one (phone and desktop). */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             className={styles.poster}
-            src={`${tileBaseUrl}/${image.id}/preview.jpg`}
+            src={poster.src}
+            srcSet={poster.srcSet}
+            sizes={POSTER_SIZES}
             alt={POSTER_ALT}
             width={image.tiles.preview.width}
             height={image.tiles.preview.height}
-            unoptimized
-            preload
             fetchPriority="high"
           />
           <svg className={styles.route} viewBox={`0 0 ${image.width} ${image.height}`} preserveAspectRatio="none" aria-hidden>

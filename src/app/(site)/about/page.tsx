@@ -163,7 +163,11 @@ const About = () => {
             The panorama itself is an image. The Journey text gives the same content in words, but a screen reader cannot
             read the picture.
           </li>
-          <li>A full audit on a phone and with screen readers is planned, not yet done.</li>
+          <li>
+            The home and About pages are checked with axe-core at phone and desktop width, in both themes, on every
+            test run. The viewer pages are not yet checked this way, and an audit with screen readers is planned, not
+            yet done.
+          </li>
         </ul>
         <p>Tell us if something does not work for you: use the issue link below.</p>
       </section>

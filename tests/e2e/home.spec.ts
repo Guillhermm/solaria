@@ -38,7 +38,10 @@ test.describe("desktop", () => {
     const poster = page.getByRole("img", { name: POSTER_ALT });
     await expect(poster).toHaveAttribute("fetchpriority", "high");
     await expect(poster).toHaveAttribute("src", "/tiles/andromeda-phat-phast-2025/preview.jpg");
-    expect(await page.locator('link[rel="preload"][as="image"][href*="preview.jpg"]').count()).toBe(1);
+    await expect(poster).toHaveAttribute("srcset", "/tiles/andromeda-phat-phast-2025/poster.jpg 1319w, /tiles/andromeda-phat-phast-2025/preview.jpg 2048w");
+    expect(await page.locator('link[rel="preload"][as="image"][imagesrcset*="poster.jpg"]').count()).toBe(1);
+    // Desktop at 1x takes the 2048 px preview.
+    await expect.poll(() => poster.evaluate((el) => (el as HTMLImageElement).currentSrc)).toMatch(/preview\.jpg$/);
     await expect(page.locator("main section").first().getByText(source.credit, { exact: true })).toBeVisible();
     await expect(page.getByText(/NASA's largest/)).toHaveCount(0);
   });
@@ -144,7 +147,7 @@ test.describe("desktop", () => {
 });
 
 test.describe("phone", () => {
-  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 3 });
 
   for (const scheme of ["dark", "light"] as const) {
     test(`no lens, stops open the Journey, nothing overflows (${scheme})`, async ({ page }) => {
@@ -157,6 +160,8 @@ test.describe("phone", () => {
       await page.waitForLoadState("networkidle");
       expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe(scheme);
       await expect(page.getByRole("img", { name: POSTER_ALT })).toBeVisible();
+      // A phone at 3x takes the stitched poster (one pyramid level), not the 2048 px preview.
+      expect(await page.getByRole("img", { name: POSTER_ALT }).evaluate((el) => (el as HTMLImageElement).currentSrc)).toMatch(/poster\.jpg$/);
       await expect(lensLabel(page)).toBeHidden();
       expect(tileRequests).toEqual([]);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);

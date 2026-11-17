@@ -26,3 +26,14 @@ export const assertGrid = (
     );
   }
 };
+
+// The Home poster on phones (L-05) is one pyramid level stitched into a single JPEG: the
+// coarsest level at least `minWidth` pixels wide, so a 390 px phone at 3x gets 1 170 pixels.
+export const POSTER_MIN_WIDTH = 390 * 3;
+
+export const posterLevel = (w: number, h: number, maxLevel: number, minWidth = POSTER_MIN_WIDTH) => {
+  for (let level = 0; level < maxLevel; level++) {
+    if (levelSize(w, h, maxLevel, level).width >= minWidth) return level;
+  }
+  return maxLevel;
+};

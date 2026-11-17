@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assertGrid, levelSize, tileCount } from "./pyramid";
+import { assertGrid, levelSize, POSTER_MIN_WIDTH, posterLevel, tileCount } from "./pyramid";
 
 describe("Andromeda 42208 x 9870, levels 0 to 6", () => {
   it("rounds level sizes to the nearest pixel, as libvips does", () => {
@@ -55,5 +55,18 @@ describe("assertGrid", () => {
 
   it("throws when the grid is too small for the level", () => {
     expect(() => assertGrid({ width: 513, height: 100 }, { cols: 2, rows: 1 }, 256, "L1")).toThrow(/L1/);
+  });
+});
+
+describe("posterLevel", () => {
+  it("picks the coarsest level wide enough for a 390 px phone at 3x", () => {
+    expect(POSTER_MIN_WIDTH).toBe(1170);
+    // Andromeda level 0 is 660 px wide, level 1 is 1 319 px.
+    expect(posterLevel(42208, 9870, 6)).toBe(1);
+  });
+
+  it("falls back to full resolution for a small image", () => {
+    expect(posterLevel(1000, 300, 3)).toBe(3);
+    expect(posterLevel(1000, 300, 3, 400)).toBe(2);
   });
 });

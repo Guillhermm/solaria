@@ -348,9 +348,11 @@ tsx scripts/generate-tiles.ts <input> <imageId> [--no-pyramid]
 
 - Output: `public/tiles/<imageId>/<level>/<x>/<y>.jpg`, plus `thumbnail.jpg` and
   `preview.jpg` in the same directory.
-- `preview.jpg` (long side 2048, 112 KB for Andromeda) is the Home poster: the hero shows it
-  as the panorama strip, preloaded with high fetch priority, so the largest paint needs no
-  script. `thumbnail.jpg` (long side 512) is the frame in the Journeys index. Both are cut by
+- `poster.jpg` is one pyramid level joined from its tiles (`stitchPoster`): the coarsest level
+  at least 1 170 px wide (`posterLevel` in `src/content/pyramid.ts`; a 390 px phone at 3x), level
+  1 for Andromeda, 1319 by 308 px, 46 KB. `--poster-only` writes it from tiles already on disk.
+  The Home strip offers it and `preview.jpg` (long side 2048, 112 KB) in one `srcset`,
+  preloaded with high fetch priority, so the largest paint needs no script. `thumbnail.jpg` (long side 512) is the frame in the Journeys index. Both are cut by
   libvips from the same source as the pyramid, and the sizes go to the manifest's `tiles`.
 - Level math moves to `src/content/pyramid.ts`. Level sizes round to the nearest pixel, as
   libvips does (levels 0 and 1 of Andromeda are 154 and 308 px high, not 155 and 309).

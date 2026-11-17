@@ -2,7 +2,7 @@ import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import Vips from "wasm-vips";
-import { assertGrid, levelSize, tileCount } from "../src/content/pyramid";
+import { assertGrid, levelSize, posterLevel, tileCount } from "../src/content/pyramid";
 import type { TilePyramid } from "../src/content/types";
 
 type VipsImage = InstanceType<Awaited<ReturnType<typeof Vips>>["Image"]>;
@@ -67,6 +67,27 @@ export const writeThumbnails = async (image: VipsImage, outDir: string) => {
   return sizes;
 };
 
+// Joins the tiles of one level already on disk into `poster.jpg`, so the phone poster is
+// exactly that level of the pyramid, with no second pass over the original.
+export const stitchPoster = async (vips: Awaited<ReturnType<typeof Vips>>, dir: string, tiles: TilePyramid, minWidth?: number) => {
+  const level = posterLevel(tiles.width, tiles.height, tiles.maxLevel, minWidth);
+  const { cols, rows } = tileCount(tiles.width, tiles.height, tiles.tileSize, tiles.maxLevel, level);
+  const parts: VipsImage[] = [];
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) parts.push(vips.Image.newFromBuffer(await readFile(join(dir, String(level), String(x), `${y}.jpg`))));
+  }
+  const size = levelSize(tiles.width, tiles.height, tiles.maxLevel, level);
+  // arrayjoin lays every tile in a full-size cell, top-left aligned; the edge tiles are
+  // smaller, so the joined image is cropped back to the level's size.
+  const joined = vips.Image.arrayjoin(parts, { across: cols });
+  if (joined.width < size.width || joined.height < size.height) {
+    throw new Error(`poster: level ${level} joined to ${joined.width} x ${joined.height}, smaller than ${size.width} x ${size.height}`);
+  }
+  const poster = joined.extractArea(0, 0, size.width, size.height);
+  await writeFile(join(dir, "poster.jpg"), toJpeg(poster));
+  return { level, ...size };
+};
+
 export const tilesBlock = (
   width: number,
   height: number,
@@ -108,8 +129,15 @@ const main = async () => {
   const args = process.argv.slice(2);
   const noPyramid = args.includes("--no-pyramid");
   const [input, id] = args.filter((a) => !a.startsWith("--"));
+  // `--poster-only <imageId>` stitches poster.jpg from the tiles on disk and nothing else.
+  if (args.includes("--poster-only") && input && /^[a-z0-9-]+$/.test(input)) {
+    const manifest = JSON.parse(await readFile(join("data", "images", `${input}.json`), "utf8"));
+    const poster = await stitchPoster(await Vips(), join("public", "tiles", input), manifest.tiles);
+    console.log(`Wrote poster.jpg (level ${poster.level}, ${poster.width} x ${poster.height})`);
+    return;
+  }
   if (!input || !id || !/^[a-z0-9-]+$/.test(id)) {
-    console.error("Usage: tsx scripts/generate-tiles.ts <input> <imageId> [--no-pyramid]");
+    console.error("Usage: tsx scripts/generate-tiles.ts <input> <imageId> [--no-pyramid], or <imageId> --poster-only");
     process.exit(1);
   }
   const manifestPath = join("data", "images", `${id}.json`);
@@ -124,8 +152,10 @@ const main = async () => {
   if (noPyramid) maxLevel = await levelsOnDisk(outDir);
   else await cutPyramid(image, outDir, { tileSize: TILE_SIZE, maxLevel });
   const sizes = await writeThumbnails(image, outDir);
-  updateManifestTiles(manifestPath, tilesBlock(image.width, image.height, TILE_SIZE, maxLevel, sizes));
-  console.log(`Wrote ${manifestPath}`);
+  const tiles = tilesBlock(image.width, image.height, TILE_SIZE, maxLevel, sizes);
+  updateManifestTiles(manifestPath, tiles);
+  const poster = await stitchPoster(vips, outDir, tiles);
+  console.log(`Wrote ${manifestPath} and poster.jpg (level ${poster.level}, ${poster.width} x ${poster.height})`);
 };
 
 if (process.argv[1]?.endsWith("generate-tiles.ts")) {

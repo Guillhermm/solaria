@@ -587,6 +587,19 @@ r = width / height of the image file:
   a ref or throttle to one per animation frame.
 - Load OpenSeadragon only on routes with a viewer (dynamic import).
 
+Measured on 2026-11-17 (L-05) against the static build on localhost, gzip on, in Playwright
+with Lighthouse's mobile throttling applied as DevTools throttling (390 by 844 at 3x, 4x CPU
+slowdown, 150 ms round trip, 1.6 Mbps down): Home LCP 1.4 s (the poster), CLS 0; About LCP
+0.7 s, CLS 0.016; worst interaction 72 ms (theme toggle, phone) and 40 ms (lens aimed by
+keyboard, desktop at 4x CPU). Home loads no OpenSeadragon: the lens is plain tiles. Phones
+get `poster.jpg`, pyramid level 1 stitched by `generate-tiles` (1319 by 308, 46 KB);
+before it, the 2048 px preview shared the line with the fonts and scripts and Home LCP was
+2.5 s. Gap: About's CLS comes from the swap from the metric-matched Arial fallback to Geist,
+which rewraps a paragraph. Closing it means `font-display: optional` (a first visit on a slow
+line may then keep Arial) or a closer fallback; that is a design decision, still open.
+`tests/e2e/quality.spec.ts` checks all of this, and axe-core (WCAG 2.2 A and AA tags) on
+Home and About at phone and desktop width in both themes.
+
 ## 10. What to drop, keep, add
 
 | Item | Decision | Why |

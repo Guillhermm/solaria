@@ -69,13 +69,18 @@ in [docs/science/](docs/science/).
   zoom, field and center computed from the Journey file. Hovering or focusing a stop aims the
   lens (arrow keys move between stops), and a click, tap or Enter opens the Journey there.
   Below it, the Journeys index lists each published Journey from `data/journeys`. The poster
-  is the `preview.jpg` that `generate-tiles` writes.
+  is pyramid level 1 stitched into `poster.jpg` on phones (`generate-tiles` writes it; `npm run
+  generate-tiles -- <imageId> --poster-only` stitches it from tiles already on disk) and the
+  2048 px `preview.jpg` on wider screens.
 - About at `/about/`: what Solaria is, who made it, how images are prepared, each source's
   credit and terms copied from `data/sources` at build time, an accessibility statement
   limited to what is built and tested, and contact links. The header links Journeys and
   About; the footer links About, its credits and accessibility sections, and states that
   Solaria is not endorsed by NASA or ESA.
-- Unit and integration tests (Vitest) and end-to-end tests (Playwright).
+- Unit and integration tests (Vitest) and end-to-end tests (Playwright). The end-to-end suite
+  also runs axe-core on Home and About and measures LCP, CLS and interaction latency on a
+  throttled phone profile (`tests/e2e/quality.spec.ts`; results in `docs/design.md` section 9).
+  `npm start` and the test server gzip text, as static hosts do.
 
 ## Planned
 

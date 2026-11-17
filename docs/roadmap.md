@@ -99,7 +99,11 @@ S-04 decision (2026-11-17): tiling the half-resolution file gives about 34,400 t
 | L-02 | About: what Solaria is, credits and terms per source, accessibility statement | done | D-02 | Credits copied unaltered |
 | L-03 | Choose host (GitHub Pages or Vercel) and analytics | todo | | Decision recorded; GitHub Pages cannot set headers, so CSP goes in a meta tag there |
 | L-04 | Security headers, deploy workflow, domain solaria.zenus.systems | todo | L-03 | Headers checked on the live site |
-| L-05 | Performance and accessibility pass on a mid-range phone | todo | L-01 | Targets in `docs/design.md` section 9 met |
+| L-05 | Performance and accessibility pass on a mid-range phone | doing | L-01 | Targets in `docs/design.md` section 9 met |
+
+L-05 status (2026-11-17): measured and tested, all targets met except CLS on About (0.016, from
+the web font swap); the font loading choice that closes it is open. Numbers in `docs/design.md`
+section 9.
 | L-06 | Launch | todo | L-01 to L-05 | Site live |
 
 ## M7. Compare
