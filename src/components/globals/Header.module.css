@@ -28,6 +28,30 @@
   transform: rotate(45deg);
 }
 
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target);
+  padding-inline: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--text-2);
+  border-radius: var(--radius-control);
+}
+
+.nav a:hover {
+  color: var(--accent);
+}
+
 .wordmark:hover .mark {
   border-color: var(--accent);
 }

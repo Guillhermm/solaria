@@ -128,6 +128,12 @@ export const getContent = (): Content; // root = process.cwd(), mode from NODE_E
   `?mode=explore&x=&y=&z=` without a reload. Story logic is pure and tested in
   `src/viewer/story.ts` (stop URL, navigation, flight plan) and `src/viewer/route.ts`
   (overview route and marker geometry).
+- Home (L-01, built): `src/components/home/`. The hero is the first published Journey: its
+  poster strip with the route and stop links, and a lens (design.md 6.5) built from plain
+  `<img>` tiles of the same pyramid, with no OpenSeadragon on Home. Lens geometry is pure and
+  tested in `src/home/lens.ts`: the field is the stop's own zoom (side = fit side / z, so the
+  readout zoom equals the Journey's), the level is the coarsest with 680 device pixels
+  across, and tiles are placed in percent, so the first stop's lens is in the static HTML.
 - Route groups: `src/app/(site)/` holds Home with the site header and footer;
   `src/app/(viewer)/[slug]/` is the full-bleed viewer page with neither.
 
@@ -342,6 +348,10 @@ tsx scripts/generate-tiles.ts <input> <imageId> [--no-pyramid]
 
 - Output: `public/tiles/<imageId>/<level>/<x>/<y>.jpg`, plus `thumbnail.jpg` and
   `preview.jpg` in the same directory.
+- `preview.jpg` (long side 2048, 112 KB for Andromeda) is the Home poster: the hero shows it
+  as the panorama strip, preloaded with high fetch priority, so the largest paint needs no
+  script. `thumbnail.jpg` (long side 512) is the frame in the Journeys index. Both are cut by
+  libvips from the same source as the pyramid, and the sizes go to the manifest's `tiles`.
 - Level math moves to `src/content/pyramid.ts`. Level sizes round to the nearest pixel, as
   libvips does (levels 0 and 1 of Andromeda are 154 and 308 px high, not 155 and 309).
   Tile counts divide the unrounded size, as OpenSeadragon does (`ceil(w / 2^(maxLevel -

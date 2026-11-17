@@ -4,9 +4,11 @@ Status: Journeys concept approved on 2026-11-17. Visual direction C "Instrument"
 2026-11-17, pending final mockup approval. Built so far: the tokens of 6.1 in
 `src/styles/tokens.css`, the Geist fonts and the dark and light themes (V-01), and
 Bootstrap replaced by CSS Modules (V-02), the header and footer (V-03), the Explore
-viewer (X-01 to X-05), and Story mode with the Andromeda Journey (S-01, 5.3, 5.4, 7.2). Until
-their pages exist, the header leaves out Journeys and About, and the footer links to the
-team, the challenge and the code instead of About, Sources and Accessibility.
+viewer (X-01 to X-05), Story mode with the Andromeda Journey (S-01, 5.3, 5.4, 7.2), and Home
+(L-01: 5.1, 5.2, 6.5). Home follows the content where the mockup differs: one published
+Journey with seven stops, no filter chips or planned rows, and the lens aimed at stop 02 with
+the stop's own zoom. The Home drift on phones is not built: the phone hero is the poster strip.
+Until the About page exists, the footer links to the team, the challenge and the code.
 Date: 2026-11-17. Target: solaria.zenus.systems.
 
 ## 1. Where we start (read from the repo)

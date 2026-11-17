@@ -1,0 +1,187 @@
+.index {
+  width: 100%;
+  max-width: 90rem;
+  margin-inline: auto;
+  padding: var(--space-7) var(--space-4) var(--space-6);
+  scroll-margin-top: var(--space-4);
+}
+
+.heading {
+  margin: 0 0 var(--space-5);
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--hairline);
+}
+
+/* Phone: number and frame on the first line, the text under them, size and action last. */
+.row {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  grid-template-areas:
+    "number frame frame"
+    ". body body"
+    ". size begin";
+  align-items: center;
+  gap: var(--space-3) var(--space-3);
+  padding-block: var(--space-4);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.number,
+.size,
+.meta {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.number {
+  grid-area: number;
+  font-size: var(--text-numeric);
+  color: var(--text-muted);
+}
+
+/* design.md 5.1 and 6.4: a 10.5 by 4rem slot with the image contained at its true shape. */
+.frame {
+  grid-area: frame;
+  display: grid;
+  place-items: center;
+  width: 10.5rem;
+  height: 4rem;
+  background: var(--viewer-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}
+
+.frame img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.body {
+  grid-area: body;
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: var(--tracking-title);
+}
+
+.summary {
+  margin: 0;
+  max-width: 42ch;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+.meta {
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.size {
+  grid-area: size;
+  font-size: var(--text-numeric);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.begin {
+  grid-area: begin;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--target);
+  padding-inline: var(--space-4);
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--on-accent);
+  background: var(--accent);
+  border-radius: var(--radius-control);
+  transition: background-color var(--dur-fast) var(--ease-standard);
+}
+
+.begin:hover {
+  background: var(--accent-press);
+}
+
+.begin svg {
+  width: var(--icon);
+  height: var(--icon);
+}
+
+.note {
+  display: grid;
+  gap: var(--space-1);
+  padding-top: var(--space-4);
+}
+
+.note h3 {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: 400;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.note p {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+
+.note a:hover {
+  color: var(--accent);
+}
+
+@media (min-width: 48rem) {
+  .index {
+    padding: var(--space-8) 2.5rem var(--space-7);
+  }
+
+  .heading {
+    font-size: var(--text-section);
+  }
+
+  .row {
+    grid-template-columns: 3rem 10.5rem minmax(0, 1fr) auto auto;
+    grid-template-areas: "number frame body size begin";
+    gap: var(--space-6);
+    padding-block: var(--space-5);
+  }
+}
+
+@media (min-width: 75rem) {
+  .index {
+    padding-inline: 4rem;
+  }
+
+  .size {
+    min-width: 12rem;
+  }
+}

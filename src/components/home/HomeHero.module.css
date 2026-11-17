@@ -1,0 +1,657 @@
+/* Home hero (docs/design.md 5.1, 5.2 and 6.5): copy, the lens with its readout, and the
+   whole panorama as a strip with the Journey route. The strip and the lens are image canvas
+   and keep the dark values in both themes; everything else follows the theme. */
+
+.hero {
+  --side: var(--space-4);
+  --ruler: 1.375rem;
+  --ruler-left: 2.75rem;
+  --lens: 21.25rem;
+
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "panorama"
+    "credit"
+    "copy";
+  border-bottom: 1px solid var(--hairline-soft);
+}
+
+/* Copy */
+
+.copy {
+  grid-area: copy;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--side) var(--space-6);
+}
+
+.eyebrow,
+.readoutLabel,
+.caption,
+.values dt {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  line-height: 1.2;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-display-xl);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+
+.promise {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-5);
+  margin-top: var(--space-2);
+}
+
+.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 3rem;
+  padding-inline: var(--space-5);
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--on-accent);
+  background: var(--accent);
+  border-radius: var(--radius-control);
+  transition: background-color var(--dur-fast) var(--ease-standard);
+}
+
+.primary:hover {
+  background: var(--accent-press);
+}
+
+.primary svg,
+.go svg {
+  width: var(--icon);
+  height: var(--icon);
+}
+
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target);
+  font-weight: 500;
+  color: var(--text);
+  text-underline-offset: 0.25em;
+  text-decoration-thickness: 1px;
+}
+
+.secondary:hover {
+  color: var(--accent);
+}
+
+/* Lens and readout: not on phones (design.md 5.2). */
+
+.lensArea {
+  grid-area: lens;
+  display: none;
+}
+
+.lens {
+  position: relative;
+  flex: none;
+  padding: var(--ruler) 0 0 var(--ruler-left);
+}
+
+.well {
+  position: relative;
+  width: var(--lens);
+  height: var(--lens);
+  overflow: hidden;
+  background: var(--viewer-canvas);
+  color: var(--text);
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .layer[data-enter] {
+    animation: lens-in var(--dur-base) var(--ease-standard) both;
+  }
+}
+
+@keyframes lens-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.tile {
+  position: absolute;
+  max-width: none;
+}
+
+/* An amber bracket 0.375rem outside the well's corners: the current-stop marker at lens scale. */
+.frame {
+  position: absolute;
+  top: calc(var(--ruler) - 0.375rem);
+  left: calc(var(--ruler-left) - 0.375rem);
+  width: calc(var(--lens) + 0.75rem);
+  height: calc(var(--lens) + 0.75rem);
+  pointer-events: none;
+  --arm: 1rem;
+  --c: var(--accent);
+  background:
+    linear-gradient(var(--c), var(--c)) top left / var(--arm) 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) top left / 2px var(--arm) no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / var(--arm) 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 2px var(--arm) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / var(--arm) 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 2px var(--arm) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / var(--arm) 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 2px var(--arm) no-repeat;
+}
+
+.crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.75rem;
+  height: 1.75rem;
+  translate: -50% -50%;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--marker), var(--marker)) center / 100% 1px no-repeat,
+    linear-gradient(var(--marker), var(--marker)) center / 1px 100% no-repeat;
+  filter: drop-shadow(0 0 1px var(--halo)) drop-shadow(0 0 1px var(--halo));
+  -webkit-mask: radial-gradient(circle, transparent 0.25rem, #000 0.3rem);
+  mask: radial-gradient(circle, transparent 0.25rem, #000 0.3rem);
+}
+
+.lensTag {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  padding: 0.125rem 0.375rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  line-height: 1.2;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--on-accent);
+  background: var(--accent);
+  border-radius: 1px;
+}
+
+/* Rulers: on the lens's top and left edges, and over the strip (design.md 6.2). */
+
+.lensRuler,
+.stripRuler {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: var(--text-label-sm);
+  line-height: 1;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.lensRulerTop {
+  top: 0;
+  left: var(--ruler-left);
+  width: var(--lens);
+  height: var(--ruler);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.lensRulerLeft {
+  top: var(--ruler);
+  left: 0;
+  width: var(--ruler-left);
+  height: var(--lens);
+  border-right: 1px solid var(--hairline);
+}
+
+.minor,
+.major {
+  position: absolute;
+}
+
+.lensRulerTop .minor,
+.lensRulerTop .major,
+.stripRuler .minor,
+.stripRuler .major {
+  bottom: 0;
+  width: 1px;
+}
+
+.lensRulerTop .minor,
+.stripRuler .minor {
+  height: 4px;
+  background: var(--hairline);
+}
+
+.lensRulerTop .major,
+.stripRuler .major {
+  height: 8px;
+  background: var(--tick-major);
+}
+
+.lensRulerLeft .minor,
+.lensRulerLeft .major {
+  right: 0;
+  height: 1px;
+}
+
+.lensRulerLeft .minor {
+  width: 4px;
+  background: var(--hairline);
+}
+
+.lensRulerLeft .major {
+  width: 8px;
+  background: var(--tick-major);
+}
+
+.label {
+  position: absolute;
+  white-space: nowrap;
+}
+
+.lensRulerTop .label,
+.stripRuler .label {
+  bottom: 0.5rem;
+  left: 0.25rem;
+}
+
+.lensRulerLeft .label {
+  right: 0.625rem;
+  top: -0.3125rem;
+}
+
+/* Readout panel */
+
+.readout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  max-width: 22rem;
+  padding-top: var(--ruler);
+}
+
+.readoutTitle {
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: var(--tracking-title);
+}
+
+.values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: var(--space-2) 0 0;
+  border-top: 1px solid var(--hairline);
+  border-left: 1px solid var(--hairline);
+}
+
+.values div {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-right: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.values dt {
+  font-size: var(--text-label-sm);
+}
+
+.values dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.go {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target);
+  padding-inline: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-control);
+}
+
+.go:hover {
+  color: var(--on-accent);
+  background: var(--accent);
+}
+
+/* Panorama strip, full bleed (design.md 6.4: height = width / r, capped at 24rem). */
+
+.panorama {
+  grid-area: panorama;
+  display: grid;
+  min-width: 0;
+}
+
+.stripRuler {
+  display: none;
+}
+
+.strip {
+  position: relative;
+  justify-self: center;
+  width: min(100%, 24rem * var(--ratio));
+  aspect-ratio: var(--ratio);
+  background: var(--viewer-canvas);
+}
+
+.poster {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.route {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.route polyline {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.routeHalo {
+  stroke: var(--halo);
+  stroke-width: 3px;
+}
+
+.routeAhead {
+  stroke: rgb(255 255 255 / 0.55);
+  stroke-width: 1px;
+  stroke-dasharray: 3 4;
+}
+
+.viewBox {
+  display: none;
+  position: absolute;
+  border: 1px solid var(--marker);
+  outline: 1px solid var(--halo);
+  pointer-events: none;
+}
+
+.mark {
+  position: absolute;
+  z-index: 2;
+  width: var(--target);
+  height: var(--target);
+  translate: -50% -50%;
+  color: var(--marker);
+  border-radius: var(--radius-control);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mark[data-current] {
+  z-index: 3;
+  color: var(--accent);
+}
+
+.mark:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.bracket {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.625rem;
+  height: 1.625rem;
+  translate: -50% -50%;
+  overflow: visible;
+}
+
+.mark[data-current] .bracket {
+  scale: 1.3;
+}
+
+.bracket path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+.bracket .bracketHalo {
+  stroke: var(--halo);
+  stroke-width: 3.5px;
+}
+
+.mark:hover .bracket path:not(.bracketHalo) {
+  stroke: var(--accent);
+}
+
+.markTag {
+  position: absolute;
+  top: 50%;
+  left: calc(50% + 0.875rem);
+  min-width: 1.25rem;
+  height: 0.875rem;
+  padding-inline: 0.125rem;
+  translate: 0 -50%;
+  font-family: var(--font-mono);
+  font-size: var(--text-label-sm);
+  line-height: 0.875rem;
+  text-align: center;
+  color: var(--marker);
+  background: var(--halo);
+  border-radius: 1px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mark[data-flip] .markTag {
+  left: auto;
+  right: calc(50% + 0.875rem);
+}
+
+/* The phone strip is too short for number tags; each stop still names itself. */
+@media (max-width: 47.99rem) {
+  .markTag {
+    display: none;
+  }
+
+  /* No lens on phones, so no stop is aimed at. */
+  .mark[data-current] {
+    color: var(--marker);
+  }
+
+  .mark[data-current] .bracket {
+    scale: none;
+  }
+}
+
+.mark[data-current] .markTag {
+  color: var(--on-accent);
+  background: var(--accent);
+}
+
+.caption {
+  display: none;
+}
+
+.credit {
+  grid-area: credit;
+  margin: 0;
+  padding: var(--space-2) var(--side) 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.leaders {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.leaders path {
+  fill: none;
+}
+
+.leaderHalo {
+  stroke: var(--halo);
+  stroke-width: 3px;
+}
+
+.leaderLine {
+  stroke: rgb(255 255 255 / 0.7);
+  stroke-width: 1px;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Tablet and up: copy, then the lens beside its readout, then the strip with its ruler. */
+@media (min-width: 48rem) {
+  .hero {
+    --side: 2.5rem;
+    grid-template-areas:
+      "copy"
+      "lens"
+      "panorama"
+      "credit";
+    padding-top: var(--space-6);
+  }
+
+  .copy {
+    padding: 0 var(--side) var(--space-6);
+  }
+
+  .primary {
+    width: auto;
+  }
+
+  .lensArea {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-6);
+    padding: 0 var(--side) var(--space-7);
+  }
+
+  .stripRuler {
+    display: block;
+    position: relative;
+    justify-self: center;
+    width: min(100%, 24rem * var(--ratio));
+    height: var(--ruler);
+    background: var(--surface);
+    border-top: 1px solid var(--hairline-soft);
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .viewBox,
+  .leaders {
+    display: block;
+  }
+
+  .caption {
+    display: block;
+    justify-self: end;
+    padding: 0 var(--side) var(--space-2);
+  }
+
+  .credit {
+    padding-bottom: var(--space-4);
+  }
+}
+
+/* Desktop: copy and lens side by side above the strip, as in the approved mockup. */
+@media (min-width: 75rem) {
+  .hero {
+    --side: 4rem;
+    grid-template-columns: minmax(0, 32.5rem) minmax(0, 1fr);
+    grid-template-areas:
+      "copy lens"
+      "panorama panorama"
+      "credit credit";
+    column-gap: var(--space-7);
+  }
+
+  .copy {
+    justify-content: center;
+    padding: 0 0 var(--space-6) var(--side);
+  }
+
+  .lensArea {
+    justify-content: flex-end;
+    padding: 0 var(--side) var(--space-7) 0;
+  }
+}
+
+@media (forced-colors: active) {
+  .routeAhead,
+  .bracket path:not(.bracketHalo),
+  .leaderLine {
+    stroke: CanvasText;
+  }
+
+  .viewBox {
+    border-color: CanvasText;
+  }
+}

@@ -8,7 +8,10 @@ const Header = () => (
       <span aria-hidden className={styles.mark} />
       Solaria
     </Link>
-    <ThemeSwitcher />
+    <nav aria-label="Main" className={styles.nav}>
+      <Link href="/#journeys">Journeys</Link>
+      <ThemeSwitcher />
+    </nav>
   </header>
 );
 

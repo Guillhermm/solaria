@@ -63,13 +63,19 @@ in [docs/science/](docs/science/).
   and the URL holds the stop (`?mode=story&stop=3`). Touching the image pauses the story
   and a "back to the story" pill resumes it. The last stop, or the Story/Explore switch,
   hands the same view to Explore. With reduced motion set, the camera cuts to each stop
-  with a short fade instead of flying. Not linked from Home yet (L-01).
+  with a short fade instead of flying.
+- Home: the hero shows the whole Andromeda panorama as a strip with the Journey's route and
+  stops, and on wider screens a lens that magnifies one stop from the same tiles, with its
+  zoom, field and center computed from the Journey file. Hovering or focusing a stop aims the
+  lens (arrow keys move between stops), and a click, tap or Enter opens the Journey there.
+  Below it, the Journeys index lists each published Journey from `data/journeys`. The poster
+  is the `preview.jpg` that `generate-tiles` writes.
 - Unit and integration tests (Vitest) and end-to-end tests (Playwright).
 
 ## Planned
 
 More Journeys, tiles served from
-R2, the rest of the new design (Home, Journeys), and Compare and Light modes once a pair or band set
+R2, and Compare and Light modes once a pair or band set
 is validated. See the roadmap for order and status.
 
 ## Run it
