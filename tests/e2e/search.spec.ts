@@ -332,6 +332,24 @@ test.describe("behavior at 1440x900", () => {
     await expect(page.locator('[data-testid="viewer"] .openseadragon-canvas')).toBeFocused();
   });
 
+  // The dialog's own input proves nothing here: an open dialog blocks "/" on its own.
+  test("Q6: / typed in a text field outside the dialog stays in the field", async ({ page }) => {
+    await page.goto("/");
+    await page.locator("body").click({ position: { x: 5, y: 600 } });
+    await page.keyboard.press("/");
+    await expect(dialog(page)).toBeVisible();
+    await page.keyboard.press("Escape");
+    await page.evaluate(() => {
+      const field = document.createElement("textarea");
+      field.dataset.testid = "probe";
+      document.body.append(field);
+    });
+    await page.getByTestId("probe").focus();
+    await page.keyboard.press("/");
+    await expect(page.getByTestId("probe")).toHaveValue("/");
+    await expect(dialog(page)).toBeHidden();
+  });
+
   test("Q12: Esc, Close and a press outside close it and give focus back to Search", async ({ page }) => {
     await page.goto("/");
     await open(page);
@@ -509,6 +527,20 @@ test.describe("phone behavior", () => {
     await expect(page.locator("main[data-idle]")).toHaveCount(1, { timeout: 8000 });
     await page.waitForTimeout(500);
     expect(await effectiveOpacity(page.locator("main > header").getByRole("button", { name: "Search", exact: true }))).toBe(1);
+  });
+
+  // On a phone the view at z 6 is taller than the image, so the viewer holds it inside and the
+  // settled view's y differs from the label's: only the held link keeps Q21.
+  test("Q21: in place, the URL stays the row's href when the view is held inside the image", async ({ page }) => {
+    await page.goto(IMAGE);
+    await ready(page);
+    await trigger(page).click();
+    await input(page).fill("andromeda core");
+    await page.keyboard.press("Enter");
+    await expect(dialog(page)).toBeHidden();
+    // Past the flight and the 400 ms URL timer that follows it.
+    await page.waitForTimeout(3000);
+    expect(new URL(page.url()).pathname + new URL(page.url()).search).toBe(`${IMAGE}?mode=explore&labels=1&x=17461&y=6482&z=6`);
   });
 });
 
