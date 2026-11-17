@@ -31,7 +31,7 @@ Layer rules:
   the reference toggles opacity 0 and 1. Side by side: viewer A holds the reference,
   viewer B holds only the moving image at the same placement; the viewer under the pointer
   leads, the other copies `center` and `zoom`.
-- Both viewers set `drawer: ["webgl", "canvas"]`. If `viewer.drawer.canRotate()` is false,
+- Both viewers use the canvas drawer (see the spike below). If `viewer.drawer.canRotate()` is false,
   Compare is hidden (design 5.8: hidden, never disabled).
 - OpenSeadragon's home bounds become the union of both images, so the compare view math
   never calls `viewport.getHomeZoom()`. It uses the existing pure `osdHomeZoom(viewer,
@@ -272,8 +272,8 @@ Where the build differs from sections 1 to 4, and why. Each was the simpler work
 - **Canvas drawer on a page that offers Compare.** Spike on the rotated mock pair, headless
   Chromium with software GL, 1200 x 700: WebGL 25.6 ms per frame plain and 41.0 ms with the
   crops (its Context2d second pass stalls on `ReadPixels`); canvas 16.6 and 16.5 ms. Both
-  map the moving image's control points onto the reference within 1.3e-13 px. Other pages
-  keep OpenSeadragon's default drawer. Not measured on a phone GPU.
+  map the moving image's control points onto the reference within 1.3e-13 px. Not measured
+  on a phone GPU. Since T-03 every page uses the canvas drawer (architecture.md section 8).
 - **Side by side** gives the second viewer the first one's viewport margins (the rulers), so
   one zoom and center put a shared feature at the same place in both.
 - **Labels live in the pair manifest.** `labels: [{ full, short }, { full, short }]` in

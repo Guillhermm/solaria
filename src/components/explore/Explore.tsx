@@ -480,10 +480,16 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         minZoomImageRatio: 1,
         animationTime: reduce ? 0 : 1.2,
         viewportMargins: margins,
-        // Compare crops and clips the images on every frame; the WebGL drawer does that in a
-        // second, Context2d pass, which cost more than the canvas drawer in the Sprint 7 spike.
-        // Light pages take the same drawer, so both modes read and draw the same way.
-        ...(pairs.length || bandSets.length ? { drawer: "canvas" } : {}),
+        // The canvas drawer on every page. OpenSeadragon 5.0.1's WebGL drawer reads each new
+        // tile back from the GPU to test for taint (isCanvasTainted, getImageData): at DPR 2 a
+        // 20x zoom on Andromeda spent 12 of its 12.8 s of script there and ran at 18 FPS, 60 with
+        // the canvas drawer (T-03). Compare's crops and clips also cost it a second pass.
+        // The installed typings predate the drawer option.
+        ...({ drawer: "canvas" } as object),
+        // 256 px tiles decode to 256 KB each, so 500 hold at most 128 MB. At 390x844 and DPR 3 a
+        // 20x zoom with pans refetched about 148 tiles at the default 200 and 42 at 500; 1000
+        // refetched none but added about 35 MB of renderer memory over 500 (T-03).
+        maxImageCacheCount: 500,
         gestureSettingsMouse: { clickToZoom: false, dblClickToZoom: true },
         maxZoomPixelRatio: ZOOM_CAP,
       });
@@ -687,6 +693,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           vp.panTo(new OSD.Point(target.center.x, target.center.y), true);
           vp.applyConstraints(true);
         }
+        host.dataset.drawer = (opened.drawer as unknown as { getType: () => string }).getType();
         host.dataset.open = "";
         // L2: a link with labels=1 opens with them on, in the modes that show them.
         if (parseLabelsParam(window.location.search)) setLabelsOn(true);
@@ -1234,6 +1241,10 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     if (!viewer || !item) return;
     failuresRef.current = 0;
     setToast(null);
+    // OpenSeadragon marks a failed tile as missing and never asks for it again; reset() only
+    // drops the loaded ones.
+    const matrix = (item as unknown as { tilesMatrix: Record<string, Record<string, Record<string, { exists: boolean }>>> }).tilesMatrix;
+    for (const level of Object.values(matrix)) for (const column of Object.values(level)) for (const tile of Object.values(column)) tile.exists = true;
     item.reset();
     viewer.forceRedraw();
   }, []);

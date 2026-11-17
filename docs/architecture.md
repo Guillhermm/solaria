@@ -426,9 +426,26 @@ export const tileSource = (image: ImageManifest, base: string) => ({
 });
 ```
 
-The viewer sets `crossOriginPolicy: "Anonymous"`. OpenSeadragon 5.0.1 (installed)
-prefers its WebGL drawer, which needs CORS-clean tiles once they come from another
-origin; setting it now keeps the local and R2 builds identical. R-01 already lists CORS.
+The viewer sets `crossOriginPolicy: "Anonymous"`, so the local and R2 builds load tiles the
+same way; R-01 already lists CORS.
+
+Every viewer uses OpenSeadragon's canvas drawer (T-03). The default in 5.0.1 (installed) is
+the WebGL drawer, which tests each new tile for taint with a one-pixel `getImageData` readback
+on the main thread. At DPR 2 a 20x wheel zoom on Andromeda spent about 12 s of its 12.8 s of
+script there and ran at 18 FPS; with the canvas drawer the same zoom ran at 60 FPS with no
+long task, and the full view came in 2.9 s instead of 5.0 s (Chromium on an Apple M1, a
+loaded machine). `maxImageCacheCount` is 500 tiles instead of the default 200: 256 px tiles
+decode to 256 KB, so the cache holds at most 128 MB. At 390x844, DPR 3, a 20x zoom with four
+pans and back (median of 3):
+
+| Cache | JS heap | Renderer memory | Tiles refetched |
+|---|---|---|---|
+| 200 | 6.2 MB | 328 MB | 148 |
+| 500 | 6.4 MB | 373 MB | 42 |
+| 1000 | 6.5 MB | 408 MB | 0 |
+
+1000 would hold up to 256 MB of tiles, which older phones with 2 to 3 GB of memory may not
+spare. The page records the drawer it got in `data-drawer` on the viewer, for the tests.
 
 ## 9. Production gate (D-06)
 
@@ -592,7 +609,7 @@ Light reuses the Compare layer pattern (`docs/architecture-compare.md`, sections
 - **URL.** `?mode=light&set=<setId>&band=<imageId>&x=&y=&z=`; `set` and `band` are left out
   at their defaults (the first set, the first band); an unknown value falls back to the
   default. `x`, `y` and `z` are in the first band's pixels, the same for every band.
-- **Drawer.** Light pages use the canvas drawer, as Compare pages do.
+- **Drawer.** The canvas drawer, as on every viewer (section 8).
 
 ### The Sun from SDO (G-02 to G-04)
 
