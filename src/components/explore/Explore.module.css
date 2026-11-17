@@ -27,9 +27,24 @@
   background: var(--viewer-canvas);
 }
 
+/* The focus ring is drawn above the tile layer (an outline on the canvas paints under its
+   tiles), and inside the part of the image the rulers and the Story column leave visible. */
 .canvas :global(.openseadragon-canvas):focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -4px;
+  outline: none;
+}
+
+.canvas :global(.openseadragon-canvas)::after {
+  content: "";
+  position: absolute;
+  inset: calc(var(--inset-top) + var(--ruler)) 0 0 calc(var(--column) + var(--ruler-left));
+  z-index: 1;
+  display: none;
+  border: 2px solid var(--accent);
+  pointer-events: none;
+}
+
+.canvas :global(.openseadragon-canvas):focus-visible::after {
+  display: block;
 }
 
 .glass {
@@ -580,6 +595,10 @@
   .mark {
     border-color: CanvasText;
   }
+
+  .canvas :global(.openseadragon-canvas)::after {
+    border-color: Highlight;
+  }
 }
 
 /* Story (design.md 5.3, 6.2 and 7.2) */
@@ -975,7 +994,6 @@
 
   .story {
     display: flex;
-    flex: none;
     flex-direction: column;
     min-height: 0;
   }
@@ -988,8 +1006,23 @@
     justify-self: center;
   }
 
-  .root[data-mode="story"] .readout {
+  /* A tall rail would leave the stop text one line; a wide strip is shorter than this anyway. */
+  .root[data-mode="story"] .nav {
+    height: min(var(--ov-h), 7rem);
+  }
+
+  .root[data-mode="story"] .readout,
+  .root[data-mode="story"] .controls {
     display: none;
+  }
+
+  /* The image keeps half the screen; the stop text scrolls inside the card when long. */
+  .root[data-mode="story"] .sheet {
+    max-height: 50dvh;
+  }
+
+  .root[data-mode="story"] .story {
+    flex: 0 1 auto;
   }
 
   .root[data-mode="story"][data-sheet="min"] .overview,

@@ -365,10 +365,13 @@
     flex: 1;
   }
 
+  .panel {
+    flex: 0 1 auto;
+  }
+
   .stops {
     flex: 0 1 auto;
     margin: 0;
-    overflow: visible;
   }
 
   .stop {
@@ -388,13 +391,6 @@
 
   .stopTitle {
     font-size: 1.25rem;
-  }
-
-  /* The body scrolls inside the card so the sheet keeps the frame of design.md 5.4. */
-  .body {
-    max-height: 15dvh;
-    overflow-y: auto;
-    overscroll-behavior: contain;
   }
 
   .body p {

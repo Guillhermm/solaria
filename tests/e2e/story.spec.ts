@@ -90,6 +90,25 @@ test("the keyboard and the strip move through stops", async ({ page }) => {
   await atStop(page, 4);
 });
 
+test("the keyboard focus ring is drawn above the tiles, inside the visible image", async ({ page }) => {
+  await page.goto(`${PATH}?mode=story&stop=2`);
+  await ready(page);
+  const viewer = page.getByRole("application");
+  await viewer.focus();
+  const ring = await viewer.evaluate((el) => {
+    const after = getComputedStyle(el, "::after");
+    const column = document.querySelector('[data-testid="story"]')!.parentElement!.getBoundingClientRect();
+    return { display: after.display, z: after.zIndex, border: after.borderTopWidth, left: parseFloat(after.left), column: column.right };
+  });
+  expect(ring.display).toBe("block");
+  expect(ring.z).toBe("1");
+  expect(ring.border).toBe("2px");
+  // It starts right of the column and its ruler, so all four sides show.
+  expect(ring.left).toBeGreaterThan(ring.column);
+  await page.getByRole("button", { name: "Next: stop 03" }).focus();
+  expect(await viewer.evaluate((el) => getComputedStyle(el, "::after").display)).toBe("none");
+});
+
 test("touching the image pauses the story and the pill resumes it", async ({ page }) => {
   await page.goto(`${PATH}?mode=story&stop=3`);
   await ready(page);
@@ -145,9 +164,13 @@ test.describe("phone", () => {
   test("the stop card is a bottom sheet over the credit, through the whole Journey", async ({ page }) => {
     await page.goto(PATH);
     await ready(page);
+    // Zoom stays on gestures in Story; its buttons would crowd the reticle's tag.
+    await expect(page.getByRole("group", { name: "View controls" })).toBeHidden();
     for (let i = 0; i < COUNT; i++) {
       await expect(card(page)).toContainText(journey.stops[i].title);
       await creditVisible(page);
+      const sheet = (await page.getByTestId("sheet").boundingBox())!;
+      expect(sheet.height).toBeLessThanOrEqual(844 / 2 + 1);
       if (i < COUNT - 1) await page.getByRole("button", { name: `Next: stop ${String(i + 2).padStart(2, "0")}` }).tap();
     }
     await page.getByRole("button", { name: "Explore freely" }).tap();

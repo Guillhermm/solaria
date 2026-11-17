@@ -230,7 +230,10 @@ aim); tapping a stop opens the Journey at that stop.
 - Camera target uses the top 60 % of the screen as its frame.
 - As built (S-01): the sheet holds the strip with the route, the progress, the stop's
   title, body (scrolling inside the card when long), sources, Previous and Next, and the
-  full credit under them. The handle folds it to the title. A gesture on the image folds
+  full credit under them, within 50 % of the screen height; a long stop text scrolls
+  inside the card, and a tall image's rail is capped at 7rem. The zoom buttons are hidden
+  in Story on a phone (pinch and double-tap still zoom; Explore shows them). The handle
+  folds it to the title. A gesture on the image folds
   it to the "back to the story" pill, with the credit still under it. Story and Explore
   switch from the top bar; the short image title leaves the phone bar on Journey pages to
   make room. The camera frames the stop in the top 60 %; near an image edge the view
@@ -525,6 +528,8 @@ r = width / height of the image file:
 
 - The viewer canvas is focusable with a visible 2px accent ring inset 2px, labeled
   "Andromeda Galaxy image viewer. Use arrow keys to pan, plus and minus to zoom."
+  As built: the ring is a 2px accent frame drawn above the tiles, along the edges of the
+  visible image (inside the rulers and the Story column), on keyboard focus only.
 - A visually hidden live region announces the stop title on arrival and "Zoom 38x"
   after zoom settles (debounced 500 ms), never on every frame.
 - URL updates with `history.replaceState`, debounced 400 ms after the viewport settles.
