@@ -723,7 +723,7 @@ Decided on 2026-11-17:
 4. The loupe from direction D joins C, drawn in C's language (6.5).
 5. Andromeda launches first, and the viewer serves images of any shape: the
    aspect-ratio rule (6.4) governs the overview, markers and thumbnails.
-6. English only at launch; strings are kept in one place so pt-BR can follow.
+6. English only; no translation is planned.
 
 Superseded on 2026-11-17: Instrument Serif for titles, Inter for the interface and
 JetBrains Mono for numbers, decided earlier the same day, are replaced by Geist and
@@ -1201,7 +1201,7 @@ still show.
 
 ### 15.4 Copy
 
-Every new string, in one place so pt-BR can follow (13.6):
+Every new string, in one place (13.6):
 
 - Search button and dialog: "Search"; input label (visually hidden): "Search Solaria";
   placeholder: "Feature, stop, image, or x, y"; "Close".

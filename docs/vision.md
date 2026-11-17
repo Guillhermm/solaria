@@ -118,7 +118,6 @@ same tree moves to Cloudflare R2 later without touching content.
 12. Labeled features on images, each label validated.
 13. Search by feature name, then by coordinates.
 14. Mars Journey from HiRISE, using only the HiRISE team's orthorectified pairs.
-15. Brazilian Portuguese.
 
 ### Out of scope
 
@@ -154,7 +153,7 @@ first month, no targets claimed up front.
 | Journeys as the organizing concept | decided 2026-11-17 |
 | Dark-first palette with amber accent | decided 2026-11-17 |
 | Direction C "Instrument" (Geist and Geist Mono, technical readouts, lens on Home) | chosen 2026-11-17, pending final mockup approval |
-| English only at launch | decided 2026-11-17 |
+| English only; no translation planned | decided 2026-11-17 |
 | Host: GitHub Pages or Vercel, static export works on both | open, decided at launch |
 | Which Journeys follow Andromeda | proposed: Pillars of Creation, the Sun |
 | Launch without Light if no band set is validated | open |

@@ -24,7 +24,6 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 | 9 | Labeled features, kiosk, test hardening | F-03, F-01, T-01 | done |
 | 10 | Search and detail of the week | F-04, F-02 | done |
 | 11 | Mars Journey | F-05, T-02 | doing |
-| 12 | Brazilian Portuguese | F-06 | todo |
 
 Waiting on the maintainer: host and analytics (L-03), deploy and domain (L-04, L-06), and
 the R2 bucket and its credentials (R-01, R-02).
@@ -151,6 +150,5 @@ C-05 waits for R2: the Webb frame is about 2,566 tiles and 110 MB (estimated), t
 | F-03 | Labeled features on images, each label validated | done |
 | F-04 | Search by feature name, then by coordinates (image pixels; sky coordinates planned) | done |
 | F-05 | Mars Journey from HiRISE orthorectified pairs only | todo |
-| F-06 | Brazilian Portuguese | todo |
 | T-01 | Fix the two intermittent e2e failures (tile-outage retry toast, story cut) | done |
 | T-02 | Keep desktop Light views clear of the Light bar (design.md §15.5 D11) | todo |
