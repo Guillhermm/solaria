@@ -116,6 +116,7 @@ const routeKey = (search: string, journey: Journey | undefined, image: Size) => 
 const PHONE_STORY_FRAME = 0.6;
 const PHONE = "(max-width: 40rem)";
 const RETICLE_REM = 5.5;
+const REDUCED = "(prefers-reduced-motion: reduce)";
 
 const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
   const rootRef = useRef<HTMLElement>(null);
@@ -321,6 +322,12 @@ const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
         const vp = opened.viewport;
         const b = vp.getBounds();
         const aspect = { width: b.width, height: b.height };
+        // design.md 5.8: under reduced motion a flight becomes a cut with a 200 ms fade.
+        if (window.matchMedia(REDUCED).matches) {
+          fitImageBounds(viewBounds(view, size, aspect), 0);
+          host.animate([{ opacity: 0.2 }, { opacity: 1 }], { duration: 200, easing: "ease-out" });
+          return;
+        }
         const from = { x: b.x * width, y: b.y * width, width: b.width * width, height: b.height * width };
         const [first, second] = flightPlan(from, settledView(opened, size).z, view, size, aspect, span);
         fitImageBounds(first.bounds, first.ms);

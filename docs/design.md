@@ -317,7 +317,7 @@ aim); tapping a stop opens the Journey at that stop.
 | Image metadata failed | full-screen dark state with the Journey poster image | "This journey could not load. Check your connection and try again. [Retry]" |
 | Unknown journey | 404 over a dim starfield poster | "Nothing at these coordinates. [Back to journeys]" |
 | No Compare / Light data | mode hidden from the switcher, never disabled-and-unexplained | none |
-| Reduced motion | camera cuts with a 200 ms crossfade, no home drift, no pulse | none |
+| Reduced motion | camera cuts with a 200 ms crossfade, no home drift, no pulse (built in S-02 as a cut with the image fading up from 20 % opacity in 200 ms; the route appears without drawing) | none |
 | Kiosk idle | countdown sheet | "Still exploring? Returning to the start in 10 s. [Keep exploring]" |
 
 ## 6. Visual language: Instrument

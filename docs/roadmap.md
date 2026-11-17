@@ -85,7 +85,7 @@ Each item leaves the app working.
 | ID | Item | Status | Depends | Done when |
 |---|---|---|---|---|
 | S-01 | Journey player: stops, camera flights, pause and resume, progress | done | X-02 | Unit tests on stop logic; end-to-end test runs a Journey |
-| S-02 | Reduced-motion version (cuts instead of flights) | todo | S-01 | Honors `prefers-reduced-motion` |
+| S-02 | Reduced-motion version (cuts instead of flights) | done | S-01 | Honors `prefers-reduced-motion` |
 | S-03 | Andromeda Journey text, 5 to 8 stops, with sources | done | S-01 | Every stop validated |
 | S-04 | Decide whether to tile the half-resolution file (84416 x 19739) for more depth | todo | D-04 | Decision recorded with tile count and size |
 

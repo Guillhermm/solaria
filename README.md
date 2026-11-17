@@ -62,7 +62,8 @@ in [docs/science/](docs/science/).
   phone card, and `J`/`K` or Page Down/Page Up move between stops; the camera flies there
   and the URL holds the stop (`?mode=story&stop=3`). Touching the image pauses the story
   and a "back to the story" pill resumes it. The last stop, or the Story/Explore switch,
-  hands the same view to Explore. Not linked from Home yet (L-01).
+  hands the same view to Explore. With reduced motion set, the camera cuts to each stop
+  with a short fade instead of flying. Not linked from Home yet (L-01).
 - Unit and integration tests (Vitest) and end-to-end tests (Playwright).
 
 ## Planned

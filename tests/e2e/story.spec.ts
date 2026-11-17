@@ -110,6 +110,28 @@ test("touching the image pauses the story and the pill resumes it", async ({ pag
   await atStop(page, 2);
 });
 
+test.describe("reduced motion", () => {
+  test.use({ reducedMotion: "reduce" });
+
+  test("stops are reached by a cut, never a flight", async ({ page }) => {
+    await page.goto(PATH);
+    await ready(page);
+    await atStop(page, 0);
+    // Record every zoom the readout shows while the camera moves to the next stop.
+    await page.evaluate(() => {
+      const seen = new Set<string>();
+      (window as unknown as { zooms: Set<string> }).zooms = seen;
+      const el = document.querySelector('[data-testid="readout"] span:last-child')!;
+      new MutationObserver(() => seen.add(el.textContent ?? "")).observe(el, { childList: true, characterData: true, subtree: true });
+    });
+    await page.getByRole("button", { name: "Next: stop 02" }).click();
+    await atStop(page, 1);
+    await page.waitForTimeout(500);
+    const zooms = await page.evaluate(() => [...(window as unknown as { zooms: Set<string> }).zooms]);
+    expect(zooms).toEqual([`${journey.stops[1].viewport.z.toFixed(1)}×`]);
+  });
+});
+
 test.describe("phone", () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 
