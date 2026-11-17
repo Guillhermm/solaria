@@ -55,22 +55,23 @@ const controls = (page: Page) =>
       .map((r) => ({ x: r.x, y: r.y, width: r.width, height: r.height })),
   );
 
-// The highest top edge among the bottom overlays (sheet, light bar, controls) in the lower half.
-const bottomLine = (page: Page) =>
-  page.evaluate(() => {
-    const tops = ["[data-testid=sheet]", "[data-testid=light-bar]", "[role=group][aria-label='View controls']"]
+// The highest top edge among the bottom overlays in the lower half that share columns with
+// the docked box (K7, K13): sheet, light bar, controls, overview, readout.
+const bottomLine = (page: Page, box: B) =>
+  page.evaluate((box) => {
+    const tops = ["[data-testid=sheet]", "[data-testid=light-bar]", "[role=group][aria-label='View controls']", "[data-testid=overview]", "[data-testid=readout]"]
       .flatMap((q) => [...document.querySelectorAll(q)])
       .map((el) => el.getBoundingClientRect())
-      .filter((r) => r.width > 0 && r.height > 0 && r.y + r.height > innerHeight / 2)
+      .filter((r) => r.width > 0 && r.height > 0 && r.y + r.height > innerHeight / 2 && r.left < box.x + box.width && box.x < r.right)
       .map((r) => r.y);
     return Math.min(innerHeight, ...tops);
-  });
+  }, box);
 
 const assertDocked = async (page: Page, el: ReturnType<typeof chip>) => {
   const box = (await el.boundingBox())!;
   const vp = page.viewportSize()!;
   expect(Math.abs(box.x + box.width / 2 - vp.width / 2)).toBeLessThanOrEqual(1);
-  expect(Math.abs(box.y + box.height - ((await bottomLine(page)) - 12))).toBeLessThanOrEqual(1);
+  expect(Math.abs(box.y + box.height - ((await bottomLine(page, box)) - 12))).toBeLessThanOrEqual(1);
   expect(box.x).toBeGreaterThanOrEqual(11);
   expect(vp.width - box.x - box.width).toBeGreaterThanOrEqual(11);
   for (const c of await controls(page)) expect(hits(box, c)).toBe(false);
@@ -277,6 +278,25 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       await assertDocked(page, countdown(page));
     });
 
+    test("S1: no header group is drawn empty or narrower than a target", async ({ page }) => {
+      await page.goto("/?kiosk=1");
+      await stopAttract(page);
+      for (const path of ["/andromeda-phat-phast-2025/", `/${andromeda.slug}/`, "/sun-sdo-2024-05-10-aia-94/"]) {
+        await page.goto(path);
+        await ready(page);
+        const groups = await page.evaluate(() =>
+          [...document.querySelectorAll("main > header > *")]
+            .map((g) => ({ r: g.getBoundingClientRect(), controls: [...g.querySelectorAll("a[href], button")].filter((c) => c.getBoundingClientRect().width > 0).length }))
+            .filter(({ r }) => r.width > 0 || r.height > 0)
+            .map(({ r, controls }) => ({ x: Math.round(r.x), width: Math.round(r.width), controls })),
+        );
+        for (const g of groups) {
+          expect(g.width, `${path}: group at x ${g.x}`).toBeGreaterThanOrEqual(44);
+          expect(g.controls, `${path}: group at x ${g.x}`).toBeGreaterThan(0);
+        }
+      }
+    });
+
     test("K12 to K14: 90 s idle opens the countdown; Keep exploring restarts it; at 0 the app starts over", async ({ page }) => {
       await page.clock.install();
       await page.goto(`/andromeda-phat-phast-2025/?kiosk=1`);
@@ -341,5 +361,40 @@ test.describe("touch", () => {
     await expect(countdown(page)).toHaveCount(0);
     await page.clock.runFor(1_200);
     await expect(countdown(page)).toBeVisible();
+  });
+});
+
+test.describe("docking at 1440x900", () => {
+  test.use({ viewport: { width: 1440, height: 900 }, colorScheme: "dark" });
+
+  test("K13: in Explore the countdown docks at the foot and covers no label", async ({ page }) => {
+    await page.clock.install();
+    await page.goto("/andromeda-phat-phast-2025/?labels=1&kiosk=1");
+    await ready(page);
+    await stopAttract(page);
+    await page.clock.runFor(90_200);
+    await expect(countdown(page)).toBeVisible();
+    const box = (await countdown(page).boundingBox())!;
+    expect(Math.abs(box.y + box.height - 888)).toBeLessThanOrEqual(1);
+    const labels = await page.evaluate(() =>
+      [...document.querySelectorAll("[data-testid=label-chip], [data-testid=label-marker], [data-testid=label-circle]")]
+        .filter((e) => getComputedStyle(e).visibility !== "hidden" && getComputedStyle(e).display !== "none")
+        .map((e) => e.getBoundingClientRect())
+        .filter((r) => r.width > 0)
+        .map((r) => ({ x: r.x, y: r.y, width: r.width, height: r.height })),
+    );
+    expect(labels.length).toBeGreaterThan(0);
+    for (const l of labels) expect(hits(box, l)).toBe(false);
+    await assertDocked(page, countdown(page));
+  });
+
+  test("K7: in Story the attract chip sits 12px above the overview it shares columns with", async ({ page }) => {
+    await page.goto(`/${andromeda.slug}/?mode=story&stop=2&kiosk=1`);
+    await ready(page);
+    await expect(chip(page)).toBeVisible();
+    const c = (await chip(page).boundingBox())!;
+    const o = (await page.getByTestId("overview").boundingBox())!;
+    expect(c.x < o.x + o.width && o.x < c.x + c.width).toBe(true);
+    expect(Math.abs(c.y + c.height - (o.y - 12))).toBeLessThanOrEqual(1);
   });
 });

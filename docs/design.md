@@ -849,8 +849,9 @@ seven SDO bands share `data/labels/sun-sdo-2024-05-10.json`. In L10, an overlay 
 width (the phone sheet) sets the foot of the free area, and an overlay at a side (controls,
 overview, readout, a bottom Light bar) closes the corner below its top edge, inflated by
 `--edge`; markers there are not drawn. On a phone the view controls step aside while a
-description is docked (L19 and S3 would otherwise collide). At 390x844 the Sun region's
-chip fits on no side next to the zoom buttons at fit, so its circle shows alone (L12).
+description is docked (L19 and S3 would otherwise collide). For a feature drawn as a circle,
+the right placement hangs off the 45 degree point and left, above and below sit off the
+circle's own box, so at 390x844 in Light the Sun region's chip takes the left side.
 
 **Copy.** Toggle name "Feature labels"; live region "Feature labels shown" / "Feature labels
 hidden"; About heading "Labeled features"; row action "Show". Label and description text
@@ -871,7 +872,8 @@ come only from the validated data.
 - K3. The DOM has no `a[href]` whose origin differs from the page's, no `target="_blank"`
   and no `mailto:`/`tel:` link. Credits, sources and the NASA links render as plain text.
 - K4. Share and Fullscreen are not rendered (a kiosk runs full screen already, and a
-  copied link has nowhere to go). The `?` shortcut sheet still works for staff.
+  copied link has nowhere to go). The `?` shortcut sheet still works for staff (planned:
+  the app has no `?` sheet yet).
 
 **Attract loop.**
 
@@ -880,8 +882,10 @@ come only from the validated data.
   stop 1 of the first.
 - K6. Each stop dwells 8 s after its flight settles. The stop card, the credit and the
   current stop marker are visible for the whole dwell (S2 holds on every stop).
-- K7. A chip "Touch to explore" sits bottom center above every bottom overlay (0.75rem
-  above the highest of the sheet top, the light bar and the controls), Label type at
+- K7. A chip "Touch to explore" sits bottom center, 0.75rem above the highest top edge of
+  the bottom overlays it shares columns with (sheet, light bar, controls, overview card,
+  readout; an overlay off to a side does not lift it), else 0.75rem above the foot of the
+  screen, Label type at
   1.125rem, box 56px tall or more. It pulses opacity 0.7 to 1 over 2 s; under reduced
   motion it does not pulse, and flights become the 200 ms cut.
 - K8. Any pointerdown, touchstart, wheel or keydown stops the loop at the current stop,
@@ -902,7 +906,8 @@ come only from the validated data.
 - K12. After 90 s with no input (outside the attract loop), the countdown sheet appears
   with the copy in 5.8: "Still exploring? Returning to the start in 10 s." and the button
   "Keep exploring" (56px or more tall). The seconds count down once per second.
-- K13. The countdown sits bottom center, 0.75rem above the highest bottom overlay, within
+- K13. The countdown sits bottom center, docked as K7 says (0.75rem above the highest
+  bottom overlay that shares its columns, else the foot of the screen), within
   the S1 edges, intersects no S3 element, and takes focus on open; Keep exploring or
   any input closes it and restarts the 90 s timer.
 - K14. At 0 s it resets: sheets and popovers close, labels off, Compare and Light state
@@ -917,8 +922,7 @@ the countdown is open, as they do for a docked label description. The countdown 
 when it opens, and "Returning to the start." at the reset; the sheet's own number updates
 silently. To meet K9, the overview's route marks and, below 40rem, Home's strip stops are
 inert in a kiosk (the stop list, Next and the lens remain); K10 therefore holds on wide
-screens only. There is no `?` shortcut sheet in the app yet, so K4's last sentence has
-nothing to keep.
+screens only.
 
 **Viewports.** K-rules are asserted at 1440x900 and 390x844 in the dark theme, plus the K2
 check with a stored light preference; the screen in a museum is usually 1920x1080, which

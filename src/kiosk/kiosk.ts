@@ -16,8 +16,10 @@ export const storySearch1 = (slug: string) => `/${slug}/?mode=story&stop=1`;
 export const nextJourney = (order: readonly string[], slug: string) => order[(order.indexOf(slug) + 1) % order.length];
 
 const ATTRACT_EVENT = "solaria:attract";
-// Mirrors the stored flag where storage is refused (a private window), for this page only.
-let memory = false;
+// Mirrors the stored flag where storage is refused (a private window), for this page only. It
+// starts on: theme-init.js could not store ?kiosk=1's loop either, and kiosk mode alone (from
+// the URL) decides whether it shows.
+let memory = true;
 
 export const attractOn = () => {
   try {

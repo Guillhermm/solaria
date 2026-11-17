@@ -40,3 +40,15 @@ describe("kiosk helpers", () => {
     vi.restoreAllMocks();
   });
 });
+
+describe("kiosk with storage refused", () => {
+  it("starts the attract loop, since ?kiosk=1 could not store it", async () => {
+    vi.resetModules();
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("denied");
+    });
+    const fresh = await import("./kiosk");
+    expect(fresh.attractOn()).toBe(true);
+    vi.restoreAllMocks();
+  });
+});

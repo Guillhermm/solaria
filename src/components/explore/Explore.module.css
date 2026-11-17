@@ -1165,3 +1165,12 @@
     display: none;
   }
 }
+
+/* S1 on a phone: a top bar group whose only control is About (hidden here; the sheet's handle
+   takes its place) is not drawn, rather than left as an empty strip of glass. A kiosk drops
+   Share and the theme toggle, which leaves the right group so on an Explore-only image. */
+@media (max-width: 40rem) {
+  .topbar > .bar:not(:has(> :not(.about))) {
+    display: none;
+  }
+}

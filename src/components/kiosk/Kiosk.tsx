@@ -7,13 +7,20 @@ import { useAttract, useKiosk } from "@/kiosk/useKiosk";
 import styles from "./Kiosk.module.css";
 
 // What the chip and the countdown sit above (K7, K13): the highest top edge among the bottom
-// overlays in the lower half of the screen, and the footer once it scrolls into view.
-const BOTTOMS = ["[data-testid=sheet]", "[data-testid=light-bar]", "[role=group][aria-label='View controls']"];
+// overlays in the lower half of the screen that share columns with them, and the footer once
+// it scrolls into view. An overlay off to a side leaves them at the foot of the screen.
+const BOTTOMS = [
+  "[data-testid=sheet]",
+  "[data-testid=light-bar]",
+  "[role=group][aria-label='View controls']",
+  "[data-testid=overview]",
+  "[data-testid=readout]",
+];
 
-const bottomLine = () => {
+const bottomLine = (dock: DOMRect) => {
   const tops = BOTTOMS.flatMap((q) => [...document.querySelectorAll(q)])
     .map((el) => el.getBoundingClientRect())
-    .filter((r) => r.width > 0 && r.height > 0 && r.y + r.height > innerHeight / 2)
+    .filter((r) => r.width > 0 && r.height > 0 && r.y + r.height > innerHeight / 2 && r.left < dock.right && dock.left < r.right)
     .map((r) => r.y);
   const footer = document.querySelector("body > footer, footer")?.getBoundingClientRect();
   if (footer && footer.top < innerHeight) tops.push(footer.top);
@@ -133,7 +140,7 @@ const Kiosk = ({ journeys }: { journeys: string[] }) => {
     if (!shown) return;
     const place = () => {
       const el = overlayRef.current;
-      if (el) el.style.setProperty("--kiosk-bottom", `${innerHeight - bottomLine()}px`);
+      if (el) el.style.setProperty("--kiosk-bottom", `${innerHeight - bottomLine(el.getBoundingClientRect())}px`);
     };
     place();
     const timer = window.setInterval(place, MEASURE_MS);
