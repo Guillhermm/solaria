@@ -969,8 +969,10 @@ the ones in the repository today.
 - Detail of the week on Home: one stop from a validated pool (`data/weekly.json`, checked by
   the content validator) is picked by the ISO week of the build date (`SOLARIA_BUILD_DATE`,
   else today in UTC) and drawn as a square crop from the tile pyramid with its rulers,
-  readout, credit and a link to the stop. It changes when the site is rebuilt; a weekly
-  scheduled rebuild is planned.
+  readout, credit and a link to the stop. It changes when the site is rebuilt. `.github/workflows/weekly-rebuild.yml` POSTs the
+  Vercel deploy hook (secret `VERCEL_DEPLOY_HOOK`) every Monday at 06:00 UTC, and can be run by
+  hand. GitHub disables a public repository's scheduled workflows after 60 days with no
+  activity; the card then stops turning over until the workflow is enabled again.
 - Kiosk mode, awaiting the maintainers' sign-off and not linked from the app: `?kiosk=1` on
   any page turns it on for the browser session (`?kiosk=0` ends it). It is always dark, shows
   no link that leaves the app, no Share, Fullscreen or theme toggle, uses 3.5rem targets,

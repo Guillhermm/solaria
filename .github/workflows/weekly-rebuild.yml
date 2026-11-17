@@ -1,0 +1,17 @@
+name: Weekly rebuild
+on:
+  schedule:
+    # Mondays 06:00 UTC, so the detail of the week turns over with the ISO week.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+permissions: {}
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger the Vercel deploy hook
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then echo "Set the VERCEL_DEPLOY_HOOK repository secret"; exit 1; fi
+          curl --fail --silent --show-error --request POST "$HOOK" > /dev/null

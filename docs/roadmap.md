@@ -28,8 +28,7 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 Deferred on 2026-11-17, not needed for now: analytics (L-08), sky coordinates in search (F-09)
 and offline support (F-08).
 
-Still open: keeping new tiles out of git (R-03), half-resolution Andromeda (H-01), the Pillars Journey (C-05)
-and the weekly scheduled rebuild (W-01).
+Still open: keeping new tiles out of git (R-03), half-resolution Andromeda (H-01), and the Pillars Journey (C-05).
 
 ## M0. Plan
 
@@ -155,13 +154,13 @@ C-05 waited for R2, which now exists: the Webb frame is about 2,566 tiles and 11
 | ID | Item | Status |
 |---|---|---|
 | F-01 | Kiosk mode: attract loop, idle reset, no links out | done |
-| F-02 | Detail of the week, rotated at build time (the weekly scheduled rebuild is planned) | done |
+| F-02 | Detail of the week, rotated at build time (rebuilt weekly by W-01) | done |
 | F-03 | Labeled features on images, each label validated | done |
 | F-04 | Search by feature name, then by coordinates (image pixels; sky coordinates planned) | done |
 | F-05 | Mars Journey from HiRISE orthorectified pairs only | done |
 | F-07 | Installable app: web app manifest, favicon and icon set from the header mark (`scripts/generate-icons.ts`) | done |
 | F-08 | Offline support with a service worker that never serves stale tiles or pages | deferred |
-| W-01 | Weekly scheduled rebuild so the detail of the week changes | planned |
+| W-01 | Weekly scheduled rebuild so the detail of the week changes (needs the `VERCEL_DEPLOY_HOOK` secret) | done |
 | F-09 | Sky coordinates (RA and Dec) in search | deferred |
 | T-01 | Fix the two intermittent e2e failures (tile-outage retry toast, story cut) | done |
 | T-02 | Keep desktop Light views clear of the Light bar (design.md §15.5 D11) | done |

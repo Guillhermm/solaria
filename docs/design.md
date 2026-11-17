@@ -1164,8 +1164,8 @@ still show.
   Vectors with the pool above: 2026-11-17 (week 47) 211 Å, active region 13664;
   2026-11-23 (week 48) NGC 206; 2026-12-07 (week 50) The bright center; 2026-12-28 and
   2027-01-03 (week 53) The companion galaxy M32; 2027-01-04 (week 1) The bright center.
-- W4. The card changes only when the site is rebuilt. A weekly scheduled rebuild is
-  planned and waits on the host decision (L-03, L-04).
+- W4. The card changes only when the site is rebuilt. A weekly scheduled rebuild
+  (W-01) triggers it every Monday.
 
 **Placement and layout.**
 
@@ -1249,7 +1249,7 @@ descriptions, stop bodies and credits, all from validated data.
   Andromeda Galaxy", the Sun's "One Sun, seven bands" and both "Your turn" stops) land on
   nothing specific, so search leaves them out. The index uses the same rule as the lens
   (`aimableStops`).
-- **D2, the weekly rebuild stays planned** (W4); nothing schedules a build yet.
+- **D2, the weekly rebuild** (W4) is W-01, built after Sprint 10.
 - **D3, the science review of the pool** (`docs/science/weekly-pool.md`): Active region
   13664 (label) is out; every Andromeda entry carries the color caveat; Sun stops 4 and 5
   are now "171 Å, active region 13664" and "211 Å, active region 13664" in the Journey too;
