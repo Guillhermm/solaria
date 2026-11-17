@@ -1,6 +1,6 @@
 # Solaria roadmap
 
-Owner of every item: Guilherme. Status is `todo`, `doing`, `done` or `blocked`, and is
+Owner of every item: Guilherme. Status is `todo`, `doing`, `done`, `blocked` or `deferred`, and is
 updated in the same commit that finishes the item. Plan: `docs/vision.md`; design:
 `docs/design.md`; checked facts: `docs/science/`.
 
@@ -25,7 +25,9 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 | 10 | Search and detail of the week | F-04, F-02 | done |
 | 11 | Mars Journey, installable app, smooth zoom | F-05, F-07, T-02, T-03 | done |
 
-Still open: keeping new tiles out of git (R-03), half-resolution Andromeda (H-01), the Pillars Journey (C-05), analytics (L-08),
+Deferred: analytics (L-08), not needed for now (2026-11-17).
+
+Still open: keeping new tiles out of git (R-03), half-resolution Andromeda (H-01), the Pillars Journey (C-05),
 the weekly scheduled rebuild, sky coordinates in search, and offline support (F-08).
 
 ## M0. Plan
@@ -104,7 +106,7 @@ S-04 decision (2026-11-17): tiling the half-resolution file gives about 34,400 t
 | L-04 | Security headers, deploy, domain solaria.zenus.systems | done | L-03 | Headers in `vercel.json` (`docs/architecture.md`); site live on the domain |
 | L-05 | Performance and accessibility pass on a mid-range phone | done | L-01 | Targets in `docs/design.md` section 9 met |
 | L-06 | Launch | done | L-01 to L-05 | Site live at https://solaria.zenus.systems |
-| L-08 | Analytics: choose a tool and add it without breaking the CSP or the kiosk's no-links rule | todo | L-04 | Decision recorded; counts visible; CSP still passes |
+| L-08 | Analytics: choose a tool and add it without breaking the CSP or the kiosk's no-links rule | deferred | L-04 | Decision recorded; counts visible; CSP still passes |
 | L-07 | SEO: robots.txt, sitemap, canonical URLs, Open Graph and Twitter cards, Search Console verification | done | L-01, L-02 | Files and head tags present in the static export |
 
 L-07 (2026-11-17, owner Guilherme): `docs/architecture.md` section 16 describes what is built.
