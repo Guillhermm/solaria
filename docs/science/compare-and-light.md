@@ -42,8 +42,8 @@ end), `assumption`, `unverified`. Sources at the end, numbered [n].
   - "Webb found new stars": dust is more transparent in the near infrared, so embedded
     and background stars appear. Same sky, different band. `supported` [2][7]
   - "The pillars thinned between 2014 and 2022": the difference is band, not time.
-    Real motion over 8 years at the Eos speed is about 330 AU, about 0.17 arcsec at
-    6,500 light-years (estimate, to be recomputed independently); it exists but cannot
+    Real motion over 8 years at the Eos speed is about 330 AU, about 0.16 arcsec at
+    6,500 light-years (recomputed; an upper bound); it exists but cannot
     be separated from band differences in a wipe. `supported` [4][2]
   - "The pillars are red/gold": every color is assigned per filter (F470N red, from
     H2 emission). `verified` [6][7]
@@ -143,4 +143,4 @@ Status of this list: `assumption` (a team design choice), derived from what a ca
 12. Helioviewer API v2, JPEG2000: https://api.helioviewer.org/docs/v2/api/api_groups/jpeg2000.html (search summary)
 
 Still open: read [3], [5], [8], [11] and the MAST header of the 2014 Hubble
-mosaic; recompute the 0.17 arcsec figure.
+mosaic.
