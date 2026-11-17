@@ -1,13 +1,11 @@
 name: Sync tiles to R2
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - public/tiles/**
-      - data/**
   workflow_dispatch:
     inputs:
+      images:
+        description: Image ids separated by spaces, or all
+        type: string
+        default: all
       apply:
         description: Upload (unchecked lists what would be uploaded)
         type: boolean
@@ -27,8 +25,14 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Install OpenJPEG for the JP2 originals
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libopenjp2-tools
+      - name: Cut tiles from the NASA originals
+        run: npm run build-tiles -- "$IMAGES"
+        env:
+          IMAGES: ${{ inputs.images }}
       - name: Sync public/tiles to the bucket
-        run: npm run sync-r2 -- ${{ (github.event_name == 'push' || inputs.apply) && '--apply' || '' }}
+        run: npm run sync-r2 -- ${{ inputs.apply && '--apply' || '' }}
         env:
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}

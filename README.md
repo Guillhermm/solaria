@@ -45,7 +45,7 @@ The app is at [http://127.0.0.1:8434](http://127.0.0.1:8434). To serve the stati
 instead, run `npm run build && npm start` (same port).
 
 Other scripts: `npm run validate` checks the content and the production gate,
-`npm run fetch-source`, `npm run generate-tiles` and `npm run generate-mock` prepare images,
+`npm run fetch-source`, `npm run generate-tiles`, `npm run build-tiles` and `npm run generate-mock` prepare images,
 and `npm run sync-r2` uploads tiles.
 
 ## Tiles and content
@@ -92,15 +92,15 @@ The site is on Vercel, deployed from its Git integration, at
 [solaria.zenus.systems](https://solaria.zenus.systems). `vercel.json` sets the security
 headers.
 
-Tiles are uploaded to R2 by the "Sync tiles to R2" workflow
-(`.github/workflows/sync-tiles.yml`). It runs on every push to `main` that changes
-`public/tiles/` or `data/`, and on demand with an "apply" checkbox (unchecked is a dry run). It
-reads four repository secrets: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` and
+Tiles are built and uploaded to R2 by the "Sync tiles to R2" workflow
+(`.github/workflows/sync-tiles.yml`), which runs on demand only: an `images` input (ids, or
+`all`) and an "apply" checkbox (unchecked is a dry run). It downloads the NASA originals, cuts
+the tiles (`npm run build-tiles`) and syncs them. New tiles are not committed (`public/tiles/` is
+ignored except the mock trees). It reads four repository secrets: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` and
 `R2_BUCKET`. To run the sync from your machine, copy `.env.example` to `.env`, fill it in, and
 run `npm run sync-r2` (add `--apply` to upload).
 
-Not built yet: analytics, a weekly scheduled rebuild for the detail of the week, offline
-support, and keeping new tiles out of git (the sync workflow reads them from the checkout).
+Deferred: analytics and offline support.
 
 ## Authors
 

@@ -146,7 +146,7 @@ C-05 waited for R2, which now exists: the Webb frame is about 2,566 tiles and 11
 |---|---|---|---|---|
 | R-01 | Create the R2 bucket, public domain for tiles, CORS for the site | done | D-08 | Tiles load from R2 in a preview build |
 | R-02 | Switch production to R2 | done | R-01 | The live site loads its tiles from tiles.solariadata.com |
-| R-03 | Stop committing new tiles (owner: Guilherme): the sync workflow uploads from the git checkout today, so it needs another source (tiling in the workflow, or an upload from the machine that tiles) before `public/tiles/` can be ignored | todo | R-02 | New images never enter git |
+| R-03 | Stop committing new tiles (owner: Guilherme): the sync workflow cuts tiles from the NASA originals (`build-tiles`) and `public/tiles/` is ignored; built; `all` skips the quarter Andromeda, which stays on R2 until H-01; still to do: run `all` once in CI; HiRISE tiles decode via `opj_decompress` but differ from the committed ones in 8 EXIF bytes per tile | doing | R-02 | New images never enter git |
 | H-01 | Half-resolution Andromeda on R2 (owner: Guilherme): `generate-tiles` gets `--max-level` and a level and column range, is tested on a PNG, then the set is tiled in pieces and synced (architecture.md section 15) | todo | R-01, S-04 | Half set loads from R2 in a preview build and its stops are validated |
 
 ## Later

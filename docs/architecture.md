@@ -21,6 +21,7 @@ data/                     content, JSON only; written by hand and by scripts
 scripts/                  pipeline, Node only, never imported by the app
   fetch-source.ts         download an original into .cache/sources/, check sha256
   generate-tiles.ts       pyramid, thumbnail, preview, `tiles` block
+  build-tiles.ts          fetches originals and cuts tiles for the sync workflow (R-03)
   validate-content.ts     same checks the build runs, for fast feedback and CI
   generate-mock.ts        writes the synthetic mock images, tiles, pair and band set (D-09)
   strip-mock-tiles.ts     postbuild: removes mock and staged tile trees from the production output
@@ -44,7 +45,7 @@ src/viewer/               no React: view math (zoom relative to fit, image pixel
 src/app/                  server components: call getContent(), pass plain objects down
 src/components/           client components: receive a manifest and a tile base as props
   explore/                the Explore viewer page (OpenSeadragon, rulers, overview, readout)
-public/tiles/<id>/        generated tile tree, synced to R2 (R-02)
+public/tiles/<id>/        generated tile tree, synced to R2 (R-02); ignored by git except mock-*
 ```
 
 Rules:
@@ -572,9 +573,38 @@ npm run sync-r2 -- [--dir public/tiles] [--apply]
   `R2_BUCKET`, read from the environment only. Output never contains a value, only the
   names of missing variables. A dry run without them makes no request and treats every
   file as new; `--apply` without them stops.
-- `.github/workflows/sync-tiles.yml` runs the sync in GitHub Actions: with `--apply` on a
-  push to `main` that touches `public/tiles/` or `data/`, and by hand with an "apply"
-  checkbox. Credentials are the `R2_*` repository secrets. One sync runs at a time.
+- `.github/workflows/sync-tiles.yml` runs by hand only (`workflow_dispatch`), with an `images`
+  input (ids separated by spaces, default `all`) and an "apply" checkbox (unchecked is a dry
+  run). It first runs `npm run build-tiles -- "$IMAGES"`, then the sync. Credentials are the
+  `R2_*` repository secrets. One sync runs at a time. There is no push trigger: tiles no longer
+  change in git, and a push to `data/` would otherwise download and cut every original again.
+- New tiles never enter git (R-03): `/public/tiles/*` is ignored except `mock-*`. The trees
+  already committed stay tracked and are the same bytes the workflow cuts (checked for
+  `pillars-hubble-1995`, `pillars-hubble-2014` and `sun-sdo-2024-05-10-aia-171`).
+- `build-tiles` never cuts `andromeda-phat-phast-2025` (`NOT_REBUILT`): the quarter set stays on
+  R2 as it is, and H-01 replaces it under a new id. `all` leaves it out and logs why; naming it
+  is an error. Checked 2026-11-17: at 416 Mpx it opens sequentially and the cut stops with
+  `out of order read`, and opened for random access its tiles differ in pixels from the
+  committed set (248 MB against 163 MB).
+- `npm run build-tiles -- <id ...|all>` (`scripts/build-tiles.ts`): for each manifest in
+  `data/images/` (staged images are skipped), `fetchSource` downloads the original named by
+  `sourceId` into `.cache/sources` (size and sha256 checked), `tileImage` (the same function
+  `generate-tiles` uses) cuts it into `.cache/tiles-build/<id>`, and the cut `tiles` block must
+  equal the one committed in the manifest. Only then is the tree moved to `public/tiles/<id>`.
+  A failed fetch, hash, cut or mismatch is reported per id, leaves nothing for that id, and the
+  exit code is 1 so the sync step does not run. The workflow cannot commit, so a mismatch is
+  how CI catches a drifted manifest.
+- Adding an image needs no local download: write the manifest without a `tiles` block, run
+  `npm run build-tiles -- <id> --write-manifest`, which fills the block from the source record's
+  `file.width` and `file.height` (or the `crop`), and commit the manifest. Then run the workflow
+  for that id. The validator already requires those sizes to match.
+- JP2 originals (HiRISE): wasm-vips has no OpenJPEG, so `build-tiles` decodes a `jp2` source with
+  the `opj_decompress` binary (`execFile`, no shell; `brew install openjpeg`, or the
+  `libopenjp2-tools` package the workflow installs with apt) to a TIFF next to the cached
+  original, cuts that, and deletes it. Checked on 2026-11-17: both Nili Patera ids give the
+  committed `tiles` block and the same pixels, but their JPEG files are not byte-identical to the
+  committed ones (8 bytes differ in each tile's EXIF header, cause not yet found), so a sync would
+  upload all of their tiles again as `changed`.
 - No dependency: R2's S3 API is called with `fetch`, signed with AWS Signature Version 4
   (`node:crypto`, `signRequest`, about 30 lines) against `https://<account>.r2.cloudflarestorage.com/<bucket>`,
   region `auto`. A unit test reproduces two signatures published in the AWS documentation
@@ -804,13 +834,14 @@ margin, or run on another machine.
 5. After each piece: `npm run sync-r2 -- --apply`. It already lists the bucket and uploads
    only what is missing, so deleting a synced piece locally does not upload it again
    (section 12). Delete the piece, run the next.
+   (`build-tiles` cuts whole images only; the piecewise cut stays with the H-01 script change.)
 6. Scale the Journey stops, labels and weekly detail of the image by 2 to the new pixel space
    (19739 is one pixel short of 2 x 9870, under 0.01%), and get them validated.
 7. Build with `TILE_BASE_URL=https://<tiles domain>` (section 7) and check a preview.
 
 **In place:** the `solaria-data` bucket, its custom domain `tiles.solariadata.com`, a CORS
 rule for the site's origin (R-01), and `sync-r2` running in the "Sync tiles to R2" workflow
-(section 12). The tiles still reach the workflow through git (R-03).
+(section 12). The workflow cuts the tiles itself from the NASA originals (R-03).
 
 ### Script change (H-01, follow-up)
 
@@ -819,11 +850,37 @@ rule for the site's origin (R-01), and `sync-r2` running in the "Sync tiles to R
 - `MAX_LEVEL` is fixed at 6; the half set needs 7. Add `--max-level`.
 - It cuts every level in one run and keeps them; add a level and column range so a piece
   fits the disk budget.
-- It opens files over 100 Mpx sequentially and resizes the same image per level, then reads
+- It opens files over 200 Mpx sequentially and resizes the same image per level, then reads
   tiles column by column. Whether that works for a 1.67 Gpx PNG is unverified, and wasm-vips
   cannot hold the decoded image (about 6.7 GB as RGBA, over wasm32's 4 GB). Test on the
   43 MB `Reduced Res 2` PNG from the same page first; reopen the input per level if needed.
 - The palette plus `tRNS` gives an alpha channel; flatten it onto black before JPEG.
+
+**Decision (2026-11-17, planned): native libvips CLI, one level at a time.** Checked against
+the libvips `dzsave` docs and source (`libvips/foreign/dzsave.c`, master) and packages.ubuntu.com.
+
+- Install `libvips-tools` from apt (8.15.1 on Ubuntu 24.04), next to `libopenjp2-tools`: 64-bit,
+  so no 4 GB ceiling. No npm dependency.
+- `vips flatten half.png src.v --background 0,0,0` once. PNG decodes in one sequential pass; the
+  `.v` file (84416 x 19739 x 3, 5.0 GB) is memory-mapped and random access, so later reads have no
+  "out of order read". `.v` over tiled TIFF: no codec, no tile-size choice, read as is.
+- Per level L of 0..7: `vips resize src.v lvl.v <w/W> --vscale <h/H>` to `levelSize` (skip at 7),
+  check the size with `vipsheader`, then `vips dzsave lvl.v out --layout dz --depth one
+  --tile-size 256 --overlap 0 --suffix .jpg`, and move `out_files/0/<x>_<y>.jpg` to
+  `<id>/<L>/<x>/<y>.jpg`. Same resize call the wasm path makes today, so sizes match
+  `pyramid.ts` exactly, and dz edge tiles are partial, as ours are. Preview and thumbnail are
+  resized from the level 2 file (2638 px wide) to `longSide`; the poster stays `stitchPoster`.
+- Rejected: `--layout google` pads edge tiles to 256 with white and names `z/y/x`; a full dz
+  pyramid halves with `(w + 1) / 2` (ceil), which differs from our rounding for this image at
+  levels 0, 1 and 4 (heights 155, 309, 2468 against 154, 308, 2467).
+- Disk on the runner: 1.0 GB PNG + 5.0 GB `.v` + at most 1.25 GB level file + 0.9 GB tiles, about
+  8.2 GB, under 14 GB, so CI cuts it whole; the piecewise step 4 only applies on this Mac.
+- Tests: a pure function that builds the `vips` argument lists per level (unit, no vips); the
+  CLI behind an injected runner, as `decode` is in `build-tiles`; one integration test, skipped
+  when `vips` is absent, cutting a small odd-sized PNG (e.g. 1001 x 237, levels where round and
+  ceil differ) and checking every tile's size against `levelSize` and `tileCount` with the
+  existing tile-tree check. Pixels may differ slightly from wasm-vips (different libvips
+  version); sizes may not.
 
 ## Security headers (Vercel)
 

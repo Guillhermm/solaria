@@ -50,3 +50,7 @@ next-env.d.ts
 
 # fetched originals
 /.cache/
+
+# tiles are built in CI from the NASA originals (R-03); the mock trees stay tracked
+/public/tiles/*
+!/public/tiles/mock-*/

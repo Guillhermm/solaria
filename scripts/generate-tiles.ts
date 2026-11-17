@@ -8,11 +8,11 @@ import type { ImageManifest, TilePyramid } from "../src/content/types";
 
 type VipsImage = InstanceType<Awaited<ReturnType<typeof Vips>>["Image"]>;
 
-const TILE_SIZE = 256;
-const MAX_LEVEL = 6;
-const THUMBNAIL_SIDE = 512;
-const PREVIEW_SIDE = 2048;
-const RANDOM_ACCESS_PIXELS = 100e6;
+export const TILE_SIZE = 256;
+export const MAX_LEVEL = 6;
+export const THUMBNAIL_SIDE = 512;
+export const PREVIEW_SIDE = 2048;
+const RANDOM_ACCESS_PIXELS = 200e6;
 
 const toJpeg = (img: VipsImage) => Buffer.from(img.writeToBuffer(".jpg"));
 
@@ -60,7 +60,7 @@ export const cutPyramid = async (
   }
 };
 
-const longSide = (image: VipsImage, side: number) => {
+export const longSide = (image: { width: number; height: number }, side: number) => {
   const k = Math.min(1, side / Math.max(image.width, image.height));
   return { width: Math.max(1, Math.round(image.width * k)), height: Math.max(1, Math.round(image.height * k)) };
 };
@@ -136,6 +136,27 @@ const levelsOnDisk = async (dir: string) => {
   return levels[levels.length - 1];
 };
 
+// Cuts one original into `outDir` (pyramid, preview, thumbnail, poster) and returns the `tiles` block.
+export const tileImage = async (
+  vips: Awaited<ReturnType<typeof Vips>>,
+  opts: { input: string; outDir: string; crop: ImageManifest["crop"]; noPyramid?: boolean },
+) => {
+  const { input, outDir, crop } = opts;
+  // Each pyramid level reads the original again, which a sequential TIFF reader refuses
+  // ("out of order read"). Up to RANDOM_ACCESS_PIXELS the file is opened for random access,
+  // which holds it in memory; larger originals stay sequential.
+  const header = vips.Image.newFromFile(input);
+  const access = header.width * header.height <= RANDOM_ACCESS_PIXELS ? "random" : "sequential";
+  const image = cropTo(vips.Image.newFromFile(input, { access }), crop);
+  let maxLevel = MAX_LEVEL;
+  if (opts.noPyramid) maxLevel = await levelsOnDisk(outDir);
+  else await cutPyramid(image, outDir, { tileSize: TILE_SIZE, maxLevel });
+  const sizes = await writeThumbnails(image, outDir);
+  const tiles = tilesBlock(image.width, image.height, TILE_SIZE, maxLevel, sizes);
+  const poster = await stitchPoster(vips, outDir, tiles);
+  return { tiles, poster };
+};
+
 const main = async () => {
   const args = process.argv.slice(2);
   const noPyramid = args.includes("--no-pyramid");
@@ -155,21 +176,9 @@ const main = async () => {
   const manifestPath = contentFile(process.cwd(), "images", id);
 
   const outDir = join("public", "tiles", id);
-  const vips = await Vips();
-  // Each pyramid level reads the original again, which a sequential TIFF reader refuses
-  // ("out of order read"). Up to RANDOM_ACCESS_PIXELS the file is opened for random access,
-  // which holds it in memory; larger originals stay sequential.
-  const header = vips.Image.newFromFile(input);
-  const access = header.width * header.height <= RANDOM_ACCESS_PIXELS ? "random" : "sequential";
   const { crop } = JSON.parse(readFileSync(manifestPath, "utf8")) as Pick<ImageManifest, "crop">;
-  const image = cropTo(vips.Image.newFromFile(input, { access }), crop);
-  let maxLevel = MAX_LEVEL;
-  if (noPyramid) maxLevel = await levelsOnDisk(outDir);
-  else await cutPyramid(image, outDir, { tileSize: TILE_SIZE, maxLevel });
-  const sizes = await writeThumbnails(image, outDir);
-  const tiles = tilesBlock(image.width, image.height, TILE_SIZE, maxLevel, sizes);
+  const { tiles, poster } = await tileImage(await Vips(), { input, outDir, crop, noPyramid });
   updateManifestTiles(manifestPath, tiles);
-  const poster = await stitchPoster(vips, outDir, tiles);
   console.log(`Wrote ${manifestPath} and poster.jpg (level ${poster.level}, ${poster.width} x ${poster.height})`);
 };
 
