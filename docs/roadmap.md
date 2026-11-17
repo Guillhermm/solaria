@@ -14,7 +14,7 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 | Sprint | Goal | Items | Status |
 |---|---|---|---|
 | 1 | Clean, tested base | B-01 to B-07 | done, B-02 blocked |
-| 2 | Content from manifests, static export | D-01 to D-07 | todo |
+| 2 | Next 16, content from manifests, static export | B-08, D-01 to D-07 | todo |
 | 3 | New visual base; R2 sync and mock data ready | V-01 to V-03, D-08, D-09 | todo |
 | 4 | Viewer as a page | X-01 to X-05 | todo |
 | 5 | Story mode and the Andromeda Journey | S-01 to S-04 | todo |
@@ -45,6 +45,7 @@ Each item leaves the app working.
 | B-05 | Remove the unidentified Webb pair from the slider | done | | No unlabeled pair shipped |
 | B-06 | Remove unused `react-leaflet` | done | | Not in `package.json` |
 | B-07 | Dev server on 127.0.0.1:8434 in `npm run dev`; README rewritten for the relaunch | done | | README states what is built and links the plan |
+| B-08 | Upgrade to Next 16 to clear the PostCSS advisory bundled with Next 15 (critical Next advisories already fixed by 15.5.29) | todo | B-02 | `npm audit --audit-level=high` clean; CI green |
 
 ## M2. Data pipeline
 

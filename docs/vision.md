@@ -7,7 +7,10 @@ The relaunch is no longer bound by the challenge brief. This document is the pro
 plan; `docs/design.md` holds the experience and visual direction, `docs/roadmap.md` the
 work, and `docs/science/` what has been checked about the images.
 
-## 1. Where the app is today
+## 1. Where the app stood before the relaunch (2026-11-17)
+
+A snapshot of the starting point. Sprint 1 fixed the metadata and removed the fake filters
+and the unidentified pair; `docs/roadmap.md` tracks what has changed since.
 
 - One long page with three stacked tools: Deep Viewer (OpenSeadragon over Hubble
   Andromeda tiles), a before/after Comparison Slider, and a Spectral Gallery.
