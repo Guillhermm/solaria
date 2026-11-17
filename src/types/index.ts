@@ -8,6 +8,7 @@ export interface ImageMeta {
   tileSize: number;
   minLevel: number;
   maxLevel: number;
+  credit: string;
 }
 
 // Deep Viewer types and interfaces
