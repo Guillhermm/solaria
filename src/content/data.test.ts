@@ -42,7 +42,13 @@ describe("the real data directory", () => {
 
   it("loads the mock and the Hubble pairs and both band sets in development", () => {
     const c = loadContent({ root: process.cwd(), mode: "development" });
-    expect(c.pairs.map((p) => p.id)).toEqual(["pillars-hubble-1995-2014", "mock-compare"]);
+    expect(c.pairs.map((p) => p.id)).toEqual(["pillars-hubble-1995-2014", "mock-compare", "nili-patera-hirise-2007"]);
+    const mars = c.images.filter((i) => i.id.startsWith("nili-patera-hirise-"));
+    expect(mars.map((i) => [i.crop, i.tiles.width, i.tiles.height, i.validation.status])).toEqual([
+      [{ x: 667, y: 4310, width: 3934, height: 5747 }, 3934, 5747, "draft"],
+      [{ x: 667, y: 4310, width: 3934, height: 5747 }, 3934, 5747, "draft"],
+    ]);
+    expect(c.journeys.find((j) => j.slug === "nili-patera")?.stops).toHaveLength(6);
     expect(c.bandSets.map((b) => [b.id, b.mock, b.validation.status])).toEqual([
       ["sun-sdo-2024-05-10", false, "approved"],
       ["mock-light", true, "draft"],

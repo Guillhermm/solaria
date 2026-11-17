@@ -195,6 +195,21 @@ describe("cross-file rules", () => {
     const e = run((f) => ((f[1].raw as ReturnType<typeof fx.image>).tiles.width = 999));
     expect(e).toEqual(["data/images/demo.json: tiles.width: expected 1000 (the source file), got 999"]);
   });
+  it("measures tiles against the crop when the image has one", () => {
+    const withCrop = (crop: unknown, width = 800) =>
+      run((f) => {
+        const img = f[1].raw as ReturnType<typeof fx.image>;
+        (img as unknown as Record<string, unknown>).crop = crop;
+        img.tiles.width = width;
+      });
+    expect(withCrop({ x: 100, y: 0, width: 800, height: 300 })).toEqual([]);
+    expect(withCrop({ x: 100, y: 0, width: 800, height: 300 }, 1000)).toEqual(["data/images/demo.json: tiles.width: expected 800 (the crop), got 1000"]);
+    expect(withCrop({ x: 700, y: 0, width: 800, height: 300 })).toEqual([
+      "data/images/demo.json: crop: (700, 0) + 800 x 300 lies outside the source file (1000 x 300)",
+    ]);
+    expect(withCrop({ x: -1, y: 0, width: 400, height: 300 })[0]).toContain("crop.x");
+    expect(withCrop({ x: 0, y: 0, width: 400 })[0]).toContain("crop.height: missing");
+  });
   it("rejects an id that differs from the file name", () => {
     const e = run((f) => (f[0].path = "data/sources/other.json"));
     expect(e.some((m) => m.includes('id: expected the file name "other"'))).toBe(true);

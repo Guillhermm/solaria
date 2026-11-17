@@ -98,6 +98,9 @@ export interface ImageManifest {
   // Polygons, in full-resolution pixels, around the part of the file that holds data. Absent:
   // the whole image. The viewer crops to it, so a mosaic's empty corner never covers another image.
   footprint?: { x: number; y: number }[][];
+  // The box of the source file that was tiled, in source pixels (origin top-left, size in pixels).
+  // Absent: the whole file. Adding (x, y) to a point of this image gives its pixel in the product.
+  crop?: { x: number; y: number; width: number; height: number };
   tiles: TilePyramid;
   validation: Validation;
   mock: boolean;

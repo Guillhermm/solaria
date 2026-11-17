@@ -265,6 +265,18 @@ const point = (c: Ctx, v: unknown, path: string) => {
   return o && finish<{ x: number; y: number }>(c, n, { x: num(c, o.x, `${path}.x`), y: num(c, o.y, `${path}.y`) });
 };
 
+const optionalCrop = (c: Ctx, o: Record<string, unknown>) => {
+  if (!("crop" in o)) return undefined;
+  const n = c.errors.length;
+  const co = object(c, o.crop, "crop", ["x", "y", "width", "height"]);
+  return co && finish<{ x: number; y: number; width: number; height: number }>(c, n, {
+    x: int(c, co.x, "crop.x", 0),
+    y: int(c, co.y, "crop.y", 0),
+    width: int(c, co.width, "crop.width"),
+    height: int(c, co.height, "crop.height"),
+  });
+};
+
 export const validateImage = (raw: unknown, file: string): Result<ImageManifest> => {
   const c = newCtx(file);
   const o = object(
@@ -275,7 +287,7 @@ export const validateImage = (raw: unknown, file: string): Result<ImageManifest>
       "id", "sourceId", "title", "target", "observatory", "instruments", "bands", "colorMapping",
       "productType", "tiles", "validation", "mock",
     ],
-    ["releasedAt", "observedAt", "processing", "pixelScale", "fieldOfView", "orientation", "caveats", "footprint"],
+    ["releasedAt", "observedAt", "processing", "pixelScale", "fieldOfView", "orientation", "caveats", "footprint", "crop"],
   );
   if (!o) return bad(c);
   const n = c.errors.length;
@@ -315,12 +327,13 @@ export const validateImage = (raw: unknown, file: string): Result<ImageManifest>
             return pts && pts.length < 3 ? fail(c, p, "a polygon of at least 3 points", poly) : pts;
           }, true)
         : undefined,
+    crop: optionalCrop(c, o),
     tiles: tiles(c, o.tiles, "tiles"),
     validation: validation(c, o.validation, "validation"),
     mock: bool(c, o.mock, "mock"),
   });
   if (value) {
-    for (const k of ["releasedAt", "observedAt", "processing", "pixelScale", "fieldOfView", "orientation", "caveats", "footprint"] as const) {
+    for (const k of ["releasedAt", "observedAt", "processing", "pixelScale", "fieldOfView", "orientation", "caveats", "footprint", "crop"] as const) {
       if (value[k] === undefined) delete value[k];
     }
   }
@@ -657,8 +670,13 @@ export const validateContent = (files: { path: string; raw: unknown }[]): Result
       errors.push(`${file}: sourceId: no source "${img.sourceId}" in data/sources/`);
       continue;
     }
-    if (img.tiles.width !== src.file.width) errors.push(`${file}: tiles.width: expected ${src.file.width} (the source file), got ${img.tiles.width}`);
-    if (img.tiles.height !== src.file.height) errors.push(`${file}: tiles.height: expected ${src.file.height} (the source file), got ${img.tiles.height}`);
+    const { crop } = img;
+    if (crop && (crop.x + crop.width > src.file.width || crop.y + crop.height > src.file.height)) {
+      errors.push(`${file}: crop: (${crop.x}, ${crop.y}) + ${crop.width} x ${crop.height} lies outside the source file (${src.file.width} x ${src.file.height})`);
+    }
+    const [w, h, what] = crop ? [crop.width, crop.height, "the crop"] : [src.file.width, src.file.height, "the source file"];
+    if (img.tiles.width !== w) errors.push(`${file}: tiles.width: expected ${w} (${what}), got ${img.tiles.width}`);
+    if (img.tiles.height !== h) errors.push(`${file}: tiles.height: expected ${h} (${what}), got ${img.tiles.height}`);
   }
 
   for (const j of content.journeys) {
