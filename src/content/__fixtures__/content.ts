@@ -56,7 +56,7 @@ export const stop = (id: string): Stop => ({
 });
 
 export const journey = (): Journey => ({
-  slug: "demo",
+  slug: "demo-tour",
   imageId: "demo",
   title: "Demo journey",
   summary: "Summary.",
@@ -90,5 +90,5 @@ export const bandSet = (): BandSet => ({
 export const files = (): { path: string; raw: unknown }[] => [
   { path: "data/sources/demo.json", raw: source() },
   { path: "data/images/demo.json", raw: image() },
-  { path: "data/journeys/demo.json", raw: journey() },
+  { path: "data/journeys/demo-tour.json", raw: journey() },
 ];

@@ -1,9 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { type CSSProperties, type KeyboardEvent, useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import {
+  type CSSProperties,
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import {
   LuArrowLeft,
+  LuArrowRight,
   LuChevronDown,
   LuInfo,
   LuMaximize,
@@ -17,15 +27,19 @@ import {
 import type OpenSeadragon from "openseadragon";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { tileSource } from "@/content/tiles";
-import type { ImageManifest } from "@/content/types";
+import type { ImageManifest, Journey, Viewport } from "@/content/types";
 import type { Info } from "@/viewer/info";
 import { overviewHeightRem, shapeOf } from "@/viewer/overview";
 import { keyAction, zoomAnnouncement } from "@/viewer/keys";
 import { type SheetState, stepSheet } from "@/viewer/sheet";
-import { parseViewerParams, serializeViewerParams } from "@/viewer/url";
+import { type Mode, parseViewerParams, serializeViewerParams } from "@/viewer/url";
+import { reticleSide } from "@/viewer/route";
+import { type Bounds, flightPlan, parseStop, stepStop, stopNumber, stopOf, stopTarget, storySearch, viewBounds, zoomSpan } from "@/viewer/story";
 import { formatInt, formatZoom, homeView, osdFromView, type Size, viewFromOsd } from "@/viewer/view";
 import { drawRuler } from "./drawRuler";
 import InfoPanel from "./InfoPanel";
+import RouteOverlay from "./RouteOverlay";
+import StoryPanel from "./StoryPanel";
 import { useSheetDrag } from "./useSheetDrag";
 import styles from "./Explore.module.css";
 
@@ -33,6 +47,13 @@ interface ExploreProps {
   image: ImageManifest;
   info: Info;
   tileBaseUrl: string;
+  journey?: Journey; // a Journey page: Story first, then Explore on the same image
+}
+
+interface Camera {
+  fly: (view: Viewport) => void;
+  syncMargins: () => void;
+  schedule: () => void;
 }
 
 const noSubscribe = () => () => {};
@@ -62,10 +83,41 @@ const settledView = (viewer: OpenSeadragon.Viewer, size: Size) => {
 const viewUrl = (viewer: OpenSeadragon.Viewer, size: Size) =>
   `${window.location.pathname}${serializeViewerParams({ mode: "explore", view: settledView(viewer, size) })}`;
 
-// Next.js keeps its router state in history.state, so it is passed back unchanged.
-const replaceUrl = (url: string) => window.history.replaceState(window.history.state, "", url);
+// The URL is the one record of the mode and the stop (design.md 2, "every view is a place").
+// Components read it through useSyncExternalStore, so the static HTML and the first render agree.
+const URL_EVENT = "solaria:url";
 
-const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
+// Next.js keeps its router state in history.state, so it is passed back unchanged.
+const replaceUrl = (url: string) => {
+  window.history.replaceState(window.history.state, "", url);
+  window.dispatchEvent(new Event(URL_EVENT));
+};
+
+const subscribeUrl = (onChange: () => void) => {
+  window.addEventListener(URL_EVENT, onChange);
+  window.addEventListener("popstate", onChange);
+  return () => {
+    window.removeEventListener(URL_EVENT, onChange);
+    window.removeEventListener("popstate", onChange);
+  };
+};
+
+const STORY_MODES: readonly Mode[] = ["story", "explore"];
+const EXPLORE_MODES: readonly Mode[] = ["explore"];
+
+// "story:2" or "explore": only what the page renders from, so a view change alone does not
+// re-render it.
+const routeKey = (search: string, journey: Journey | undefined, image: Size) => {
+  const { mode } = parseViewerParams(search, image, journey ? STORY_MODES : EXPLORE_MODES);
+  return mode === "story" && journey ? `story:${parseStop(search, journey.stops.length)}` : mode;
+};
+
+// design.md 5.4: on a phone the camera frames each stop in the top 60 % of the screen.
+const PHONE_STORY_FRAME = 0.6;
+const PHONE = "(max-width: 40rem)";
+const RETICLE_REM = 5.5;
+
+const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
   const rootRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
@@ -75,12 +127,28 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
   const yRef = useRef<HTMLSpanElement>(null);
   const zRef = useRef<HTMLSpanElement>(null);
   const viewerRef = useRef<OpenSeadragon.Viewer | null>(null);
+  const cameraRef = useRef<Camera | null>(null);
+  const marksRef = useRef<(HTMLDivElement | null)[]>([]);
   const [fullscreen, setFullscreen] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const liveRef = useRef<HTMLParagraphElement>(null);
   const failuresRef = useRef(0);
+  const { width: imageWidth, height: imageHeight } = image.tiles;
+  const route = useSyncExternalStore(
+    subscribeUrl,
+    () => routeKey(window.location.search, journey, { width: imageWidth, height: imageHeight }),
+    () => (journey ? "story:0" : "explore"),
+  );
+  const mode: Mode = route.startsWith("story") ? "story" : "explore";
+  const stop = mode === "story" ? Number(route.split(":")[1]) : 0;
+  const story = mode === "story" && !!journey;
+  // The last stop the story showed, kept while Explore is open so Story resumes there.
+  const [storyStop, setStoryStop] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [seen, setSeen] = useState<ReadonlySet<number>>(() => new Set());
+  // What the OpenSeadragon handlers need to know about the page, kept current after each render.
   // On desktop only "full" matters (the About panel is open); the phone sheet uses all three.
   const [sheet, setSheet] = useState<SheetState>("peek");
   const infoOpen = sheet === "full";
@@ -88,7 +156,8 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
   const handleRef = useRef<HTMLButtonElement>(null);
   const drag = useSheetDrag(
     () => sheetRef.current,
-    (direction) => setSheet((s) => stepSheet(s, direction)),
+    // The story card moves between its title and the whole stop; About opens from the credit.
+    (direction) => setSheet((s) => (story ? (direction === "up" ? "peek" : "min") : stepSheet(s, direction))),
   );
   const infoId = useId();
   const infoTitleRef = useRef<HTMLHeadingElement>(null);
@@ -96,8 +165,13 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
   // iPhone Safari has no element fullscreen; the button goes rather than doing nothing.
   const canFullscreen = useSyncExternalStore(noSubscribe, () => document.fullscreenEnabled, () => true);
   const navId = useId();
+  const storyId = useId();
 
   const size = { width: image.tiles.width, height: image.tiles.height };
+  const pageRef = useRef({ story, stop, paused, journey });
+  useEffect(() => {
+    pageRef.current = { story, stop, paused, journey };
+  });
   const home = homeView(size);
   const shape = shapeOf(size);
   const overviewStyle = {
@@ -139,15 +213,17 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
     let themeObserver: MutationObserver | undefined;
     const { width, height } = image.tiles;
 
-    // The fit leaves the rulers clear: they are margins of the view, not part of it.
+    // The fit leaves the rulers clear: they are margins of the view, not part of it. In Story
+    // the column on desktop, and the sheet below the frame on a phone, are margins too.
     const measureMargins = () => {
       const top = rulerTopRef.current;
       const left = rulerLeftRef.current;
+      const phoneStory = pageRef.current.story && window.matchMedia(PHONE).matches;
       return {
         top: top?.offsetParent ? top.offsetTop + top.offsetHeight : 0,
-        left: left?.offsetParent ? left.offsetWidth : 0,
+        left: left?.offsetParent ? left.offsetLeft + left.offsetWidth : 0,
         right: 0,
-        bottom: 0,
+        bottom: phoneStory ? Math.round(host.clientHeight * (1 - PHONE_STORY_FRAME)) : 0,
       };
     };
     let margins = measureMargins();
@@ -172,6 +248,20 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
         drawRuler(top, "x", bounds.x * width + (top.offsetLeft - margins.left) / scale, scale, width);
       if (left && left.offsetParent)
         drawRuler(left, "y", bounds.y * width + (left.offsetTop - margins.top) / scale, scale, height);
+      // Stop markers on the image follow it at a fixed screen size (design.md 6.2).
+      const { journey: j, story: inStory, stop: at } = pageRef.current;
+      if (j && inStory) {
+        const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+        j.stops.forEach((s, i) => {
+          const el = marksRef.current[i];
+          const target = stopTarget(s);
+          if (!el || !target) return;
+          const sx = margins.left + (target.x - bounds.x * width) * scale;
+          const sy = margins.top + (target.y - bounds.y * width) * scale;
+          el.style.translate = `${sx.toFixed(1)}px ${sy.toFixed(1)}px`;
+          if (i === at) el.style.setProperty("--side", `${reticleSide(RETICLE_REM * rem, scale, s.marker?.r)}px`);
+        });
+      }
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(paint);
@@ -209,6 +299,49 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
       });
       viewerRef.current = viewer;
       const opened = viewer;
+      const size = { width, height };
+      const span = journey ? zoomSpan(journey.stops) : 1;
+      // A flight's second leg waits for the first to land; any user gesture drops it.
+      let nextLeg: (() => void) | null = null;
+      const springs = () => {
+        const vp = opened.viewport as unknown as Record<"centerSpringX" | "centerSpringY" | "zoomSpring", { animationTime: number }>;
+        return [vp.centerSpringX, vp.centerSpringY, vp.zoomSpring];
+      };
+      const fitImageBounds = (b: Bounds, ms: number) => {
+        const rect = new OSD.Rect(b.x / width, b.y / width, b.width / width, b.height / width);
+        // Springs read their duration when they start, so the flight's own time applies to it alone.
+        const all = springs();
+        const before = all.map((s) => s.animationTime);
+        for (const s of all) s.animationTime = ms / 1000;
+        opened.viewport.fitBoundsWithConstraints(rect, ms === 0);
+        all.forEach((s, i) => (s.animationTime = before[i]));
+      };
+      const fly = (view: Viewport) => {
+        nextLeg = null;
+        const vp = opened.viewport;
+        const b = vp.getBounds();
+        const aspect = { width: b.width, height: b.height };
+        const from = { x: b.x * width, y: b.y * width, width: b.width * width, height: b.height * width };
+        const [first, second] = flightPlan(from, settledView(opened, size).z, view, size, aspect, span);
+        fitImageBounds(first.bounds, first.ms);
+        if (second) nextLeg = () => fitImageBounds(second.bounds, second.ms);
+      };
+      const syncMargins = () => {
+        const next = measureMargins();
+        if (Object.entries(next).some(([k, v]) => margins[k as keyof typeof margins] !== v)) {
+          margins = next;
+          (opened.viewport as unknown as { setMargins: (m: typeof margins) => void }).setMargins(margins);
+        }
+        schedule();
+      };
+      // design.md 2 and 7.2: a gesture on the image pauses the story; it never locks the user out.
+      const pause = () => {
+        nextLeg = null;
+        if (pageRef.current.story && !pageRef.current.paused) setPaused(true);
+      };
+      cameraRef.current = { fly, syncMargins, schedule };
+      for (const name of ["canvas-press", "canvas-scroll", "canvas-pinch"] as const) opened.addHandler(name, pause);
+      opened.navigator?.addHandler("canvas-press", pause);
       opened.canvas.setAttribute("role", "application");
       opened.canvas.setAttribute(
         "aria-label",
@@ -222,6 +355,7 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
         const action = keyAction(key);
         if (!action) return;
         key.preventDefault();
+        if (action.kind !== "fullscreen") pause();
         const vp = opened.viewport;
         if (action.kind === "zoom") vp.zoomBy(action.factor);
         else if (action.kind === "pan") {
@@ -244,8 +378,12 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
           if (e.fullyLoaded) setToast((t) => (t === SLOW ? null : t));
         });
         // A shared link restores its view; anything invalid in it was already clamped or dropped.
-        const { view } = parseViewerParams(window.location.search, { width, height });
-        if (view) {
+        // A Journey link opens on its stop.
+        const { view, mode: asked } = parseViewerParams(window.location.search, { width, height }, journey ? STORY_MODES : EXPLORE_MODES);
+        syncMargins();
+        if (journey && asked === "story") {
+          fitImageBounds(viewBounds(journey.stops[parseStop(window.location.search, journey.stops.length)].viewport, size, opened.viewport.getBounds()), 0);
+        } else if (view) {
           const vp = opened.viewport;
           const target = osdFromView(view, vp.getHomeZoom(), { width, height });
           vp.zoomTo(target.zoom, undefined, true);
@@ -255,12 +393,21 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
         host.dataset.open = "";
         schedule();
       });
-      // design.md 7.1: the URL follows the view 400 ms after it settles.
       opened.addHandler("animation-finish", () => {
+        if (nextLeg) {
+          const leg = nextLeg;
+          nextLeg = null;
+          leg();
+          return;
+        }
+        // design.md 7.1: in Explore the URL follows the view 400 ms after it settles; in Story
+        // it holds the stop.
         clearTimeout(urlTimer);
-        urlTimer = window.setTimeout(() => replaceUrl(viewUrl(opened, { width, height })), 400);
-        // design.md 7.1: the zoom is announced once it settles, never per frame.
+        if (!pageRef.current.story) urlTimer = window.setTimeout(() => replaceUrl(viewUrl(opened, { width, height })), 400);
+        // design.md 7.1: the zoom is announced once it settles, never per frame; a stop
+        // announces its title instead, unless the user has taken the camera.
         clearTimeout(liveTimer);
+        if (pageRef.current.story && !pageRef.current.paused) return;
         liveTimer = window.setTimeout(() => {
           const text = zoomAnnouncement(settledView(opened, { width, height }).z);
           if (text !== lastAnnounced && liveRef.current) liveRef.current.textContent = text;
@@ -268,15 +415,8 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
         }, 500);
       });
       viewer.addHandler("viewport-change", schedule);
-      viewer.addHandler("resize", () => {
-        // Crossing the phone breakpoint shows or hides the rulers.
-        const next = measureMargins();
-        if (next.top !== margins.top || next.left !== margins.left) {
-          margins = next;
-          (opened.viewport as unknown as { setMargins: (m: typeof margins) => void }).setMargins(margins);
-        }
-        schedule();
-      });
+      // Crossing the phone breakpoint shows or hides the rulers and the column.
+      viewer.addHandler("resize", syncMargins);
       document.fonts.ready.then(schedule);
       // The rulers draw with theme tokens, so a theme switch repaints them.
       themeObserver = new MutationObserver(schedule);
@@ -295,9 +435,15 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
       themeObserver?.disconnect();
       viewer?.destroy();
       viewerRef.current = null;
+      cameraRef.current = null;
       navHost.replaceChildren();
     };
-  }, [image, tileBaseUrl, navId, toggleFullscreen, attempt]);
+  }, [image, tileBaseUrl, navId, toggleFullscreen, attempt, journey]);
+
+  // Markers move with the image; a new stop or mode places them again at once.
+  useEffect(() => {
+    cameraRef.current?.schedule();
+  }, [story, stop]);
 
   // design.md 5.5: the chrome fades after 5 s without input (CSS decides how far, per part
   // and per device). It stays while a panel is open, or while focus or the pointer is in it.
@@ -381,14 +527,66 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
 
   const tapHandle = useCallback(() => {
     if (drag.wasDrag()) return;
-    setSheet((s) => (s === "peek" ? "full" : "peek"));
+    // In Story the handle shows or hides the stop card; About opens from the credit.
+    if (story) setSheet((s) => (s === "peek" ? "min" : "peek"));
+    else setSheet((s) => (s === "peek" ? "full" : "peek"));
     setToast(null);
-  }, [drag]);
+  }, [drag, story]);
 
   const openFromCredit = useCallback(() => {
     setSheet("full");
     setToast(null);
   }, []);
+
+  const announce = useCallback((text: string) => {
+    if (liveRef.current) liveRef.current.textContent = text;
+  }, []);
+
+  // Next, Previous, the list, the strip and swipes all land here.
+  const goTo = useCallback(
+    (index: number) => {
+      if (!journey || index < 0 || index >= journey.stops.length) return;
+      setSeen((s) => new Set(s).add(stop));
+      setPaused(false);
+      replaceUrl(`${window.location.pathname}${storySearch(index)}`);
+      cameraRef.current?.fly(journey.stops[index].viewport);
+      announce(`${stopOf(index, journey.stops.length)}: ${journey.stops[index].title}`);
+    },
+    [journey, stop, announce],
+  );
+
+  const resume = useCallback(() => {
+    if (!journey) return;
+    setPaused(false);
+    cameraRef.current?.fly(journey.stops[stop].viewport);
+  }, [journey, stop]);
+
+  // The last stop hands the image over (design.md 7.2, "Explore freely").
+  const toExplore = useCallback(() => {
+    const viewer = viewerRef.current;
+    if (!viewer) return;
+    setStoryStop(stop);
+    setSeen((s) => new Set(s).add(stop));
+    setPaused(false);
+    replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }));
+  }, [stop, imageWidth, imageHeight]);
+
+  const flyOnStory = useRef(false);
+  const toStory = useCallback(() => {
+    flyOnStory.current = true;
+    replaceUrl(`${window.location.pathname}${storySearch(storyStop)}`);
+  }, [storyStop]);
+
+  // The column and the phone frame change the margins; back in Story the camera returns to the stop.
+  useEffect(() => {
+    const camera = cameraRef.current;
+    if (!camera) return;
+    camera.syncMargins();
+    if (story && flyOnStory.current && journey) camera.fly(journey.stops[stop].viewport);
+    flyOnStory.current = false;
+    // Only a change of mode moves the camera here; stops fly from goTo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [story]);
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -400,14 +598,48 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
     [infoOpen, closeInfo],
   );
 
-  const zoomBy = useCallback((factor: number) => {
-    const vp = viewerRef.current?.viewport;
-    if (!vp) return;
-    vp.zoomBy(factor);
-    vp.applyConstraints();
-  }, []);
+  // Story keys work wherever focus is on the page, the body included, but never while typing.
+  const storyKeys = useCallback(
+    (e: globalThis.KeyboardEvent) => {
+      if (!journey || e.ctrlKey || e.metaKey || e.altKey) return;
+      const target = e.target as HTMLElement;
+      if (target.closest?.("input, textarea, select, [contenteditable]")) return;
+      // design.md 7.2: J and Page Down go on, K and Page Up go back. 7.1: S and E switch mode.
+      if (story && (e.key === "j" || e.key === "J" || e.key === "PageDown")) goTo(stepStop(stop, 1, journey.stops.length));
+      else if (story && (e.key === "k" || e.key === "K" || e.key === "PageUp")) goTo(stepStop(stop, -1, journey.stops.length));
+      else if (story && (e.key === "e" || e.key === "E")) toExplore();
+      else if (!story && (e.key === "s" || e.key === "S")) toStory();
+      else return;
+      e.preventDefault();
+    },
+    [journey, story, stop, goTo, toExplore, toStory],
+  );
 
-  const reset = useCallback(() => viewerRef.current?.viewport.goHome(), []);
+  useEffect(() => {
+    if (!journey) return;
+    window.addEventListener("keydown", storyKeys);
+    return () => window.removeEventListener("keydown", storyKeys);
+  }, [journey, storyKeys]);
+
+  const pauseStory = useCallback(() => {
+    if (story) setPaused(true);
+  }, [story]);
+
+  const zoomBy = useCallback(
+    (factor: number) => {
+      const vp = viewerRef.current?.viewport;
+      if (!vp) return;
+      pauseStory();
+      vp.zoomBy(factor);
+      vp.applyConstraints();
+    },
+    [pauseStory],
+  );
+
+  const reset = useCallback(() => {
+    pauseStory();
+    viewerRef.current?.viewport.goHome();
+  }, [pauseStory]);
 
   const retryTiles = useCallback(() => {
     const viewer = viewerRef.current;
@@ -425,6 +657,11 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
     setAttempt((n) => n + 1);
   }, []);
 
+  // The column's mission line: validated manifest fields only (design.md 5.3).
+  const mission = info.fields
+    .filter((f) => !f.draft && (f.label === "Observatory" || f.label === "Released"))
+    .flatMap((f) => f.values);
+
   return (
     <main
       ref={rootRef}
@@ -432,9 +669,33 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
       data-shape={shape}
       data-info={infoOpen || undefined}
       data-sheet={sheet}
+      data-mode={mode}
+      data-journey={journey ? "" : undefined}
+      data-paused={(story && paused) || undefined}
       onKeyDown={onKeyDown}
     >
       <div ref={canvasRef} className={styles.canvas} data-theme="dark" data-testid="viewer" />
+
+      {/* Placed every frame by paint(); they never take a gesture from the image. */}
+      {story && journey && (
+        <div className={styles.marks} data-theme="dark" aria-hidden data-testid="marks">
+          {journey.stops.map((s, i) =>
+            stopTarget(s) ? (
+              <div
+                key={s.id}
+                ref={(el) => {
+                  marksRef.current[i] = el;
+                }}
+                className={styles.marker}
+                data-current={i === stop || undefined}
+              >
+                {i === stop && <span className={styles.ticks} />}
+                <span className={styles.tag}>{i === stop ? `Stop ${stopNumber(i)}` : stopNumber(i)}</span>
+              </div>
+            ) : null,
+          )}
+        </div>
+      )}
 
       <div className={`${styles.rulers} ${styles.dim}`} aria-hidden>
         <canvas ref={rulerTopRef} className={styles.rulerTop} />
@@ -457,9 +718,26 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
               {shortTitle(image.title)}
             </span>
           </h1>
-          <span className={styles.mode}>Explore</span>
+          {!journey && <span className={styles.mode}>Explore</span>}
         </div>
+        {/* Desktop: the pill takes the place of the title bar, which Story leaves to the column. */}
+        {story && journey && paused && (
+          <button type="button" className={`${styles.pill} ${styles.pillTop} ${styles.glass}`} onClick={resume}>
+            {stopOf(stop, journey.stops.length)}, back to the story
+            <LuArrowRight aria-hidden />
+          </button>
+        )}
         <div className={`${styles.bar} ${styles.glass} ${styles.fade}`}>
+          {journey && (
+            <div className={styles.modes} role="group" aria-label="Mode">
+              <button type="button" aria-pressed={story} onClick={story ? undefined : toStory}>
+                Story
+              </button>
+              <button type="button" aria-pressed={!story} onClick={story ? toExplore : undefined}>
+                Explore
+              </button>
+            </div>
+          )}
           <button
             ref={aboutRef}
             type="button"
@@ -504,17 +782,31 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
           onPointerUp={drag.onPointerUp}
           onPointerCancel={drag.onPointerCancel}
         >
-          <button
-            ref={handleRef}
-            type="button"
-            className={styles.handle}
-            onClick={tapHandle}
-            aria-expanded={infoOpen}
-            aria-controls={infoId}
-          >
-            <span className={styles.gripBar} aria-hidden />
-            {sheet === "min" ? "Show overview" : "About this image"}
-          </button>
+          {story && journey ? (
+            <button
+              ref={handleRef}
+              type="button"
+              className={styles.handle}
+              onClick={tapHandle}
+              aria-expanded={sheet !== "min"}
+              aria-controls={storyId}
+            >
+              <span className={styles.gripBar} aria-hidden />
+              {journey.title}
+            </button>
+          ) : (
+            <button
+              ref={handleRef}
+              type="button"
+              className={styles.handle}
+              onClick={tapHandle}
+              aria-expanded={infoOpen}
+              aria-controls={infoId}
+            >
+              <span className={styles.gripBar} aria-hidden />
+              {sheet === "min" ? "Show overview" : "About this image"}
+            </button>
+          )}
           {sheet === "peek" && (
             <button
               type="button"
@@ -562,13 +854,10 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
             </span>
           </p>
           {/* The image well is canvas, so it keeps the dark values (and the amber view box). */}
-          <div
-            ref={navRef}
-            className={styles.nav}
-            style={overviewStyle}
-            data-theme="dark"
-            data-testid="overview-image"
-          />
+          <div className={styles.well} data-theme="dark">
+            <div ref={navRef} className={styles.nav} style={overviewStyle} data-testid="overview-image" />
+            {story && journey && <RouteOverlay stops={journey.stops} image={size} current={stop} onGo={goTo} />}
+          </div>
           <p className={styles.readout} data-testid="readout">
           <span className={styles.key}>Center x</span>
           <span ref={xRef} className={styles.value}>{formatInt(home.x)}</span>
@@ -578,6 +867,18 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
           <span ref={zRef} className={styles.zoom}>{formatZoom(home.z)}</span>
           </p>
         </div>
+        {story && journey && (
+          <div id={storyId} className={styles.story}>
+            <StoryPanel journey={journey} index={stop} seen={seen} mission={mission} onGo={goTo} onExplore={toExplore} collapsed={sheet === "min"} />
+          </div>
+        )}
+        {story && journey && paused && (
+          <button type="button" className={`${styles.pill} ${styles.pillSheet} ${styles.glass}`} onClick={resume}>
+            {stopOf(stop, journey.stops.length)}, back to the story
+            <LuArrowRight aria-hidden />
+          </button>
+        )}
+
         {/* Phones: the full validated credit stays in the sheet; a tap opens About. */}
         {!infoOpen && (
           <button type="button" className={styles.sheetCredit} onClick={openFromCredit}>

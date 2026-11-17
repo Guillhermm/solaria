@@ -343,7 +343,7 @@ test("in the light theme every overlay shares one glass, and the rulers are opaq
     page.evaluate((sel) => getComputedStyle(document.querySelector(sel)!).backgroundColor, testIdOrSelector);
   const bar = await bg("header > div");
   expect(bar).toBe("rgba(247, 246, 242, 0.86)");
-  expect(await page.getByTestId("overview-image").evaluate((el) => getComputedStyle(el.parentElement!).backgroundColor)).toBe(bar);
+  expect(await page.getByTestId("overview-image").evaluate((el) => getComputedStyle(el.closest("[class*=overview]")!).backgroundColor)).toBe(bar);
   expect(await bg('[role="group"][aria-label="View controls"]')).toBe(bar);
   expect(await readout(page).evaluate((el) => getComputedStyle(el).color)).toBe("rgb(17, 20, 26)");
   for (const canvas of await page.locator("canvas[class*=ruler]").all()) {

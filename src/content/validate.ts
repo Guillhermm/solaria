@@ -490,6 +490,8 @@ export const validateContent = (files: { path: string; raw: unknown }[]): Result
 
   for (const j of content.journeys) {
     const file = fileOf.get(j)!;
+    // Journeys and images share the /[slug] route.
+    if (images.has(j.slug)) errors.push(`${file}: slug: "${j.slug}" is also an image id; the two share one URL space`);
     const img = images.get(j.imageId);
     if (!img) {
       errors.push(`${file}: imageId: no image "${j.imageId}" in data/images/`);

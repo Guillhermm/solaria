@@ -56,11 +56,18 @@ in [docs/science/](docs/science/).
   checks the token pairs against WCAG 2.2 AA contrast. Components style themselves with
   CSS Modules next to them; there is no CSS framework. The footer prints each image's
   credit line unaltered from its source record.
+- The Andromeda Journey at `/andromeda/`: Story mode tells seven validated stops in a
+  column beside the image (a bottom sheet on phones, with the credit under it). Next and
+  Previous, the stop list, the numbered stops on the overview's route, a swipe on the
+  phone card, and `J`/`K` or Page Down/Page Up move between stops; the camera flies there
+  and the URL holds the stop (`?mode=story&stop=3`). Touching the image pauses the story
+  and a "back to the story" pill resumes it. The last stop, or the Story/Explore switch,
+  hands the same view to Explore. Not linked from Home yet (L-01).
 - Unit and integration tests (Vitest) and end-to-end tests (Playwright).
 
 ## Planned
 
-Journeys with story mode, tiles served from
+More Journeys, tiles served from
 R2, the rest of the new design (Home, Journeys), and Compare and Light modes once a pair or band set
 is validated. See the roadmap for order and status.
 

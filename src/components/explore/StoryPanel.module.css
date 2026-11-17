@@ -1,0 +1,421 @@
+/* Story mode (docs/design.md 5.3 and 5.4): a column at the left of the image on desktop,
+   the card of the bottom sheet on a phone. */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  color: var(--text);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  margin-inline-start: calc(-1 * var(--space-3));
+}
+
+.iconButton {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--target);
+  height: var(--target);
+  color: var(--text);
+  border-radius: var(--radius-control);
+}
+
+.iconButton svg {
+  width: var(--icon);
+  height: var(--icon);
+}
+
+.iconButton:hover {
+  color: var(--accent);
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: var(--target);
+  padding-inline: var(--space-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wordmark);
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.mark {
+  width: 0.625rem;
+  height: 0.625rem;
+  border: 1.5px solid currentColor;
+  border-radius: 1px;
+  transform: rotate(45deg);
+}
+
+.wordmark:hover .mark {
+  border-color: var(--accent);
+}
+
+.mission,
+.routeLabel,
+.seen {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.mission {
+  margin: var(--space-6) 0 var(--space-2);
+  color: var(--text-muted);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-display);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: var(--tracking-title);
+  text-wrap: balance;
+}
+
+.route {
+  margin-block: var(--space-5) var(--space-3);
+}
+
+.routeHead {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.routeLabel {
+  color: var(--text-muted);
+}
+
+.segments {
+  display: flex;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.segments li {
+  flex: 1;
+  height: 3px;
+  background: var(--hairline);
+}
+
+.segments li[data-state="seen"] {
+  background: var(--text);
+}
+
+.segments li[data-state="current"] {
+  background: var(--accent);
+}
+
+.stops {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0 calc(-1 * var(--space-4));
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+
+.stop {
+  border-bottom: 1px solid var(--hairline-soft);
+}
+
+.stopButton {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--target);
+  padding: var(--space-3) var(--space-4);
+  font: inherit;
+  font-size: 0.9375rem;
+  text-align: start;
+  color: var(--text);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.stopButton:hover .stopName {
+  color: var(--accent);
+}
+
+.stopButton:focus-visible,
+.back:focus-visible,
+.next:focus-visible,
+.sources a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.stopName {
+  flex: 1;
+}
+
+.number {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.seen {
+  color: var(--text-muted);
+}
+
+.card {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface);
+  border-inline-start: 2px solid var(--accent);
+}
+
+.stopTitle {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: var(--tracking-title);
+}
+
+.card .number {
+  color: var(--accent);
+}
+
+.body p {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+.body p + p {
+  margin-top: var(--space-3);
+}
+
+.sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sources a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 1.5rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-decoration-color: var(--hairline);
+  text-underline-offset: 0.2em;
+}
+
+.sources a:hover {
+  color: var(--accent);
+}
+
+.sources svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.nav {
+  display: flex;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+}
+
+.back,
+.next {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 3rem;
+  font: inherit;
+  font-weight: 600;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.back {
+  flex: none;
+  width: 3rem;
+  color: var(--text);
+  background: none;
+  border: 1px solid var(--hairline);
+}
+
+.back:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.back:disabled {
+  color: var(--text-muted);
+  border-color: var(--hairline-soft);
+  cursor: default;
+}
+
+.next {
+  flex: 1;
+  color: var(--on-accent);
+  background: var(--accent);
+  border: none;
+}
+
+.next:hover {
+  background: var(--accent-press);
+}
+
+.back svg,
+.next svg {
+  width: var(--icon);
+  height: var(--icon);
+}
+
+@media (forced-colors: active) {
+  .segments li[data-state] {
+    background: CanvasText;
+  }
+
+  .segments li[data-state="current"] {
+    background: Highlight;
+  }
+
+  .card {
+    border-inline-start-color: Highlight;
+  }
+}
+
+/* Phone: the card holds only the current stop, under a one-line progress. */
+@media (max-width: 40rem) {
+  .brand,
+  .mission,
+  .stop:not([data-current]) {
+    display: none;
+  }
+
+  .title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .route {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-block: 0 var(--space-2);
+  }
+
+  .routeHead {
+    flex: none;
+    margin: 0;
+    color: var(--accent);
+  }
+
+  .routeHead > .routeLabel,
+  .routeHead .routeLabel {
+    display: none;
+  }
+
+  .segments {
+    flex: 1;
+  }
+
+  .stops {
+    flex: 0 1 auto;
+    margin: 0;
+    overflow: visible;
+  }
+
+  .stop {
+    border: none;
+  }
+
+  .card {
+    gap: var(--space-2);
+    padding: 0;
+    background: none;
+    border: none;
+  }
+
+  .card .number {
+    display: none;
+  }
+
+  .stopTitle {
+    font-size: 1.25rem;
+  }
+
+  /* The body scrolls inside the card so the sheet keeps the frame of design.md 5.4. */
+  .body {
+    max-height: 15dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .body p {
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+
+  .nav {
+    padding-top: var(--space-2);
+  }
+
+  .back,
+  .next {
+    min-height: var(--target);
+  }
+
+  .back {
+    width: var(--target);
+  }
+
+  .panel[data-collapsed] :is(.body, .sources, .nav) {
+    display: none;
+  }
+}

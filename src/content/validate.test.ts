@@ -10,7 +10,7 @@ describe("valid fixtures", () => {
   it("pass", () => {
     expect(validateSource(fx.source(), "data/sources/demo.json").ok).toBe(true);
     expect(validateImage(fx.image(), "data/images/demo.json").ok).toBe(true);
-    expect(validateJourney(fx.journey(), "data/journeys/demo.json").ok).toBe(true);
+    expect(validateJourney(fx.journey(), "data/journeys/demo-tour.json").ok).toBe(true);
     expect(validateContent(fx.files()).ok).toBe(true);
   });
 
@@ -130,14 +130,14 @@ describe("journey rules", () => {
   const run = (edit: (s: Record<string, any>) => void) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     const s = clone(fx.journey()) as unknown as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
     edit(s);
-    return errorsOf(validateJourney(s, "data/journeys/demo.json"));
+    return errorsOf(validateJourney(s, "data/journeys/demo-tour.json"));
   };
 
   it("rejects a stop without sources", () => {
     expect(run((s) => (s.stops[1].sources = []))[0]).toContain("stops[1].sources: expected a non-empty array");
   });
   it("rejects a malformed marker", () => {
-    expect(run((s) => (s.stops[0].marker = { x: 1, y: 2 }))).toEqual(["data/journeys/demo.json: stops[0].marker.r: missing"]);
+    expect(run((s) => (s.stops[0].marker = { x: 1, y: 2 }))).toEqual(["data/journeys/demo-tour.json: stops[0].marker.r: missing"]);
   });
 });
 
@@ -150,7 +150,7 @@ describe("cross-file rules", () => {
 
   it("rejects a viewport outside the image", () => {
     const e = run((f) => ((f[2].raw as ReturnType<typeof fx.journey>).stops[0].viewport.x = 1001));
-    expect(e).toEqual(["data/journeys/demo.json: stops[0].viewport: (1001, 150) lies outside the image (1000 x 300)"]);
+    expect(e).toEqual(["data/journeys/demo-tour.json: stops[0].viewport: (1001, 150) lies outside the image (1000 x 300)"]);
   });
   it("rejects a marker outside the image", () => {
     const e = run((f) => ((f[2].raw as ReturnType<typeof fx.journey>).stops[2].marker = { x: 5, y: 301, r: 4 }));
@@ -162,7 +162,14 @@ describe("cross-file rules", () => {
   });
   it("rejects a dangling imageId", () => {
     const e = run((f) => ((f[2].raw as ReturnType<typeof fx.journey>).imageId = "nope"));
-    expect(e).toEqual(['data/journeys/demo.json: imageId: no image "nope" in data/images/']);
+    expect(e).toEqual(['data/journeys/demo-tour.json: imageId: no image "nope" in data/images/']);
+  });
+  it("rejects a Journey slug that is also an image id", () => {
+    const e = run((f) => {
+      (f[2].raw as ReturnType<typeof fx.journey>).slug = "demo";
+      f[2].path = "data/journeys/demo.json";
+    });
+    expect(e).toEqual(['data/journeys/demo.json: slug: "demo" is also an image id; the two share one URL space']);
   });
   it("rejects a size that differs from the source", () => {
     const e = run((f) => ((f[1].raw as ReturnType<typeof fx.image>).tiles.width = 999));

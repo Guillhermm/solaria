@@ -7,9 +7,11 @@
   --edge: 0.75rem;
   --inset-top: env(safe-area-inset-top, 0rem);
   --inset-bottom: env(safe-area-inset-bottom, 0rem);
+  /* Story's column on desktop; the image area (the stage) starts after it. */
+  --column: 0rem;
   --top: calc(var(--inset-top) + var(--ruler) + var(--edge));
   --below-bar: calc(var(--top) + var(--target) + var(--space-2));
-  --left: calc(var(--ruler-left) + var(--edge));
+  --left: calc(var(--column) + var(--ruler-left) + var(--edge));
   --bottom: calc(var(--inset-bottom) + var(--edge));
 
   position: fixed;
@@ -56,16 +58,16 @@
 
 .rulerTop {
   top: var(--inset-top);
-  left: var(--ruler-left);
+  left: calc(var(--column) + var(--ruler-left));
   /* A canvas is a replaced element: left and right alone do not stretch it. */
-  width: calc(100% - var(--ruler-left));
+  width: calc(100% - var(--column) - var(--ruler-left));
   height: var(--ruler);
   border-bottom: 1px solid var(--hairline);
 }
 
 .rulerLeft {
   top: var(--inset-top);
-  left: 0;
+  left: var(--column);
   width: var(--ruler-left);
   height: calc(100% - var(--inset-top));
   border-right: 1px solid var(--hairline);
@@ -269,6 +271,14 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Holds the overview image and, in Story, the route drawn over it at the same size. */
+.well {
+  position: relative;
+  display: grid;
+  justify-self: start;
+  max-width: 100%;
+}
+
 /* Sized to the image's own aspect (design.md 6.4), under a hairline frame. */
 .nav {
   height: min(var(--ov-h), 60dvh, 100dvh - 22rem);
@@ -441,7 +451,7 @@
 .progress {
   position: absolute;
   top: calc(var(--inset-top) + var(--ruler));
-  left: 0;
+  left: var(--column);
   right: 0;
   height: 2px;
   overflow: hidden;
@@ -569,6 +579,196 @@
 
   .mark {
     border-color: CanvasText;
+  }
+}
+
+/* Story (design.md 5.3, 6.2 and 7.2) */
+
+.modes {
+  display: flex;
+  gap: var(--space-1);
+  padding-inline: var(--space-1);
+}
+
+.modes button {
+  min-height: calc(var(--target) - var(--space-2));
+  padding-inline: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.modes button:hover {
+  color: var(--accent);
+}
+
+.modes button[aria-pressed="true"] {
+  color: var(--on-accent);
+  background: var(--accent);
+  cursor: default;
+}
+
+/* Markers on the image: open brackets with a dark halo, so they never cover the feature. */
+.marks {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  clip-path: inset(calc(var(--inset-top) + var(--ruler)) 0 0 calc(var(--column) + var(--ruler-left)));
+  color: var(--marker);
+}
+
+.marker {
+  --side: 1.25rem;
+  --arm: 7px;
+  --stroke: 1.5px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--side);
+  height: var(--side);
+  margin: calc(var(--side) / -2) 0 0 calc(var(--side) / -2);
+  background:
+    linear-gradient(currentColor 0 0) left top / var(--arm) var(--stroke),
+    linear-gradient(currentColor 0 0) left top / var(--stroke) var(--arm),
+    linear-gradient(currentColor 0 0) right top / var(--arm) var(--stroke),
+    linear-gradient(currentColor 0 0) right top / var(--stroke) var(--arm),
+    linear-gradient(currentColor 0 0) left bottom / var(--arm) var(--stroke),
+    linear-gradient(currentColor 0 0) left bottom / var(--stroke) var(--arm),
+    linear-gradient(currentColor 0 0) right bottom / var(--arm) var(--stroke),
+    linear-gradient(currentColor 0 0) right bottom / var(--stroke) var(--arm);
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 0 1px var(--halo)) drop-shadow(0 0 1px var(--halo));
+}
+
+/* The current stop: the amber reticle, set to frame its marker by paint(). */
+.marker[data-current] {
+  --side: 5.5rem;
+  --arm: 1rem;
+  color: var(--accent);
+}
+
+.ticks,
+.ticks::after {
+  position: absolute;
+}
+
+/* Four white ticks outside the bracket and a dot at its center. */
+.ticks {
+  inset: -1.5rem;
+  background:
+    linear-gradient(var(--marker) 0 0) center top / var(--stroke) 1rem,
+    linear-gradient(var(--marker) 0 0) center bottom / var(--stroke) 1rem,
+    linear-gradient(var(--marker) 0 0) left center / 1rem var(--stroke),
+    linear-gradient(var(--marker) 0 0) right center / 1rem var(--stroke);
+  background-repeat: no-repeat;
+}
+
+.ticks::after {
+  content: "";
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 3px;
+  translate: -50% -50%;
+  background: var(--marker);
+  border-radius: 50%;
+}
+
+.tag {
+  position: absolute;
+  bottom: calc(100% - 0.875rem);
+  left: calc(100% + var(--space-1));
+  padding: 0.0625rem 0.25rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-label-sm);
+  line-height: 1.3;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--marker);
+  background: var(--halo);
+  border-radius: 1px;
+}
+
+.marker[data-current] .tag {
+  bottom: 100%;
+  color: var(--on-accent);
+  background: var(--accent);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--target);
+  padding-inline: var(--space-4);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+  border-color: var(--accent);
+  cursor: pointer;
+}
+
+.pill svg {
+  width: var(--icon);
+  height: var(--icon);
+  color: var(--accent);
+}
+
+.pill:hover {
+  color: var(--accent);
+}
+
+.pill:focus-visible,
+.modes button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (width > 40rem) {
+  .root[data-mode="story"] {
+    --column: clamp(20rem, 28vw, 25rem);
+  }
+
+  /* Back, wordmark and title live in the column. */
+  .root[data-mode="story"] .topbar > :first-child {
+    display: none;
+  }
+
+  .topbar > :last-child {
+    margin-inline-start: auto;
+  }
+
+  .story {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    width: var(--column);
+    padding: calc(var(--inset-top) + var(--space-4)) var(--space-6) calc(var(--inset-bottom) + var(--space-5));
+    background: var(--ground);
+    border-right: 1px solid var(--hairline);
+  }
+
+  .story > * {
+    flex: 1;
+  }
+
+  .pillSheet {
+    display: none;
   }
 }
 
@@ -762,5 +962,54 @@
 @media (max-width: 40rem) and (prefers-reduced-motion: reduce) {
   .sheet {
     transition: none;
+  }
+}
+
+/* Story on a phone (design.md 5.4): the sheet holds the strip and the stop card above the
+   credit; the camera frames the stop in the screen above it. A gesture on the image folds
+   the sheet to the "back to the story" pill, with the credit still under it. */
+@media (max-width: 40rem) {
+  .root[data-journey] .title {
+    display: none;
+  }
+
+  .story {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .root[data-mode="story"] .overview {
+    padding-top: var(--space-1);
+  }
+
+  .root[data-mode="story"] .well {
+    justify-self: center;
+  }
+
+  .root[data-mode="story"] .readout {
+    display: none;
+  }
+
+  .root[data-mode="story"][data-sheet="min"] .overview,
+  .root[data-sheet="full"] .story,
+  .root[data-paused] .grip,
+  .root[data-paused] .overview,
+  .root[data-paused] .story {
+    display: none;
+  }
+
+  .root[data-paused] .sheet {
+    padding-top: var(--space-3);
+  }
+
+  .pill {
+    flex: none;
+    width: 100%;
+  }
+
+  .pillTop {
+    display: none;
   }
 }

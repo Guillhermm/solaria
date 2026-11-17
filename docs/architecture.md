@@ -119,8 +119,15 @@ export const getContent = (): Content; // root = process.cwd(), mode from NODE_E
   plain objects to client components as props. The browser never fetches a manifest.
 - `/[slug]` (X-01, built) uses `generateStaticParams` over the image manifests, so the slug is
   the image `id`, with `dynamicParams = false`, as static export requires; any other slug is
-  the 404 page. Journey slugs join the same route in Sprint 5 and must not collide with an
-  image id.
+  the 404 page. Journey slugs share the route (S-01, built): `generateStaticParams` lists
+  image ids and Journey slugs, a Journey slug opens its image in Story mode, and the
+  validator rejects a Journey slug that equals an image id. Decided on 2026-11-17: a Journey
+  lives at `/<journey slug>/` (`/andromeda/`) rather than as `?mode=story` on the image page,
+  so one image can carry several Journeys and the image page stays plain Explore. The URL
+  holds the stop as `?mode=story&stop=N` (N from 1); the same page switches to
+  `?mode=explore&x=&y=&z=` without a reload. Story logic is pure and tested in
+  `src/viewer/story.ts` (stop URL, navigation, flight plan) and `src/viewer/route.ts`
+  (overview route and marker geometry).
 - Route groups: `src/app/(site)/` holds Home with the site header and footer;
   `src/app/(viewer)/[slug]/` is the full-bleed viewer page with neither.
 

@@ -27,14 +27,14 @@ describe("publishProblems", () => {
     c.images[0].validation.status = "draft";
     expect(publishProblems(c)).toEqual([
       'image demo: validation.status is "draft", expected "approved"',
-      'journey demo: image "demo" is not approved',
+      'journey demo-tour: image "demo" is not approved',
     ]);
   });
 
   it("flags an unapproved stop", () => {
     const c = content();
     c.journeys[0].stops[3].validation.status = "in-review";
-    expect(publishProblems(c)).toEqual(['journey demo stop d: validation.status is "in-review", expected "approved"']);
+    expect(publishProblems(c)).toEqual(['journey demo-tour stop d: validation.status is "in-review", expected "approved"']);
   });
 
   it("flags an unverified claim, optional ones included", () => {
@@ -53,7 +53,7 @@ describe("publishProblems", () => {
   it.each([4, 9])("flags a journey with %i stops", (n) => {
     const c = content();
     c.journeys[0].stops = Array.from({ length: n }, (_, i) => fx.stop(`s${i}`));
-    expect(publishProblems(c)).toEqual([`journey demo: has ${n} stops, expected 5 to 8`]);
+    expect(publishProblems(c)).toEqual([`journey demo-tour: has ${n} stops, expected 5 to 8`]);
   });
 
   it.each([5, 8])("accepts a journey with %i stops", (n) => {

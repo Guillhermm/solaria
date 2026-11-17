@@ -3,7 +3,9 @@
 Status: Journeys concept approved on 2026-11-17. Visual direction C "Instrument" chosen on
 2026-11-17, pending final mockup approval. Built so far: the tokens of 6.1 in
 `src/styles/tokens.css`, the Geist fonts and the dark and light themes (V-01), and
-Bootstrap replaced by CSS Modules (V-02), and the header and footer (V-03). Until
+Bootstrap replaced by CSS Modules (V-02), and the header and footer (V-03), the Explore
+viewer (X-01 to X-05), and Story mode with the Andromeda Journey (S-01, 5.3, 5.4, 7.2).
+Until
 their pages exist, the header leaves out Journeys and About, and the footer links to the
 team, the challenge and the code instead of About, Sources and Accessibility.
 Date: 2026-11-17. Target: solaria.zenus.systems.
@@ -84,7 +86,8 @@ as an attract loop, any touch takes control, 90 s idle returns to the loop with 
 ```
 /                      Home: hero with loupe and panorama strip, Journeys index
 /[slug]                Image viewer; the slug is the image id (mode via ?mode=story|explore|compare|light;
-                       only explore is built). Journey slugs join this route in Sprint 5
+                       only explore is built). A Journey slug (/andromeda) opens Story on
+                       its image, ?mode=story&stop=N (N from 1), and Explore on the same page
                        viewport via ?x=&y=&z=  (image pixels; z is zoom relative to fit)
 /about                 What Solaria is, credits, data sources, accessibility statement
 ```
@@ -193,6 +196,14 @@ aim); tapping a stop opens the Journey at that stop.
   image, the wheel zooms. This avoids the classic scrollytelling conflict.
 - Marker states: current stop amber, others white, both drawn as open brackets with a
   dark halo, so they never cover the feature.
+- As built (S-01): the current stop's reticle sits on its marker, or at its view center
+  when it has none, and grows to frame the marker's radius; markers never take a gesture
+  from the image. A stop at the fit view (z = 1, the first and last Andromeda stops) has no
+  marker on the image or the strip, since it shows the whole image. While the story is
+  paused on desktop, the "back to the story" pill takes the title bar's place (the column
+  already holds the title), so it covers neither the overview nor the controls. Not built:
+  the scroll wheel over the stop list advancing stops (the list itself scrolls when the
+  window is short).
 
 ### 5.4 Journey, Story mode, phone
 
@@ -216,6 +227,13 @@ aim); tapping a stop opens the Journey at that stop.
   see the whole image; Next and Previous buttons do the same without a gesture
   (WCAG 2.5.7, dragging movements).
 - Camera target uses the top 60 % of the screen as its frame.
+- As built (S-01): the sheet holds the strip with the route, the progress, the stop's
+  title, body (scrolling inside the card when long), sources, Previous and Next, and the
+  full credit under them. The handle folds it to the title. A gesture on the image folds
+  it to the "back to the story" pill, with the credit still under it. Story and Explore
+  switch from the top bar; the short image title leaves the phone bar on Journey pages to
+  make room. The camera frames the stop in the top 60 %; near an image edge the view
+  constraint can move the center, never the zoom.
 
 ### 5.5 Journey, Explore mode
 
