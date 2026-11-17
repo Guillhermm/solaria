@@ -1,8 +1,6 @@
 .index {
   width: 100%;
-  max-width: 90rem;
-  margin-inline: auto;
-  padding: var(--space-7) var(--space-4) var(--space-6);
+  padding: var(--space-7) var(--gutter) var(--space-6);
   scroll-margin-top: var(--space-4);
 }
 
@@ -161,7 +159,7 @@
 
 @media (min-width: 48rem) {
   .index {
-    padding: var(--space-8) 2.5rem var(--space-7);
+    padding-block: var(--space-8) var(--space-7);
   }
 
   .heading {
@@ -177,10 +175,6 @@
 }
 
 @media (min-width: 75rem) {
-  .index {
-    padding-inline: 4rem;
-  }
-
   .size {
     min-width: 12rem;
   }

@@ -3,7 +3,7 @@
    and keep the dark values in both themes; everything else follows the theme. */
 
 .hero {
-  --side: var(--space-4);
+  --side: var(--gutter);
   --ruler: 1.375rem;
   --ruler-left: 2.75rem;
   --lens: 21.25rem;
@@ -276,6 +276,13 @@
   white-space: nowrap;
 }
 
+/* Above the leader lines, on the ruler's own ground, so a leader crossing a label breaks. */
+.stripRuler .label {
+  z-index: 2;
+  padding-inline: 0.125rem;
+  background: var(--surface);
+}
+
 .lensRulerTop .label,
 .stripRuler .label {
   bottom: 0.5rem;
@@ -520,6 +527,10 @@
 }
 
 .caption {
+  padding: var(--space-2) var(--side);
+}
+
+.aimHint {
   display: none;
 }
 
@@ -557,6 +568,17 @@
   stroke-width: 1px;
 }
 
+/* On the cream page a white line in a dark halo reads as a double line: above the strip the
+   light theme draws one plain line instead. Over the image both themes keep white and halo. */
+:global([data-theme="light"]) .leaderHalo.above {
+  display: none;
+}
+
+:global([data-theme="light"]) .leaderLine.above {
+  stroke: var(--text);
+  stroke-opacity: 0.6;
+}
+
 .visuallyHidden {
   position: absolute;
   width: 1px;
@@ -570,7 +592,6 @@
 /* Tablet and up: copy, then the lens beside its readout, then the strip with its ruler. */
 @media (min-width: 48rem) {
   .hero {
-    --side: 2.5rem;
     grid-template-areas:
       "copy"
       "lens"
@@ -611,9 +632,13 @@
   }
 
   .caption {
-    display: block;
     justify-self: end;
     padding: 0 var(--side) var(--space-2);
+    text-align: end;
+  }
+
+  .aimHint {
+    display: inline;
   }
 
   .credit {
@@ -624,7 +649,6 @@
 /* Desktop: copy and lens side by side above the strip, as in the approved mockup. */
 @media (min-width: 75rem) {
   .hero {
-    --side: 4rem;
     grid-template-columns: minmax(0, 32.5rem) minmax(0, 1fr);
     grid-template-areas:
       "copy lens"

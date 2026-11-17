@@ -409,7 +409,8 @@ only, always with a labeled legend; never the accent, never a rainbow.
 Thousands use a narrow no-break space (U+202F): "42 208", never a comma.
 
 **Spacing**: 0.25rem steps: 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4, 6rem. Viewer overlays sit
-1rem from the edges plus the safe-area insets; Home side margin 4rem.
+1rem from the edges plus the safe-area insets; one side gutter, `--gutter` in `tokens.css` (1rem, 2.5rem from 48rem, 4rem from 75rem), is
+shared by the header, the Home sections and the footer; About keeps its centered column.
 
 **Radius**: 0.125rem for buttons, tags and segmented controls; 0.25rem for panels and
 glass. Markers are square. No pills.
@@ -581,7 +582,9 @@ r = width / height of the image file:
 
 - LCP under 2.5 s on a mid phone: the home hero renders a static poster JPEG (the lowest
   useful level, about 150 KB, preloaded) and only then starts OpenSeadragon on top of it.
-- CLS 0: the viewer reserves the full viewport from the first paint.
+- CLS below 0.1 (web.dev's "good" threshold), and 0 on Home and the viewer: the viewer
+  reserves the full viewport from the first paint. Decided on 2026-11-17: fonts keep
+  `font-display: swap`, so text pages such as About may shift slightly when Geist arrives.
 - INP under 200 ms: no React state update per viewport frame (the current `setScale` on
   every `viewport-change` re-renders the component during pans); update readouts through
   a ref or throttle to one per animation frame.
@@ -594,12 +597,13 @@ slowdown, 150 ms round trip, 1.6 Mbps down): Home LCP 1.4 s (the poster), CLS 0;
 keyboard, desktop at 4x CPU). Home loads no OpenSeadragon: the lens is plain tiles. Phones
 get `poster.jpg`, pyramid level 1 stitched by `generate-tiles` (1319 by 308, 46 KB);
 before it, the 2048 px preview shared the line with the fonts and scripts and Home LCP was
-2.5 s. Gap: About's CLS comes from the swap from the metric-matched Arial fallback to Geist,
-which rewraps a paragraph. The fallback is already metric-matched (`next/font/local` writes
+2.5 s. The viewer pages (`/andromeda/`, `/andromeda-phat-phast-2025/`) measure CLS 0. About's
+0.016 comes from the swap from the metric-matched Arial fallback to Geist, which rewraps a
+paragraph; it is within the target. The fallback is already metric-matched (`next/font/local` writes
 `size-adjust: 106.28%` on Arial), and no single `size-adjust` from 104 to 108 % keeps every
 About paragraph on the same lines from 320 to 430 px wide, so a closer fallback cannot close it.
-Closing it means `font-display: optional` (a first visit on a slow line may then keep Arial);
-that is a design decision, still open.
+Closing it would need `font-display: optional` (a first visit on a slow line may then keep
+Arial); the maintainers chose to keep `swap`.
 `tests/e2e/quality.spec.ts` checks all of this, and axe-core (WCAG 2.2 A and AA tags) on
 Home and About at phone and desktop width in both themes.
 

@@ -4,7 +4,6 @@ import JourneyIndex, { type JourneyEntry } from "@/components/home/JourneyIndex"
 import { getContent } from "@/content/load";
 import { resolveTileBase } from "@/content/tiles";
 import { aimableStops, lensField } from "@/home/lens";
-import { stopNumber } from "@/viewer/story";
 import styles from "./page.module.css";
 
 const entries = (): JourneyEntry[] => {
@@ -16,6 +15,9 @@ const entries = (): JourneyEntry[] => {
   });
 };
 
+// "Andromeda, star by star" -> "Andromeda": the Journey's name before its tagline.
+const shortTitle = (title: string) => title.split(",")[0].trim();
+
 const Home = () => {
   const tileBaseUrl = resolveTileBase(process.env.TILE_BASE_URL);
   const list = entries();
@@ -26,7 +28,7 @@ const Home = () => {
     <>
       {first && aimable.length > 0 ? (
         <HomeHero
-          eyebrow={`Journey ${stopNumber(0)} of ${stopNumber(list.length - 1)} · ${first.image.observatory.value}`}
+          eyebrow={`${shortTitle(first.journey.title)} · ${first.image.observatory.value} · ${first.journey.stops.length} stops`}
           journeySlug={first.journey.slug}
           stops={first.journey.stops}
           image={{ id: first.image.id, width: first.image.tiles.width, height: first.image.tiles.height, tiles: first.image.tiles }}

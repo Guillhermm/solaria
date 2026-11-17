@@ -8,7 +8,7 @@ import { LuArrowRight } from "react-icons/lu";
 import { levelSize, posterLevel } from "@/content/pyramid";
 import type { Stop, TilePyramid } from "@/content/types";
 import { tileUrl } from "@/content/tiles";
-import { aimableStops, fieldBox, lensAnnouncement, lensField, lensTicks, lensTiles, stepAim } from "@/home/lens";
+import { aimableStops, fieldBox, lensAnnouncement, lensField, lensTicks, lensTiles, splitLeader, stepAim, wholeStopsNote } from "@/home/lens";
 import { bracketPath } from "@/viewer/route";
 import { rulerTicks } from "@/viewer/ruler";
 import { stopNumber, stopTarget, storySearch } from "@/viewer/story";
@@ -72,8 +72,10 @@ const HomeHero = ({ eyebrow, journeySlug, stops, image, tileBaseUrl, credit }: H
   const wellRef = useRef<HTMLDivElement>(null);
   const stripRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
-  const leaderHalo = useRef<SVGPathElement>(null);
-  const leaderLine = useRef<SVGPathElement>(null);
+  const aboveHalo = useRef<SVGPathElement>(null);
+  const aboveLine = useRef<SVGPathElement>(null);
+  const overHalo = useRef<SVGPathElement>(null);
+  const overLine = useRef<SVGPathElement>(null);
   const liveRef = useRef<HTMLParagraphElement>(null);
   const markRefs = useRef(new Map<number, HTMLAnchorElement>());
   const returnTimer = useRef<number | undefined>(undefined);
@@ -112,21 +114,43 @@ const HomeHero = ({ eyebrow, journeySlug, stops, image, tileBaseUrl, credit }: H
     [],
   );
 
-  // Leader lines run from the lens's bottom corners to the view box's top corners. They are
-  // drawn by hand on resize and on every aim, without React state.
+  // Leader lines run from the lens's bottom corners to the view box's top corners, cut at the
+  // strip's top edge: above it they sit on the page (styled per theme), below it on the image.
+  // They are drawn by hand on resize and on every aim, without React state.
   const drawLeaders = useCallback(() => {
     const hero = heroRef.current;
     const well = wellRef.current;
     const target = boxRef.current;
-    if (!hero || !well || !target) return;
+    const strip = stripRef.current;
+    if (!hero || !well || !target || !strip) return;
     const h = hero.getBoundingClientRect();
     const w = well.getBoundingClientRect();
     const b = target.getBoundingClientRect();
-    const at = (x: number, y: number) => `${(x - h.left).toFixed(1)} ${(y - h.top).toFixed(1)}`;
+    const edge = strip.getBoundingClientRect().top - h.top;
+    const p = (x: number, y: number) => ({ x: x - h.left, y: y - h.top });
+    const above: string[] = [];
+    const over: string[] = [];
     // An unlaid lens (phone) has no size: no lines.
-    const d = w.width > 0 ? `M${at(w.left, w.bottom)}L${at(b.left, b.top)}M${at(w.right, w.bottom)}L${at(b.right, b.top)}` : "";
-    leaderHalo.current?.setAttribute("d", d);
-    leaderLine.current?.setAttribute("d", d);
+    if (w.width > 0) {
+      for (const [from, to] of [
+        [p(w.left, w.bottom), p(b.left, b.top)],
+        [p(w.right, w.bottom), p(b.right, b.top)],
+      ]) {
+        const parts = splitLeader(from, to, edge);
+        const d = (seg: { x: number; y: number }[] | null) =>
+          seg ? `M${seg[0].x.toFixed(1)} ${seg[0].y.toFixed(1)}L${seg[1].x.toFixed(1)} ${seg[1].y.toFixed(1)}` : "";
+        above.push(d(parts.above));
+        over.push(d(parts.over));
+      }
+    }
+    for (const [ref, d] of [
+      [aboveHalo, above.join("")],
+      [aboveLine, above.join("")],
+      [overHalo, over.join("")],
+      [overLine, over.join("")],
+    ] as const) {
+      ref.current?.setAttribute("d", d);
+    }
   }, []);
 
   useLayoutEffect(drawLeaders, [drawLeaders, aim]);
@@ -156,6 +180,8 @@ const HomeHero = ({ eyebrow, journeySlug, stops, image, tileBaseUrl, credit }: H
   const left = lensTicks(field.y, field.side, image.height, LENS_PX, LABEL_GAP_PX * 0.5);
   const route = aimable.map((i) => stopTarget(stops[i])!);
   const count = stops.length;
+  // Stops at the fit view have no marker; say so, or "of 07" looks like missing markers.
+  const wholeNote = wholeStopsNote(stops.flatMap((_, i) => (aimable.includes(i) ? [] : [stopNumber(i)])));
   const storyHref = (index: number) => `/${journeySlug}/${storySearch(index)}`;
 
   return (
@@ -181,7 +207,10 @@ const HomeHero = ({ eyebrow, journeySlug, stops, image, tileBaseUrl, credit }: H
 
       {/* The strip comes before the readout in the DOM, so Tab reaches the stops before "Go to stop". */}
       <div className={styles.panorama} style={{ ["--ratio" as string]: image.width / image.height }}>
-        <p className={styles.caption}>Whole panorama. Aim the lens at a stop.</p>
+        <p className={styles.caption}>
+          <span className={styles.aimHint}>Whole panorama. Aim the lens at a stop. </span>
+          {wholeNote}
+        </p>
         <div className={styles.stripRuler} aria-hidden>
           {ruler?.minor.map((at) => (
             <span key={`m${at}`} className={styles.minor} style={{ left: pct((at / stripWidth) * 100) }} />
@@ -339,8 +368,10 @@ const HomeHero = ({ eyebrow, journeySlug, stops, image, tileBaseUrl, credit }: H
       <p className={styles.credit}>{credit}</p>
 
       <svg className={styles.leaders} data-testid="leaders" aria-hidden>
-        <path ref={leaderHalo} className={styles.leaderHalo} />
-        <path ref={leaderLine} className={styles.leaderLine} />
+        <path ref={aboveHalo} className={`${styles.leaderHalo} ${styles.above}`} />
+        <path ref={aboveLine} className={`${styles.leaderLine} ${styles.above}`} data-part="above" />
+        <path ref={overHalo} className={styles.leaderHalo} />
+        <path ref={overLine} className={styles.leaderLine} data-part="over" />
       </svg>
     </section>
   );

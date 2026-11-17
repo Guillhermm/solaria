@@ -55,3 +55,41 @@ test("header and footer controls meet the 2.75rem target and fit a phone", async
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
   expect(overflow).toBe(0);
 });
+
+// The header, the Home sections and the footer share one side gutter (--gutter), so their
+// content starts and ends on the same two lines. About's centered reading column is exempt.
+for (const width of [1440, 390]) {
+  test(`header, main and footer share left and right edges at ${width} px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    const edges = await page.evaluate(() => {
+      const content = (el: Element) => {
+        const r = el.getBoundingClientRect();
+        const s = getComputedStyle(el);
+        return [Math.round(r.left + parseFloat(s.paddingLeft)), Math.round(r.right - parseFloat(s.paddingRight))];
+      };
+      const box = (el: Element) => {
+        const r = el.getBoundingClientRect();
+        return [Math.round(r.left), Math.round(r.right)];
+      };
+      const q = (s: string) => document.querySelector(s)!;
+      return {
+        header: content(q("header")),
+        footer: content(q("footer")),
+        journeys: content(q("#journeys")),
+        key: content(q("[aria-labelledby=key-title]")),
+        wordmark: box(q("header a"))[0],
+        heroTitle: box(q("h1"))[0],
+        journeysTitle: box(q("#journeys-title"))[0],
+        toggle: box(q("header button"))[1],
+        begin: box(q("#journeys a[aria-label^=Begin]"))[1],
+      };
+    });
+    for (const part of [edges.footer, edges.journeys, edges.key]) expect(part).toEqual(edges.header);
+    expect(edges.wordmark).toBe(edges.header[0]);
+    expect(edges.heroTitle).toBe(edges.header[0]);
+    expect(edges.journeysTitle).toBe(edges.header[0]);
+    expect(edges.toggle).toBe(edges.header[1]);
+    expect(edges.begin).toBe(edges.header[1]);
+  });
+}

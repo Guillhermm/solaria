@@ -2,7 +2,7 @@ import type { Stop, TilePyramid } from "@/content/types";
 import { levelSize } from "@/content/pyramid";
 import { rulerTicks } from "@/viewer/ruler";
 import { stopTarget } from "@/viewer/story";
-import type { Size } from "@/viewer/view";
+import type { Point, Size } from "@/viewer/view";
 
 export interface Field {
   x: number; // center, image pixels
@@ -103,4 +103,21 @@ export const stepAim = (aimable: number[], current: number, direction: 1 | -1) =
   const at = aimable.indexOf(current);
   if (at < 0) return aimable[0];
   return aimable[Math.min(aimable.length - 1, Math.max(0, at + direction))];
+};
+
+// A leader line from the lens (above) to the view box (on the strip), cut where it meets the
+// strip's top edge `edgeY`: the part above is drawn on the page, the part below over the image.
+export const splitLeader = (from: Point, to: Point, edgeY: number) => {
+  if (to.y <= edgeY) return { above: [from, to], over: null };
+  if (from.y >= edgeY) return { above: null, over: [from, to] };
+  const t = (edgeY - from.y) / (to.y - from.y);
+  const cut = { x: from.x + (to.x - from.x) * t, y: edgeY };
+  return { above: [from, cut], over: [cut, to] };
+};
+
+// "Stops 01 and 07 show the whole image." for the stops the strip has no marker for.
+export const wholeStopsNote = (numbers: string[]) => {
+  if (numbers.length === 0) return null;
+  if (numbers.length === 1) return `Stop ${numbers[0]} shows the whole image.`;
+  return `Stops ${numbers.slice(0, -1).join(", ")} and ${numbers[numbers.length - 1]} show the whole image.`;
 };

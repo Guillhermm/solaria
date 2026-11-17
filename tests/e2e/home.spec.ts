@@ -31,7 +31,8 @@ test.describe("desktop", () => {
   test("the hero states the copy, the poster and the credit", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Fly into one giant image.");
-    await expect(page.getByText("Journey 01 of 01 · Hubble")).toBeVisible();
+    await expect(page.getByText("Andromeda · Hubble · 7 stops", { exact: true })).toBeVisible();
+    await expect(page.getByText("Stops 01 and 07 show the whole image.")).toBeVisible();
     await expect(
       page.getByText("Solaria guides you through a giant Hubble image, one stop at a time, then lets you zoom anywhere."),
     ).toBeVisible();
@@ -110,6 +111,51 @@ test.describe("desktop", () => {
     await expect.poll(d).not.toBe(before);
   });
 
+  test("leaders are cut at the strip: one plain line above it in the light theme, white and halo over the image", async ({ page }) => {
+    for (const scheme of ["light", "dark"] as const) {
+      await page.emulateMedia({ colorScheme: scheme });
+      await page.goto("/");
+      const leaders = page.getByTestId("leaders");
+      await expect.poll(() => leaders.locator("[data-part=over]").getAttribute("d")).toMatch(/^M.+L.+M.+L.+$/);
+      const look = await leaders.evaluate((svg) =>
+        [...svg.querySelectorAll("path")].map((p) => {
+          const s = getComputedStyle(p);
+          return { part: p.dataset.part ?? "halo", display: s.display, stroke: s.stroke, opacity: s.strokeOpacity };
+        }),
+      );
+      const above = look.find((l) => l.part === "above")!;
+      const over = look.find((l) => l.part === "over")!;
+      const halos = look.filter((l) => l.part === "halo");
+      expect(over.stroke).toBe("rgba(255, 255, 255, 0.7)");
+      if (scheme === "light") {
+        expect(halos.map((h) => h.display)).toEqual(["none", "inline"]);
+        expect(above.stroke).toBe("rgb(17, 20, 26)");
+        expect(above.opacity).toBe("0.6");
+      } else {
+        expect(halos.map((h) => h.display)).toEqual(["inline", "inline"]);
+        expect(above.stroke).toBe("rgba(255, 255, 255, 0.7)");
+      }
+      // The cut sits on the strip's top edge.
+      const edge = await page.evaluate(() => {
+        const hero = document.querySelector("main section")!.getBoundingClientRect().top;
+        return document.querySelector("[role=group]")!.getBoundingClientRect().top - hero;
+      });
+      const cutY = Number((await leaders.locator("[data-part=over]").getAttribute("d"))!.match(/^M[\d.]+ ([\d.]+)/)![1]);
+      expect(cutY).toBeCloseTo(edge, 0);
+    }
+  });
+
+  test("the lens on the deepest stop loads the level that gives at least 680 device pixels across", async ({ page }) => {
+    await page.goto("/");
+    await strip(page).getByRole("link", { name: "Open stop 06" }).hover();
+    await expect(lensLabel(page)).toHaveText("Lens, aimed at stop 06 of 07");
+    // Field 42 208 / 29 = 1 455 px: level 5 (half) gives 728 px across, level 4 only 364.
+    const levels = await page
+      .locator('img[src*="/tiles/andromeda-phat-phast-2025/"]:not([src$="preview.jpg"]):not([src$="thumbnail.jpg"]):not([src$="poster.jpg"])')
+      .evaluateAll((els) => [...new Set(els.map((el) => (el as HTMLImageElement).getAttribute("src")!.split("/")[3]))]);
+    expect(levels).toContain("5");
+  });
+
   test("with reduced motion the lens swaps without fading", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
@@ -163,6 +209,8 @@ test.describe("phone", () => {
       // A phone at 3x takes the stitched poster (one pyramid level), not the 2048 px preview.
       expect(await page.getByRole("img", { name: POSTER_ALT }).evaluate((el) => (el as HTMLImageElement).currentSrc)).toMatch(/poster\.jpg$/);
       await expect(lensLabel(page)).toBeHidden();
+      await expect(page.getByText("Stops 01 and 07 show the whole image.")).toBeVisible();
+      await expect(page.getByText("Aim the lens at a stop", { exact: false })).toBeHidden();
       expect(tileRequests).toEqual([]);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
       const begin = (await page.getByRole("link", { name: "Begin the journey" }).boundingBox())!;

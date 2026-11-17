@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: space-between;
   min-height: 3.5rem;
-  padding-inline: max(var(--space-4), env(safe-area-inset-left, 0rem)) max(var(--space-4), env(safe-area-inset-right, 0rem));
+  padding-inline: max(var(--gutter), env(safe-area-inset-left, 0rem)) max(var(--gutter), env(safe-area-inset-right, 0rem));
   border-bottom: 1px solid var(--hairline-soft);
 }
 
@@ -56,11 +56,6 @@
   border-color: var(--accent);
 }
 
-@media (min-width: 48rem) {
-  .header {
-    padding-inline: 2.5rem;
-  }
-}
 
 @media (forced-colors: active) {
   .mark {

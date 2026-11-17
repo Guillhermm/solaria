@@ -71,6 +71,9 @@
   --space-8: 4rem;
   --space-9: 6rem;
 
+  /* The one side gutter shared by the header, the Home sections and the footer. */
+  --gutter: 1rem;
+
   --radius-control: 0.125rem;
   --radius-panel: 0.25rem;
   --target: 2.75rem;
@@ -88,5 +91,17 @@
   :root {
     --text-display-xl: 2.5rem;
     --text-display: 1.75rem;
+  }
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --gutter: 2.5rem;
+  }
+}
+
+@media (min-width: 75rem) {
+  :root {
+    --gutter: 4rem;
   }
 }

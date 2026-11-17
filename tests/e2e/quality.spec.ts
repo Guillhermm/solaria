@@ -64,7 +64,7 @@ test.describe("performance on a throttled phone (design.md 9)", () => {
   test.use({ viewport: PHONE, hasTouch: true, isMobile: true, deviceScaleFactor: 3 });
 
   for (const path of ["/", "/about/"]) {
-    test(`${path}: LCP under 2.5 s and no layout shift`, async ({ page }) => {
+    test(`${path}: LCP under 2.5 s and layout shift within target`, async ({ page }) => {
       await throttle(page);
       await page.goto(path, { waitUntil: "load" });
       await page.waitForLoadState("networkidle");
@@ -72,11 +72,21 @@ test.describe("performance on a throttled phone (design.md 9)", () => {
       test.info().annotations.push({ type: "vitals", description: `LCP ${Math.round(lcp)} ms, CLS ${cls}` });
       expect(lcp).toBeGreaterThan(0);
       expect(lcp).toBeLessThan(2500);
-      // Known gap (design.md 9): on About, the swap from the metric-matched Arial fallback to
-      // Geist rewraps a paragraph (about 0.016). Held under web.dev's 0.1 "good" line until
-      // the font loading is decided; Home has no shift.
+      // design.md 9: CLS below 0.1 (web.dev's "good"), and 0 on Home and the viewer. About's
+      // font swap rewraps a paragraph (about 0.016) and stays, by decision, with swap.
       if (path === "/") expect(cls).toBe(0);
       else expect(cls).toBeLessThan(0.1);
+    });
+  }
+
+  for (const path of ["/andromeda/", "/andromeda-phat-phast-2025/"]) {
+    test(`${path}: the viewer does not shift`, async ({ page }) => {
+      await throttle(page);
+      await page.goto(path, { waitUntil: "load" });
+      await page.waitForLoadState("networkidle");
+      const { cls } = await vitals(page);
+      test.info().annotations.push({ type: "vitals", description: `${path} CLS ${cls}` });
+      expect(cls).toBe(0);
     });
   }
 

@@ -9,7 +9,9 @@ import {
   lensLevel,
   lensTicks,
   lensTiles,
+  splitLeader,
   stepAim,
+  wholeStopsNote,
 } from "./lens";
 
 const ANDROMEDA = { width: 42208, height: 9870 };
@@ -143,5 +145,27 @@ describe("stepAim", () => {
     expect(stepAim([1, 2, 4], 4, 1)).toBe(4);
     expect(stepAim([1, 2, 4], 1, -1)).toBe(1);
     expect(stepAim([1, 2, 4], 9, 1)).toBe(1);
+  });
+});
+
+describe("splitLeader", () => {
+  it("cuts the line where it crosses the strip's top edge", () => {
+    const { above, over } = splitLeader({ x: 0, y: 0 }, { x: 100, y: 200 }, 50);
+    expect(above).toEqual([{ x: 0, y: 0 }, { x: 25, y: 50 }]);
+    expect(over).toEqual([{ x: 25, y: 50 }, { x: 100, y: 200 }]);
+  });
+
+  it("keeps a line that never reaches the strip whole, and one wholly inside it", () => {
+    expect(splitLeader({ x: 0, y: 0 }, { x: 10, y: 40 }, 50).over).toBeNull();
+    expect(splitLeader({ x: 0, y: 60 }, { x: 10, y: 90 }, 50).above).toBeNull();
+  });
+});
+
+describe("wholeStopsNote", () => {
+  it("names the stops that show the whole image", () => {
+    expect(wholeStopsNote([])).toBeNull();
+    expect(wholeStopsNote(["01"])).toBe("Stop 01 shows the whole image.");
+    expect(wholeStopsNote(["01", "07"])).toBe("Stops 01 and 07 show the whole image.");
+    expect(wholeStopsNote(["01", "04", "07"])).toBe("Stops 01, 04 and 07 show the whole image.");
   });
 });
