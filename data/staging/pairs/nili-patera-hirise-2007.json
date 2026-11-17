@@ -1,0 +1,46 @@
+{
+  "id": "nili-patera-hirise-2007",
+  "title": "Nili Patera dunes, June and October 2007",
+  "imageIds": [
+    "nili-patera-hirise-2007-06-30",
+    "nili-patera-hirise-2007-10-13"
+  ],
+  "reference": "nili-patera-hirise-2007-06-30",
+  "headline": "June and October 2007",
+  "labels": [
+    {
+      "full": "30 June 2007, HiRISE",
+      "short": "Jun 2007"
+    },
+    {
+      "full": "13 October 2007, HiRISE",
+      "short": "Oct 2007"
+    }
+  ],
+  "caveats": [
+    "The two images share one map grid and line up to about 0.3 m on bedrock (0.55 m at the 95th percentile), so a shift of the sand of a meter or two is a real change.",
+    "The sun was higher in October, so shading differs. Where the surface slopes, the different viewing angle can also shift a feature by up to about 1 m without anything having moved."
+  ],
+  "alignment": "Alignment: about 0.3 m on bedrock, 0.55 m at worst.",
+  "differs": {
+    "instrument": false,
+    "band": false,
+    "date": true,
+    "illumination": true,
+    "geometry": true,
+    "processing": true
+  },
+  "registration": {
+    "method": "none: both images were orthorectified by the HiRISE team onto one grid",
+    "transform": "none",
+    "residualPx": 0.263,
+    "notes": "Identity transform. Measured on 344 bedrock tiles by cross-correlation: median 0.27 m (0.263 px), 95th percentile 0.55 m (0.545 px) at 1.0114 m/px. Details: docs/science/mars-nili-patera.md."
+  },
+  "whatDiffers": "Same camera and filter, 105 days apart (30 June and 13 October 2007). The sun was lower in June (54 degrees from straight overhead) than in October (39), and its direction and the season differ, so shadows and shading are not the same. Each image has its own brightness stretch, so brightness cannot be compared. The views differ by a few degrees, which can move a feature on a slope by up to about 1 m. Only part of each image overlaps the other. On the sand, the ripples moved about 2 m toward the west-southwest; the dunes themselves barely moved.",
+  "validation": {
+    "status": "draft",
+    "date": null,
+    "notes": "Awaiting science review. Docs: docs/science/mars-nili-patera.md."
+  },
+  "mock": false
+}

@@ -1,0 +1,27 @@
+{
+  "id": "nili-patera-hirise-2007-06-30",
+  "title": "Nili Patera dunes, HiRISE PSP_004339_1890 red orthorectified image, 2007-06-30",
+  "pageUrl": "https://www.uahirise.org/PSP_004339_1890",
+  "fileUrl": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_017700_017799/ESP_017762_1890_ESP_018039_1890/PSP_004339_1890_RED_C_01_ORTHO.JP2",
+  "releaseId": null,
+  "releasedAt": null,
+  "credit": "NASA/JPL-Caltech/UArizona",
+  "terms": {
+    "name": "HiRISE usage policy: public domain, credit requested",
+    "url": "https://www.uahirise.org/PSP_004339_1890"
+  },
+  "retrievedAt": "2026-11-17",
+  "file": {
+    "format": "jp2",
+    "bytes": 30767933,
+    "sha256": "cf90159bc070f7361d10794a042be6210fce6331bb040d60a8983e8576aadc11",
+    "width": 7035,
+    "height": 15282
+  },
+  "validation": {
+    "status": "draft",
+    "date": null,
+    "notes": "Awaiting science review. Docs: docs/science/mars-nili-patera.md."
+  },
+  "mock": false
+}

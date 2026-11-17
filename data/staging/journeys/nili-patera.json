@@ -1,0 +1,182 @@
+{
+  "slug": "nili-patera",
+  "imageId": "nili-patera-hirise-2007-06-30",
+  "title": "Nili Patera, ripples on Mars",
+  "summary": "Six stops over a Martian dune field, from the dunes down to ripples a few meters apart, and how they moved in 15 weeks.",
+  "stops": [
+    {
+      "id": "where",
+      "title": "Nili Patera, Mars",
+      "body": "This is the Nili Patera dune field on Mars, at about 8.8°N, 67.3°E. HiRISE, a camera on NASA's Mars Reconnaissance Orbiter, took this picture on 30 June 2007 through a red filter, so it is shown in gray.\n\nOne pixel covers about 1 meter. The whole view is roughly 4 by 6 kilometers.",
+      "viewport": {
+        "x": 1967,
+        "y": 2873,
+        "z": 1
+      },
+      "sources": [
+        {
+          "label": "HiRISE product label, PSP_004339",
+          "url": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_017700_017799/ESP_017762_1890_ESP_018039_1890/PSP_004339_1890_RED_C_01_ORTHO.LBL"
+        },
+        {
+          "label": "HiRISE image page, PSP_004339",
+          "url": "https://www.uahirise.org/PSP_004339_1890"
+        }
+      ],
+      "validation": {
+        "status": "draft",
+        "date": null,
+        "notes": "Awaiting science review. Docs: docs/science/mars-nili-patera.md."
+      }
+    },
+    {
+      "id": "barchans",
+      "title": "Dunes and the wind",
+      "body": "These crescent-shaped dunes are barchans. Each has a gentle side and a steep side, called the slip face. Here the slip faces point southwest.\n\nSand is blown up the gentle side and slides down the steep one, so the wind here blows mainly from the northeast.",
+      "viewport": {
+        "x": 1033,
+        "y": 3290,
+        "z": 6
+      },
+      "marker": {
+        "x": 1158,
+        "y": 3340,
+        "r": 120
+      },
+      "sources": [
+        {
+          "label": "HiRISE image page, PSP_005684",
+          "url": "https://www.uahirise.org/PSP_005684_1890"
+        },
+        {
+          "label": "HiRISE image page, PSP_004339",
+          "url": "https://www.uahirise.org/PSP_004339_1890"
+        }
+      ],
+      "validation": {
+        "status": "draft",
+        "date": null,
+        "notes": "Awaiting science review. Docs: docs/science/mars-nili-patera.md."
+      }
+    },
+    {
+      "id": "ripples",
+      "title": "Ripples",
+      "body": "Zoom in on a dune surface. The fine stripes are ripples of sand, about 4.6 meters from one crest to the next. That is only a few pixels, so this is about the finest pattern the picture can show.",
+      "viewport": {
+        "x": 1313,
+        "y": 1000,
+        "z": 20
+      },
+      "sources": [
+        {
+          "label": "Bridges et al. 2012, Nature 485",
+          "url": "https://doi.org/10.1038/nature11022"
+        },
+        {
+          "label": "HiRISE product label, PSP_004339",
+          "url": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_017700_017799/ESP_017762_1890_ESP_018039_1890/PSP_004339_1890_RED_C_01_ORTHO.LBL"
+        }
+      ],
+      "validation": {
+        "status": "draft",
+        "date": null,
+        "notes": "Awaiting science review. Docs: docs/science/mars-nili-patera.md."
+      }
+    },
+    {
+      "id": "ripples-moved",
+      "title": "The ripples moved",
+      "body": "Compare this view with the same place on 13 October 2007, 105 days later. Across the sand, the ripples shifted about 2 meters toward the west-southwest, measured between these two images. The published study of this pair reports ripples moving up to 4.5 meters in that time.\n\nThe light also changed: the sun was higher in October, so shading differs between the two views.",
+      "viewport": {
+        "x": 1313,
+        "y": 1000,
+        "z": 12
+      },
+      "sources": [
+        {
+          "label": "Bridges et al. 2012, Nature 485",
+          "url": "https://doi.org/10.1038/nature11022"
+        },
+        {
+          "label": "HiRISE team release PIA12860",
+          "url": "https://pds-rings.seti.org/press_releases/pages/PIA12xxx/PIA12860.html"
+        },
+        {
+          "label": "HiRISE image page, PSP_004339",
+          "url": "https://www.uahirise.org/PSP_004339_1890"
+        },
+        {
+          "label": "HiRISE image page, PSP_005684",
+          "url": "https://www.uahirise.org/PSP_005684_1890"
+        }
+      ],
+      "validation": {
+        "status": "draft",
+        "date": null,
+        "notes": "Awaiting science review. Docs: docs/science/mars-nili-patera.md."
+      }
+    },
+    {
+      "id": "dunes-stay",
+      "title": "The dunes stayed",
+      "body": "The dunes themselves barely moved in these 15 weeks. Their steep faces advanced less than this picture can measure. The study puts the movement of the steep front at 0.18 to 0.92 meters a year.\n\nWhat did change are avalanches: new streaks of sand run down some slip faces in October.",
+      "viewport": {
+        "x": 1140,
+        "y": 3323,
+        "z": 16
+      },
+      "marker": {
+        "x": 1140,
+        "y": 3323,
+        "r": 45
+      },
+      "sources": [
+        {
+          "label": "Bridges et al. 2012, Nature 485",
+          "url": "https://doi.org/10.1038/nature11022"
+        },
+        {
+          "label": "HiRISE image page, PSP_005684",
+          "url": "https://www.uahirise.org/PSP_005684_1890"
+        }
+      ],
+      "validation": {
+        "status": "draft",
+        "date": null,
+        "notes": "Awaiting science review. Docs: docs/science/mars-nili-patera.md."
+      }
+    },
+    {
+      "id": "your-turn",
+      "title": "Your turn",
+      "body": "Drag to move and zoom in anywhere. Look for ripples, slip faces and avalanche streaks, then open Compare to wipe between June and October and see the sand surface move while the dunes stay put.",
+      "viewport": {
+        "x": 1967,
+        "y": 2873,
+        "z": 1
+      },
+      "sources": [
+        {
+          "label": "HiRISE image page, PSP_004339",
+          "url": "https://www.uahirise.org/PSP_004339_1890"
+        },
+        {
+          "label": "HiRISE image page, PSP_005684",
+          "url": "https://www.uahirise.org/PSP_005684_1890"
+        }
+      ],
+      "validation": {
+        "status": "draft",
+        "date": null,
+        "notes": "Awaiting science review. Docs: docs/science/mars-nili-patera.md."
+      }
+    }
+  ],
+  "validation": {
+    "status": "draft",
+    "date": null,
+    "notes": "Awaiting science review. Docs: docs/science/mars-nili-patera.md."
+  },
+  "mock": false
+}
