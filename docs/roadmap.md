@@ -40,7 +40,7 @@ Each item leaves the app working.
 |---|---|---|---|---|
 | B-01 | Test setup: unit and integration runner, end-to-end runner, `npm test` | done | | One passing test of each kind; no network in the suite |
 | B-02 | CI on push: lint, type check, tests, build, `npm audit` | blocked | B-01 | Workflow green on a local run; blocked on `npm audit` (critical advisories in Next 15.5.4, fixed only in Next 16) |
-| B-03 | Remove the CSS "Infrared" and "UV" filter modes | todo | | No filter mode in the app |
+| B-03 | Remove the CSS "Infrared" and "UV" filter modes | done | | No filter mode in the app |
 | B-04 | Fix the Andromeda metadata (42208 x 9870 and 10552 x 2468, levels 0 to 6, released 2025-01-16) and the credit line | todo | | Values match `docs/science/sources.md`, with a test |
 | B-05 | Remove the unidentified Webb pair from the slider | todo | | No unlabeled pair shipped |
 | B-06 | Remove unused `react-leaflet` | todo | | Not in `package.json` |

@@ -38,8 +38,6 @@ export interface DeepViewerProps {
 }
 
 // Spectral Gallery types and interfaces
-export type VisualMode = "normal" | "infrared" | "uv";
-
 export interface NasaImage {
   id: string;
   title: string;
@@ -50,6 +48,5 @@ export interface NasaImage {
 export interface SpectralGalleryProps {
   title: string;
   images: NasaImage[];
-  initialMode?: VisualMode;
   initialImageId?: string;
 }

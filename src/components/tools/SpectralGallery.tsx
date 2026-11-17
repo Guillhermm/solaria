@@ -1,17 +1,15 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button, ButtonGroup, Card, Row, Col, Spinner } from "react-bootstrap";
-import { SpectralGalleryProps, VisualMode } from "@/types";
+import { Card, Row, Col, Spinner } from "react-bootstrap";
+import { SpectralGalleryProps } from "@/types";
 
 
 export default function SpectralGallery({
   title,
   images,
-  initialMode = "normal",
   initialImageId,
 }: SpectralGalleryProps) {
-  const [mode, setMode] = useState<VisualMode>(initialMode);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadedSet, setLoadedSet] = useState<Set<string>>(new Set());
   const [currentId, setCurrentId] = useState<string>(
@@ -44,32 +42,12 @@ export default function SpectralGallery({
     });
   }, [images]);
 
-  const renderModeSelector = () => {
-    const modes: VisualMode[] = ["normal", "infrared", "uv"];
-    return (
-      <ButtonGroup className="d-flex rounded-0">
-        {modes.map((m) => (
-          <Button
-            key={m}
-            variant={mode === m ? "danger" : "outline-danger"}
-            className="flex-fill border-2 rounded-0 fw-bold text-uppercase"
-            onClick={() => setMode(m)}
-          >
-            {m.charAt(0).toUpperCase() + m.slice(1)}
-          </Button>
-        ))}
-      </ButtonGroup>
-    );
-  };
-
-  const galleryModeClass = `mode-${mode}`; // eg: "mode-infrared"
-
   const currentImage = images.find((img) => img.id === currentId);
 
   return (
     <div className="spectral-gallery">
       <h2>{title}</h2>
-      <div className="mb-4">By switching between visible, infrared, and ultraviolet representations, you unlock entirely new layers of the universe that remain hidden to the naked eye. Infrared light can penetrate dust and gas to expose budding stars, cold molecular clouds, and structures veiled in darkness. Ultraviolet highlights the hottest, most energetic processes like stellar winds, ionized gas, and bursts of star formation. Together, these modes let you compare and contrast different aspects of the same scene, revealing nuance, hidden patterns, or transient changes that would otherwise stay invisible. Use these views not just as tools, but as invitations: to wonder, to question, and to discover things you never knew were there.</div>
+      <div className="mb-4">Browse a small set of NASA images and pick one from the thumbnails.</div>
       {loading && (
         <div className="text-center my-4">
           <Spinner animation="border" role="status">
@@ -83,8 +61,7 @@ export default function SpectralGallery({
           <Row className="gap-3">
             {/* Main image */}
             <Col xs={12} lg={8}>
-              <Card className={`gallery-main-card ${galleryModeClass}`}>
-                {renderModeSelector()}
+              <Card className="gallery-main-card">
                 <Card.Img
                   variant="top"
                   src={currentImage.url}
