@@ -257,6 +257,18 @@ for (const cell of CELLS) {
       );
       expect(rings.length).toBe(m.markers.length);
       for (const r of rings) expect(r).toEqual({ size: 10, stroke: "rgb(255, 255, 255)", width: "1.5px", halo: "3px" });
+      // L7: a 1px leader at 0.55 alpha, 1rem long, one per visible chip.
+      const leaders = await page.locator("[data-testid=labels] line[class*=leader]").evaluateAll((els) =>
+        els
+          .filter((l) => getComputedStyle(l).display !== "none")
+          .map((l) => {
+            const s = getComputedStyle(l);
+            const [x1, y1, x2, y2] = ["x1", "y1", "x2", "y2"].map((a) => Number(l.getAttribute(a)));
+            return { width: s.strokeWidth, opacity: s.strokeOpacity, length: Math.round(Math.hypot(x2 - x1, y2 - y1)) };
+          }),
+      );
+      expect(leaders.length).toBeGreaterThan(0);
+      for (const l of leaders) expect(l).toEqual({ width: "1px", opacity: "0.55", length: 16 });
       // The chip's type, and its text against its own glass over white and over black.
       const chipStyle = await page.locator("[data-testid=label-chip] [data-part=chip]").first().evaluate((el) => {
         const s = getComputedStyle(el);

@@ -297,6 +297,29 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       }
     });
 
+    test("S4: Keep exploring shows a 2px accent ring 2px out and nothing paints over its corners", async ({ page }) => {
+      await page.clock.install();
+      await page.goto(`/andromeda-phat-phast-2025/?kiosk=1`);
+      await ready(page);
+      await stopAttract(page);
+      await page.clock.runFor(91_000);
+      const keep = countdown(page).getByRole("button", { name: "Keep exploring" });
+      await expect(keep).toBeFocused();
+      const ring = await keep.evaluate((el) => {
+        const s = getComputedStyle(el);
+        const probe = document.createElement("span");
+        probe.style.color = s.getPropertyValue("--accent").trim();
+        el.append(probe);
+        const want = getComputedStyle(probe).color;
+        probe.remove();
+        const r = el.getBoundingClientRect();
+        const corners = [[r.left + 1, r.top + 1], [r.right - 1, r.top + 1], [r.left + 1, r.bottom - 1], [r.right - 1, r.bottom - 1]]
+          .map(([x, y]) => { const hit = document.elementFromPoint(x, y); return !!hit && el.contains(hit); });
+        return { style: s.outlineStyle, width: s.outlineWidth, offset: s.outlineOffset, color: s.outlineColor, want, corners };
+      });
+      expect(ring).toEqual({ style: "solid", width: "2px", offset: "2px", color: ring.want, want: ring.want, corners: [true, true, true, true] });
+    });
+
     test("K12 to K14: 90 s idle opens the countdown; Keep exploring restarts it; at 0 the app starts over", async ({ page }) => {
       await page.clock.install();
       await page.goto(`/andromeda-phat-phast-2025/?kiosk=1`);
