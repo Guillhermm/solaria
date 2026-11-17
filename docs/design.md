@@ -240,8 +240,8 @@ aim); tapping a stop opens the Journey at that stop.
   it to the "back to the story" pill, with the credit still under it. Story and Explore
   switch from the top bar; the short image title leaves the phone bar on Journey pages to
   make room, and on pages that offer Compare once its switch is there. The camera frames the stop in the screen above the
-  sheet's measured top (Sprint 8; it was a fixed 60 % before), and below the Light bar on a
-  Journey through a band set; in Explore and Light on a phone the fit also ends at the sheet. Near an image edge the view
+  sheet's measured top (Sprint 8; it was a fixed 60 % before), and clear of the Light bar on a
+  Journey through a band set (below it under the desktop width, above it on desktop, D11); in Explore and Light on a phone the fit also ends at the sheet. Near an image edge the view
   constraint can move the center, never the zoom.
 
 ### 5.5 Journey, Explore mode
@@ -1262,13 +1262,15 @@ descriptions, stop bodies and credits, all from validated data.
   raises the cap to exactly its own ratio (the Sun label at 1440x900 is about 1.25), where
   Zoom in is disabled and + does nothing; zooming out below 1.1 puts the cap back. Journey
   stops still stop at native zoom.
-- **D11, minor: the Sun label's circle meets the Light bar on desktop.** At 1440x900 the
-  label link's z 5.69 (Q3: the radius fills a third of the shorter side) draws the circle
-  about 300px in radius around the view's center, and its lower arc passes under the Light
-  bar, which floats over the image on desktop and is not a margin of the view there. Keeping
-  it clear would mean moving the view off the label's center (Q21 wants the URL's x and y)
-  or making the bar a margin of every Light view on desktop, a layout change beyond this
-  sprint. Left as is; the label's chip and center stay clear of the bar.
+- **D11, the Light bar is a margin of the view on desktop.** At 1440x900 the Sun label link's
+  z 5.69 (Q3: the radius fills a third of the shorter side) used to draw its circle under the
+  Light bar, which floats over the foot of the image on desktop. The bar's measured top edge
+  is now a bottom margin of the view, as its bottom edge already is a top margin below the
+  desktop width: the fit, the Journey stops and a link's view center on the free area above
+  the bar, and the link keeps its x, y and z. The label's circle and chip and each stop's
+  reticle stay clear of the bar at 1440x900 and 1280x800 (tests/e2e/lightbar.spec.ts). A
+  view against the image's edge, such as the Journey's "Past the edge", is still clamped
+  there.
 - **D8, the active row's context is `--text-2`.** `--text-muted` on the `--hairline` ground
   of the active row measures 3.9:1 in the light theme, under Q20's 4.5:1; the other rows
   keep `--text-muted` (Q19).

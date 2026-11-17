@@ -28,7 +28,8 @@ const box = async (l: Locator) => (await l.boundingBox())!;
 const overlaps = (a: { x: number; y: number; width: number; height: number }, b: { x: number; y: number; width: number; height: number }) =>
   a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 
-// How red the middle of the view is, frame by frame, for `ms`: 0 for the gray HMI band, high for
+// How red the view is above the active region's white core (the stop frames it above the
+// Light bar, D11), frame by frame, for `ms`: 0 for the gray HMI band, high for
 // the red 304 Å band, in between while one fades into the other.
 const redness = (page: Page, ms: number) =>
   page.evaluate(
@@ -39,7 +40,7 @@ const redness = (page: Page, ms: number) =>
         const out: number[] = [];
         const start = performance.now();
         const tick = () => {
-          const d = g.getImageData(Math.round(c.width * 0.6), Math.round(c.height * 0.3), 24, 24).data;
+          const d = g.getImageData(Math.round(c.width * 0.6), Math.round(c.height * 0.15), 24, 24).data;
           let r = 0, b = 0;
           for (let i = 0; i < d.length; i += 4) {
             r += d[i];

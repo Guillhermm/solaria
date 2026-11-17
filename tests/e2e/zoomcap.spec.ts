@@ -101,11 +101,17 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
   });
 }
 
+// Since D11 the Light bar is a margin on desktop, so the label link's z 5.69 stays under the cap
+// at 1440x900; a closer link on the same point still needs more than the cap.
+const SUN_CLOSE = "/sun-sdo-2024-05-10-aia-94/?mode=light&labels=1&x=3020&y=2508&z=8";
+
 test.describe("1440x900", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
-  test("the Sun label link needs more than the cap here, so the cap rises for it", async ({ page }) => {
-    await page.goto(SUN_LABEL);
+  test("a Sun link that needs more than the cap here raises the cap for it", async ({ page }) => {
+    await page.goto(SUN_CLOSE);
     await ready(page);
     expect(await scale(page)).toBeGreaterThan(CAP);
+    expect(Math.abs((await readoutZ(page)) - 8) / 8).toBeLessThanOrEqual(0.01);
+    await expect(page.getByRole("button", { name: "Zoom in" })).toBeDisabled();
   });
 });

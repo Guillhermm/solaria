@@ -623,10 +623,13 @@ Light reuses the Compare layer pattern (`docs/architecture-compare.md`, sections
   mix directly). Under reduced motion it is a cut. Touching the rail stops the fade.
 - A link to a stop opens on that stop's band. The URL holds the stop, not the band.
 - Below the desktop width the bar sits under the top bar; its bottom edge is a top margin of
-  the view, so the fit and the stops frame what is below it. In Story on a phone the bar keeps
-  only the rail (the stop card carries the band's text).
+  the view, so the fit and the stops frame what is below it. On desktop it floats at the foot
+  of the image and its top edge is a bottom margin (design.md 15.5, D11), so a link's view
+  centers on the area above it. In Story on a phone the bar keeps only the rail (the stop
+  card carries the band's text).
 - On a phone, in every mode, the sheet's measured top is the bottom margin of the view, and
-  below the desktop width the Light bar's bottom is the top margin. A view at the fit (opened
+  the Light bar's bottom is the top margin below the desktop width, its top the bottom
+  margin on desktop. A view at the fit (opened
   without a view, or after Home) follows a new frame and a container resize; a story stop is
   framed again; a view the user moved stays put. On a phone the Light bar keeps the rail and
   one row (caption and "What differs?"); the band's note moves into the sheet.

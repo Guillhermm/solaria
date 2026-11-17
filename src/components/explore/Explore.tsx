@@ -376,15 +376,18 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       if (sheet && window.matchMedia(PHONE).matches) {
         if (root.dataset.sheet !== "full") sheetBottom = Math.max(0, Math.round(host.clientHeight - sheet.offsetTop));
       } else sheetBottom = 0;
-      // Below the desktop width the Light bar sits under the top bar, over the image: the fit and
-      // the stops frame what is below it.
-      const bar = root.querySelector<HTMLElement>("[data-testid='light-bar']");
-      const barBottom = bar && !window.matchMedia(DESKTOP).matches ? Math.round(bar.getBoundingClientRect().bottom - host.getBoundingClientRect().top) : 0;
+      // The Light bar floats over the image, under the top bar below the desktop width and at the
+      // foot on desktop: the fit, the stops and a link's view frame what it leaves free (D11).
+      const bar = root.querySelector<HTMLElement>("[data-testid='light-bar']")?.getBoundingClientRect();
+      const hostBox = host.getBoundingClientRect();
+      const atFoot = !!bar && window.matchMedia(DESKTOP).matches;
+      const barTop = bar && !atFoot ? Math.round(bar.bottom - hostBox.top) : 0;
+      const barFoot = bar && atFoot ? Math.max(0, Math.round(hostBox.bottom - bar.top)) : 0;
       return {
-        top: Math.max(top?.offsetParent ? top.offsetTop + top.offsetHeight : 0, barBottom),
+        top: Math.max(top?.offsetParent ? top.offsetTop + top.offsetHeight : 0, barTop),
         left: left?.offsetParent ? left.offsetLeft + left.offsetWidth : 0,
         right: 0,
-        bottom: sheetBottom,
+        bottom: Math.max(sheetBottom, barFoot),
       };
     };
     let margins = measureMargins();
@@ -787,8 +790,8 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     return () => observer.disconnect();
   }, []);
 
-  // The Light bar's height is a margin of the view below the desktop width; it changes as the
-  // bar appears, wraps or folds to the rail in Story.
+  // The Light bar's height is a margin of the view; it changes as the bar appears, wraps or folds
+  // to the rail in Story.
   const lightOn = !!(opened && lightActive);
   useEffect(() => {
     const bar = rootRef.current?.querySelector<HTMLElement>("[data-testid='light-bar']");
