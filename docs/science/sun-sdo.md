@@ -145,6 +145,13 @@ spots and the bright regions of 304, 171, 211 and 193 Å with at least 61 px to 
 layout, and stay below one image pixel per screen pixel on a 1440 x 900 window. The limb stop
 at x 3481, y 2724, z 4 holds the limb and a band of sky above it in every layout.
 
+Spot box of region 13664, measured in HMI 6173 pixels from the grid and position check: the
+26 dark umbra and pore components span x 2799 to 3240, y 2414 to 2602. The feature label
+"Active region 13664" sits at its center, (3020, 2508) after rounding (3019.5, 2508), with
+radius 240 px, the half-diagonal of the box (sqrt(220.5^2 + 94^2) = 239.7), so its circle
+covers every measured spot. The AIA bands share the grid within 3.5 px, so one position
+serves all seven channels.
+
 ## 8. Not checked
 
 - Lemen 2012 and Schou 2012 were read for the quoted passages only.

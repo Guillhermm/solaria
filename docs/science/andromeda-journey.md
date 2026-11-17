@@ -9,6 +9,9 @@ the tiles themselves. Verdict: **accepted with fixes**; the shipped text include
 
 - NASA image page: https://science.nasa.gov/asset/hubble/hubble-m31-phatphast-mosaic/
 - ESA release heic2501: https://esahubble.org/news/heic2501/
+- NASA release article: https://science.nasa.gov/missions/hubble/nasas-hubble-traces-hidden-history-of-andromeda-galaxy/
+  (its image alt text names "(b) NGC 206, a concentration of bright blue stars"; the image
+  page does not mention NGC 206, so the ngc-206 stop cites the article)
 - Image record and caveats: `docs/science/andromeda.md`
 
 ## Positions
