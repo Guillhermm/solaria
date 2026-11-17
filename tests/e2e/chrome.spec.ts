@@ -72,7 +72,8 @@ test("the header links the Journeys index and About", async ({ page }) => {
 test("header and footer controls meet the 2.75rem target and fit a phone", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  const targets = page.locator("header a, header button, footer a");
+  // The search dialog's own buttons are measured with it open (search.spec.ts).
+  const targets = page.locator("header a:visible, header button:visible, footer a");
   for (const target of await targets.all()) {
     const box = (await target.boundingBox())!;
     expect(box.height).toBeGreaterThanOrEqual(44);
@@ -106,7 +107,7 @@ for (const width of [1440, 390]) {
         wordmark: box(q("header a"))[0],
         heroTitle: box(q("h1"))[0],
         journeysTitle: box(q("#journeys-title"))[0],
-        toggle: box(q("header button"))[1],
+        toggle: box(q("header nav > button:last-child"))[1],
         begin: box(q("#journeys a[aria-label^=Begin]"))[1],
       };
     });

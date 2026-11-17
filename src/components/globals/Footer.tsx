@@ -31,7 +31,7 @@ const Footer = () => (
   <footer className={styles.footer}>
     <div className={styles.credits}>
       {credits().map(({ credit, titles }) => (
-        <p key={credit}>
+        <p key={credit} data-credit>
           {titles.join(", ")}: {credit}
         </p>
       ))}

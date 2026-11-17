@@ -230,7 +230,9 @@ test.describe("phone", () => {
       await expect(lensLabel(page)).toBeHidden();
       await expect(page.getByText("Stops 01 and 07 show the whole image.")).toBeVisible();
       await expect(page.getByText("Aim the lens at a stop", { exact: false })).toBeHidden();
-      expect(tileRequests).toEqual([]);
+      // The detail of the week draws its crop from tiles; the hero's lens loads none.
+      const weekly = await page.getByTestId("weekly-crop").locator("img").evaluateAll((imgs) => imgs.map((i) => (i as HTMLImageElement).src));
+      expect(tileRequests.filter((u) => !weekly.includes(u))).toEqual([]);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
       const begin = (await page.getByRole("link", { name: "Begin the journey" }).boundingBox())!;
       expect(begin.height).toBeGreaterThanOrEqual(48);

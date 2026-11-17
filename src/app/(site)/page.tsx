@@ -1,9 +1,12 @@
 import HomeHero from "@/components/home/HomeHero";
 import InstrumentKey from "@/components/home/InstrumentKey";
 import JourneyIndex, { type JourneyEntry } from "@/components/home/JourneyIndex";
+import WeeklyDetail from "@/components/home/WeeklyDetail";
 import { getContent } from "@/content/load";
 import { resolveTileBase } from "@/content/tiles";
 import { aimableStops, lensField } from "@/home/lens";
+import { weeklyCard } from "@/weekly/card";
+import { buildDate } from "@/weekly/pick";
 import styles from "./page.module.css";
 
 const entries = (): JourneyEntry[] => {
@@ -24,6 +27,8 @@ const Home = () => {
   const list = entries();
   const first = list[0];
   const aimable = first ? aimableStops(first.journey.stops) : [];
+  // design.md 15.3, W3: the week of the build; the card changes only when the site is rebuilt.
+  const weekly = weeklyCard(getContent(), buildDate(process.env, new Date()));
 
   return (
     <>
@@ -40,6 +45,7 @@ const Home = () => {
         <h1 className={styles.plainTitle}>Fly into one giant image.</h1>
       )}
       <JourneyIndex entries={list} tileBaseUrl={tileBaseUrl} />
+      {weekly && <WeeklyDetail card={weekly} tileBaseUrl={tileBaseUrl} />}
       {first && aimable.length > 0 && (
         <InstrumentKey sample={lensField(first.journey.stops[aimable[0]], first.image.tiles)} />
       )}

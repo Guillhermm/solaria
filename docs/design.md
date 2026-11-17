@@ -939,8 +939,8 @@ Not re-fetched for this section.
 
 ## 15. Search and detail of the week: acceptance
 
-Specified on 2026-11-17 for roadmap F-04 and F-02, in direction C. Status: planned for
-Sprint 10; nothing in this section is built yet. Sky coordinates (RA and Dec) are planned
+Specified on 2026-11-17 for roadmap F-04 and F-02, in direction C. Status: built in Sprint
+10; 15.5 records the decisions and the as-built deviations. Sky coordinates (RA and Dec) are planned
 beyond Sprint 10: they need a validated sky mapping per image (6.3). The conventions of 14
 hold: four cells per rule (390x844 and 1440x900, dark and light), boxes from
 `boundingBox()` in CSS pixels, 1px tolerance.
@@ -966,7 +966,9 @@ S1 to S4 (14.1) hold for every element added here. Three more apply to every rul
 - Q1. The index is built at build time from content whose validation status is `approved`
   and whose `mock` is false, and is inlined into the page: opening search or typing makes
   no network request. It holds three kinds: every image title (10), every label text in
-  `data/labels` (4) and every Journey stop title (14), 28 entries today. A mock or
+  `data/labels` (4) and the title of every Journey stop that lands on one place (10), 24
+  entries today. Stops at the fit view (the two "Your turn" stops and the whole-galaxy and
+  whole-disk stops) stay out (15.5, D1). A mock or
   unapproved entry never appears (unit test with a fixture).
 - Q2. The serialized index is 8 KB or less in each page's HTML.
 - Q3. Each entry links as follows; the parameter order is the one `serializeViewerParams`
@@ -1036,12 +1038,12 @@ S1 to S4 (14.1) hold for every element added here. Three more apply to every rul
   labels in file order, images by id). At most 8 rows show.
 - Q16. Test vectors on Home: "m32" gives Satellite galaxy M32, then The companion galaxy
   M32. "andromeda" gives Andromeda core, then Andromeda Galaxy (M31), Hubble PHAT+PHAST
-  panorama, then The Andromeda Galaxy. "171" gives 171 Å, the same view, then The Sun,
-  SDO AIA 171 Å, 2024-05-10 12:00 UTC. "your turn" gives two Your turn rows, Andromeda's
-  first. "sun" gives One Sun, seven bands, then the seven SDO images, 8 rows and no overflow
-  line. "the" matches 14 entries: The Andromeda Galaxy, The bright center, The companion
-  galaxy M32, then five SDO images, with "Showing 8 of 14. Type more to narrow." under
-  them (the line shows only past 8). "pillars" gives the 1995 image, then 2014.
+  panorama. "171" gives 171 Å, active region 13664, then The Sun, SDO AIA 171 Å,
+  2024-05-10 12:00 UTC. "your turn" gives the no-match state. "sun" gives the seven SDO
+  images, 7 rows and no overflow line. "the" matches 11 entries: The bright center, The
+  companion galaxy M32, then six SDO images, with "Showing 8 of 11. Type more to narrow."
+  under them (the line shows only past 8). "pillars" gives the 1995 image, then 2014.
+  (Vectors as of D1 and the Sun stop titles of D3.)
 - Q17. Results update on every input event with no debounce and no animation. The live
   region (`role="status"` inside the dialog) says "1 result", "{n} results" or "No
   results", debounced to 500 ms.
@@ -1123,23 +1125,26 @@ still show.
 - W2. Only stops with a single place (`aimableStops`) and stops whose text stands on its
   own may be listed: Sun stops 2, 3 and 6 refer to their neighbors ("The next three
   stops", "the 171 Å band that follows", "switch to HMI") and stay out. A label that
-  repeats a stop at the same place stays out too. The proposed pool, in order:
+  repeats a stop at the same place stays out too, so Active region 13664 is not listed
+  (it repeats Sun stops 4 and 5). The validated pool, in order
+  (`docs/science/weekly-pool.md`):
   1. Andromeda, The bright center (stop 2)
-  2. Label Active region 13664 (Sun)
-  3. Andromeda, Dust lanes (stop 3)
-  4. Sun, 171 Å, the same view (stop 4)
-  5. Andromeda, The companion galaxy M32 (stop 4)
-  6. Sun, 211 Å, the same view (stop 5)
-  7. Andromeda, NGC 206 (stop 5)
-  8. Andromeda, Toward single stars (stop 6)
+  2. Andromeda, Dust lanes (stop 3)
+  3. Sun, 171 Å, active region 13664 (stop 4)
+  4. Andromeda, The companion galaxy M32 (stop 4)
+  5. Sun, 211 Å, active region 13664 (stop 5)
+  6. Andromeda, NGC 206 (stop 5)
+  7. Andromeda, Toward single stars (stop 6)
 
-  Showing an item outside its Journey is a new context for validated text, so this list
-  goes through the science gate before it ships.
+  Each entry may carry, each reviewed with the entry (`validation`): `body`, card text that
+  replaces the stop's body or the label's description on the card only; `caveat`, one line
+  quoted word for word from the image's caveats or a stop text on that image (the validator
+  checks the quote); `side`, the crop's field in image pixels.
 - W3. The build date is `SOLARIA_BUILD_DATE` (YYYY-MM-DD) when set, else the build
   machine's date in UTC. The card shows pool item (isoWeek - 1) mod n, n the pool length.
-  Vectors with the pool above: 2026-11-17 (week 47) NGC 206; 2026-11-23 (week 48) Toward
-  single stars; 2026-12-07 (week 50) Active region 13664; 2026-12-28 and 2027-01-03 (week
-  53) The companion galaxy M32; 2027-01-04 (week 1) The bright center.
+  Vectors with the pool above: 2026-11-17 (week 47) 211 Å, active region 13664;
+  2026-11-23 (week 48) NGC 206; 2026-12-07 (week 50) The bright center; 2026-12-28 and
+  2027-01-03 (week 53) The companion galaxy M32; 2027-01-04 (week 1) The bright center.
 - W4. The card changes only when the site is rebuilt. A weekly scheduled rebuild is
   planned and waits on the host decision (L-03, L-04).
 
@@ -1154,9 +1159,11 @@ still show.
   then the text. The crop box has `aspect-ratio: 1` before any tile loads (S7).
 - W7. Text column, in order: the eyebrow "Week {n}" (Label type, Geist Mono, `--text-muted`,
   n the ISO week of W3), the item's title in Title type (stop title or label text), the
-  context line, the item's validated text in Body type (a stop's `body`, every paragraph;
-  a label's `description`), and the action. No other text: nothing is truncated, rewritten
-  or added (science gate).
+  context line, the item's validated text in Body type (the entry's `body` when it has one,
+  else a stop's `body`, every paragraph, or a label's `description`), the entry's `caveat`
+  line when it has one, and the action. No other text: nothing is truncated, rewritten or
+  added (science gate). Every Andromeda entry carries the caveat "The colors are assigned
+  to two filters, so this is not natural color."
 - W8. Context line: a stop shows "{Journey title} · Stop {n} of {m}"; a label shows
   "Feature label · {image title}", the band set's title for a band set.
 
@@ -1164,10 +1171,14 @@ still show.
 
 - W9. The crop is drawn from the same tile pyramid as the viewer (6.5) with the lens's
   tile placement (`lensTiles`), chosen at build time for 720 device pixels across, so the
-  HTML is identical for every visitor. A stop uses its `lensField` on its band's image
-  (`band`, else the Journey image); a label uses a field 3r across centered on it (r from
-  the data, else the side of the nearest stop's field). At most 16 tiles, each `<img>`
-  with `loading="lazy"`, `decoding="async"`, and its width and height set.
+  HTML is identical for every visitor. A stop uses its `lensField` on its band's image:
+  for any item of a band set the band is the stop's `band` (the Sun items crop `aia-171`
+  and `aia-211`), else the Journey image. A label uses a field 3r across centered on it
+  (r from the data, else the side of the nearest stop's field). An entry's `side` replaces
+  the field's side: Toward single stars is drawn 1:1, a 720 px field at the pyramid's full
+  level (58.6×). The field is kept inside the image, as the viewer keeps its view. At most
+  16 tiles (15.5, D6), each `<img>` with `loading="lazy"`, `decoding="async"`, and its
+  width and height set.
 - W10. The canvas inside the crop stays dark in both themes, like the viewer. Rulers on
   its top and left edges label image pixels (6.5). A stop draws the amber bracket frame
   0.375rem outside the crop's corners; a label draws its L5 ring or L6 circle at the
@@ -1183,7 +1194,7 @@ still show.
 
 - W13. One link, visible text "Go to this detail", `aria-describedby` pointing at the
   title, to the item's href (Q3: `/<slug>/?mode=story&stop=N` for a stop, the label link
-  for a label). Week 47 links to `/andromeda/?mode=story&stop=5`. The card itself is not a
+  for a label). Week 47 links to `/sun/?mode=story&stop=5`. The card itself is not a
   link and the crop is not focusable.
 - W14. The link is a 44px tall target or more (56px in a kiosk, K9) with the S4 ring.
   Hover underlines it over `--dur-fast`; nothing else depends on hover (K10).
@@ -1212,6 +1223,39 @@ Every new string, in one place so pt-BR can follow (13.6):
 
 Reused, not new: "Stop {n} of {m}", "Zoom", "Center x", "Center y", titles, label texts,
 descriptions, stop bodies and credits, all from validated data.
+
+### 15.5 Decisions and as built (Sprint 10)
+
+- **D1, fit-view stops are not indexed.** Journey stops at the fit view (Andromeda's "The
+  Andromeda Galaxy", the Sun's "One Sun, seven bands" and both "Your turn" stops) land on
+  nothing specific, so search leaves them out. The index uses the same rule as the lens
+  (`aimableStops`).
+- **D2, the weekly rebuild stays planned** (W4); nothing schedules a build yet.
+- **D3, the science review of the pool** (`docs/science/weekly-pool.md`): Active region
+  13664 (label) is out; every Andromeda entry carries the color caveat; Sun stops 4 and 5
+  are now "171 Å, active region 13664" and "211 Å, active region 13664" in the Journey too;
+  M32's card text opens "The small, fuzzy yellow patch at the center of this view, upper
+  left of Andromeda's core, is Messier 32" (card only); Toward single stars is drawn 1:1.
+- **D4, Q8 and Q9 in the viewer on desktop.** The image credit sits under the top bar on
+  the left, above the 6rem line's reach, so "bottom edge above the credit" cannot hold
+  there. As built, the panel is placed from measured edges: from 48rem up it clears every
+  top bar group; a visible credit in the upper half of the screen moves the panel's top to
+  0.5rem under it, and one in the lower half (the phone sheet, the footer on Home) ends the
+  panel 0.5rem above it. The panel never intersects a credit; past that height the list
+  scrolls inside it.
+- **D5, the kiosk countdown closes the dialog.** A modal dialog makes the countdown
+  inert, so its Keep exploring button could not be pressed; the dialog closes when the
+  countdown appears (before K14's reset, which then starts over at Home as before).
+- **D6, 16 tiles beat 720 device pixels.** For a field whose 720-pixel level needs more
+  than 16 tiles (most stops: 20 to 42), the crop draws the next coarser level that fits in
+  16. Today that gives 440 to 703 image pixels across the 340px crop (sharp at 1x, a little
+  soft at 2x); Toward single stars (720 at full level) and NGC 206 are the sharpest.
+- **D8, the active row's context is `--text-2`.** `--text-muted` on the `--hairline` ground
+  of the active row measures 3.9:1 in the light theme, under Q20's 4.5:1; the other rows
+  keep `--text-muted` (Q19).
+- **D7, Esc in browser fullscreen.** The browser itself leaves element fullscreen on Esc
+  before the page sees the key, so Q12's "does not exit fullscreen" cannot be enforced by
+  the page; the dialog's own Esc handling never asks to leave fullscreen.
 
 References relied on: WAI-ARIA Authoring Practices combobox pattern,
 https://www.w3.org/WAI/ARIA/apg/patterns/combobox/ (Q18); the modal dialog pattern,

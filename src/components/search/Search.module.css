@@ -1,0 +1,326 @@
+/* Search (design.md 15.2). The panel is a modal dialog in the top layer: placed on the page by
+   --search-top and --search-max-h, which Search.tsx measures from the top bar and the credit. */
+
+.panel {
+  position: fixed;
+  inset: var(--search-top, calc(0.75rem + env(safe-area-inset-top, 0rem))) 0.75rem auto;
+  width: auto;
+  max-width: none;
+  max-height: var(--search-max-h, calc(100dvh - 1.5rem));
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  color: var(--text);
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(1.25rem) saturate(1.3);
+  backdrop-filter: blur(1.25rem) saturate(1.3);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-panel);
+  overflow: hidden;
+  /* Q10: closing fades out over --dur-base; overlay and display hold the panel until it has. */
+  opacity: 0;
+  translate: 0 0;
+  transition:
+    opacity var(--dur-base) var(--ease-exit),
+    translate var(--dur-base) var(--ease-exit),
+    overlay var(--dur-base) var(--ease-exit) allow-discrete,
+    display var(--dur-base) var(--ease-exit) allow-discrete;
+}
+
+.panel[open] {
+  display: flex;
+  opacity: 1;
+  transition-duration: var(--dur-panel);
+  transition-timing-function: var(--ease-standard);
+}
+
+@starting-style {
+  .panel[open] {
+    opacity: 0;
+    translate: 0 0.5rem;
+  }
+}
+
+/* Q7: nothing is dimmed; the image stays in view. */
+.panel::backdrop {
+  background: transparent;
+}
+
+@media (min-width: 48rem) {
+  .panel {
+    inset: var(--search-top, 6rem) 0 auto;
+    width: min(40rem, 100vw - 2 * var(--gutter));
+    margin-inline: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .panel[open] {
+    transition-duration: 0s;
+  }
+}
+
+.field {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+  padding-inline: var(--space-3) var(--space-1);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.fieldIcon {
+  flex: none;
+  width: var(--icon);
+  height: var(--icon);
+  color: var(--text-muted);
+}
+
+/* Q11: 1rem or more, so iOS does not zoom into it. */
+.input {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--target);
+  padding: 0;
+  font: inherit;
+  font-family: var(--font-sans);
+  font-size: max(1rem, var(--text-body));
+  color: var(--text);
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+.field:has(.input:focus-visible) {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--target);
+  height: var(--target);
+  padding: 0;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.close svg {
+  width: var(--icon);
+  height: var(--icon);
+}
+
+.close:hover {
+  color: var(--accent);
+}
+
+.body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-block: var(--space-2);
+}
+
+.list:empty {
+  display: none;
+}
+
+.group + .group {
+  margin-top: var(--space-2);
+}
+
+.groupLabel,
+.kind,
+.keys {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.groupLabel {
+  margin: 0;
+  padding: var(--space-2) var(--space-4) var(--space-1);
+  color: var(--text-muted);
+}
+
+.line {
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-body);
+  line-height: 1.45;
+  color: var(--text-2);
+}
+
+/* Q18 to Q20: 44px rows; the active one carries the accent bar on the hairline ground. */
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--target);
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+}
+
+.row::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: transparent;
+}
+
+.row[aria-selected="true"] {
+  background: var(--hairline);
+}
+
+.row[aria-selected="true"]::before {
+  background: var(--accent);
+}
+
+.glyph {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.rowText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  font-size: var(--text-body);
+  line-height: 1.35;
+  color: var(--text);
+}
+
+/* Weight, not color, marks the match (Q19). */
+.name strong {
+  font-weight: 600;
+}
+
+.context {
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+/* --text-muted on the --hairline ground of the active row is 3.9:1 in the light theme; the
+   active row's context steps up to --text-2 so Q20's 4.5:1 holds (15.5, D8). */
+.row[aria-selected="true"] .context {
+  color: var(--text-2);
+}
+
+.kind {
+  flex: none;
+  color: var(--text-muted);
+}
+
+.keys {
+  display: flex;
+  flex: none;
+  gap: var(--space-4);
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  color: var(--text-muted);
+  border-top: 1px solid var(--hairline);
+}
+
+.keys kbd,
+.keycap {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  padding: 0 0.3125rem;
+  color: var(--text-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Q4: icon only on a phone, the word and its keycap from 48rem. */
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: var(--target);
+  min-height: var(--target);
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-2);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.trigger svg {
+  width: var(--icon);
+  height: var(--icon);
+}
+
+.trigger:hover {
+  color: var(--accent);
+}
+
+.triggerText,
+.keycap {
+  display: none;
+}
+
+@media (min-width: 48rem) {
+  .trigger {
+    padding-inline: var(--space-3);
+  }
+
+  .triggerText,
+  .keycap {
+    display: inline;
+  }
+}
+
+/* Q26: kiosk targets are 3.5rem (--target) and 0.5rem apart. */
+:global(:root[data-kiosk]) .row + .row {
+  margin-top: var(--space-2);
+}
+
+@media (forced-colors: active) {
+  .panel {
+    border-color: CanvasText;
+  }
+
+  .row[aria-selected="true"] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}

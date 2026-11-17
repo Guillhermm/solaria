@@ -48,6 +48,14 @@
   border-radius: var(--radius-control);
 }
 
+/* Search joined the nav (design.md 15.2, Q4): on a phone the links give up a little padding so
+   the row fits before the web fonts load, with no shift when they do. */
+@media (max-width: 47.99rem) {
+  .nav a {
+    padding-inline: var(--space-2);
+  }
+}
+
 .nav a:hover {
   color: var(--accent);
 }

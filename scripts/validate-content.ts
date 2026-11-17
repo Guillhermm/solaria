@@ -8,7 +8,7 @@ const main = () => {
   }
   try {
     const c = loadContent({ root: process.cwd(), mode });
-    console.log(`Content OK (${mode}): ${c.sources.length} sources, ${c.images.length} images, ${c.journeys.length} journeys, ${c.pairs.length} pairs, ${c.bandSets.length} band sets, ${c.labels.length} label sets`);
+    console.log(`Content OK (${mode}): ${c.sources.length} sources, ${c.images.length} images, ${c.journeys.length} journeys, ${c.pairs.length} pairs, ${c.bandSets.length} band sets, ${c.labels.length} label sets, ${c.weekly.length} weekly items`);
   } catch (err) {
     console.error(err instanceof ContentError ? err.message : err);
     process.exit(1);

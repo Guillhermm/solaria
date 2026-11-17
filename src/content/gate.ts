@@ -64,5 +64,6 @@ export const publishProblems = (content: Content): string[] => {
       if (!approvedImages.has(id)) out.push(`${what}: image "${id}" is not approved`);
     }
   }
+  content.weekly.forEach((w, i) => review(`weekly [${i}]`, w.validation));
   return out;
 };

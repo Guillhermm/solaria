@@ -88,6 +88,18 @@ in [docs/science/](docs/science/).
   the validated labels of `data/labels/` on the image, as rings or measured circles with
   chips placed clear of the controls; a chip opens its description, and About this image
   lists every label with a Show button. `labels=1` in the URL keeps them on.
+- Search: the Search button in the Home header and in the viewer's top bar, or `/`, opens a
+  dialog that finds image titles, feature labels and Journey stop titles as you type (accents
+  and case ignored, every word a prefix), and goes to a pixel when you type two numbers
+  (`17461, 6482`). Results open the image, the stop or the labeled feature; on the page
+  already open the view moves in place. The index is built from validated content at build
+  time and travels in the page, so searching makes no request. Sky coordinates (RA and Dec)
+  are planned.
+- Detail of the week on Home: one stop from a validated pool (`data/weekly.json`, checked by
+  the content validator) is picked by the ISO week of the build date (`SOLARIA_BUILD_DATE`,
+  else today in UTC) and drawn as a square crop from the tile pyramid with its rulers,
+  readout, credit and a link to the stop. It changes when the site is rebuilt; a weekly
+  scheduled rebuild is planned and waits on the host decision.
 - Kiosk mode, awaiting the maintainers' sign-off and not linked from the app: `?kiosk=1` on
   any page turns it on for the browser session (`?kiosk=0` ends it). It is always dark, shows
   no link that leaves the app, no Share, Fullscreen or theme toggle, uses 3.5rem targets,
@@ -100,7 +112,8 @@ in [docs/science/](docs/science/).
 
 ## Planned
 
-More Journeys and tiles served from R2. See the roadmap for order and status.
+More Journeys, tiles served from R2, a weekly scheduled rebuild for the detail of the week,
+and sky coordinates in search. See the roadmap for order and status.
 
 ## Run it
 

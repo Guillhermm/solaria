@@ -29,6 +29,9 @@ import {
 } from "react-icons/lu";
 import type OpenSeadragon from "openseadragon";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
+import Search from "@/components/search/Search";
+import type { SearchIndex } from "@/search/build";
+import type { Here } from "@/search/match";
 import CompareBar from "@/components/compare/CompareBar";
 import Divider from "@/components/compare/Divider";
 import WhatDiffers from "@/components/compare/WhatDiffers";
@@ -43,7 +46,7 @@ import type { Info } from "@/viewer/info";
 import { overviewHeightRem, shapeOf } from "@/viewer/overview";
 import { keyAction, zoomAnnouncement } from "@/viewer/keys";
 import { type SheetState, stepSheet } from "@/viewer/sheet";
-import { type CompareOptions, type CompareState, DEFAULT_SPLIT, type Layout, type Mode, LAYOUTS, parseCompareParams, parseViewerParams, serializeViewerParams } from "@/viewer/url";
+import { type CompareOptions, type CompareState, DEFAULT_SPLIT, type Layout, type Mode, LAYOUTS, maxZoom, parseCompareParams, parseViewerParams, serializeViewerParams } from "@/viewer/url";
 import { bandValueText, type LightOptions, type LightState, nearestStop, parseLightParams, shownBands, stopBand, wavelengthLabel } from "@/viewer/light";
 import { sides } from "@/viewer/compare";
 import { dividerValueText } from "@/viewer/divider";
@@ -71,6 +74,7 @@ interface ExploreProps {
   labels?: FeatureLabel[]; // validated feature labels of this image (design.md 14.2)
   labelStops?: Stop[]; // the stops of the Journeys on this image: Show takes the nearest one's zoom
   nextJourney?: string; // kiosk attract loop: the Journey that follows this one (design.md 14.3, K5)
+  search?: SearchIndex; // design.md 15.2, built with the page
 }
 
 interface Camera {
@@ -184,7 +188,9 @@ const NO_LABELS: FeatureLabel[] = [];
 const NO_STOPS: Stop[] = [];
 const BLINK_MS = 800;
 
-const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets = NO_SETS, labels = NO_LABELS, labelStops = NO_STOPS, nextJourney }: ExploreProps) => {
+const NO_INDEX: SearchIndex = { entries: [], places: [], example: "" };
+
+const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets = NO_SETS, labels = NO_LABELS, labelStops = NO_STOPS, nextJourney, search = NO_INDEX }: ExploreProps) => {
   const rootRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
@@ -204,6 +210,8 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   const [attempt, setAttempt] = useState(0);
   const liveRef = useRef<HTMLParagraphElement>(null);
   const failuresRef = useRef(0);
+  // A search row moved the view: the URL keeps the row's link until the user moves on (Q21).
+  const holdUrlRef = useRef<string | null>(null);
   const { width: imageWidth, height: imageHeight } = image.tiles;
   const pairIds = pairs.map((p) => p.pair.id).join(" ");
   const desktop = useSyncExternalStore(subscribeMedia, () => window.matchMedia(DESKTOP).matches, () => true);
@@ -553,6 +561,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       };
       const moved = () => {
         fitted = false;
+        holdUrlRef.current = null;
       };
       const panPx = (dy: number) => {
         const vp = opened.viewport;
@@ -672,7 +681,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         // design.md 7.1: in Explore the URL follows the view 400 ms after it settles; in Story
         // it holds the stop.
         clearTimeout(urlTimer);
-        if (!pageRef.current.story) urlTimer = window.setTimeout(() => replaceUrl(viewUrl(opened, { width, height }, pageRef.current.modeUrl, pageRef.current.labels)), 400);
+        if (!pageRef.current.story) urlTimer = window.setTimeout(() => replaceUrl(holdUrlRef.current ?? viewUrl(opened, { width, height }, pageRef.current.modeUrl, pageRef.current.labels)), 400);
         // design.md 7.1: the zoom is announced once it settles, never per frame; a stop
         // announces its title instead, unless the user has taken the camera.
         clearTimeout(liveTimer);
@@ -779,6 +788,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
 
   // The rail takes over from a stop's fade the moment it is touched.
   const moveRail = useCallback((p: number) => {
+    holdUrlRef.current = null;
     cancelAnimationFrame(fadeFrame.current);
     setFade(null);
     setPosition(p);
@@ -797,7 +807,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     const timer = window.setTimeout(() => {
       const viewer = viewerRef.current;
       const m = pageRef.current.modeUrl;
-      if (viewer && m) replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }, m, pageRef.current.labels));
+      if (viewer && m) replaceUrl(holdUrlRef.current ?? viewUrl(viewer, { width: imageWidth, height: imageHeight }, m, pageRef.current.labels));
     }, 400);
     return () => clearTimeout(timer);
   }, [comparing, lighting, split, band, imageWidth, imageHeight]);
@@ -816,6 +826,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       const viewer = viewerRef.current;
       if (!viewer || !pairs.length) return;
       const { mode: to = "compare", ...rest } = next;
+      holdUrlRef.current = null;
       const m = pageRef.current.modeUrl;
       const now = m?.mode === "compare" ? m.state : { pair: pairs[0].pair.id, layout: "wipe" as Layout, split: pageRef.current.split };
       const state = { ...now, ...rest };
@@ -829,6 +840,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     (to: Mode) => {
       const viewer = viewerRef.current;
       if (!viewer) return;
+      holdUrlRef.current = null;
       if (to === "compare") setCompare({ mode: "compare" });
       else if (to === "light" && lightOptions) {
         const set = lightOptions.sets[0];
@@ -854,7 +866,8 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       const active = document.activeElement;
       const focusInChrome = !!active && root.contains(active) && !canvas.contains(active);
       const hoverInChrome = !!root.querySelector(`.${styles.fade}:hover, .${styles.dim}:hover`);
-      return focusInChrome || hoverInChrome || root.hasAttribute("data-info");
+      // S5: never idle while the search dialog is open.
+      return focusInChrome || hoverInChrome || root.hasAttribute("data-info") || !!root.querySelector("dialog[open]");
     };
     const arm = () => {
       clearTimeout(timer);
@@ -910,6 +923,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   const share = useCallback(async () => {
     const viewer = viewerRef.current;
     if (!viewer) return;
+    holdUrlRef.current = null;
     const url = new URL(viewUrl(viewer, { width: image.tiles.width, height: image.tiles.height }, pageRef.current.modeUrl, pageRef.current.labels), window.location.href).href;
     replaceUrl(url);
     try {
@@ -1069,6 +1083,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   }, [openLabel, closeLabel]);
 
   const writeLabelsUrl = useCallback((on: boolean) => {
+    holdUrlRef.current = null;
     const viewer = viewerRef.current;
     if (viewer) replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }, pageRef.current.modeUrl, on));
   }, [imageWidth, imageHeight]);
@@ -1164,6 +1179,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   );
 
   const reset = useCallback(() => {
+    holdUrlRef.current = null;
     pauseStory();
     viewerRef.current?.viewport.goHome();
   }, [pauseStory]);
@@ -1183,6 +1199,68 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     setToast(null);
     setAttempt((n) => n + 1);
   }, []);
+
+  // design.md 15.2, Q23: a point is in this image's pixels (the reference's in Compare, the
+  // shared grid in Light). Story hands over to Explore; every other mode stays, at the current
+  // zoom when it is 4 or more, else 4.
+  const here = useMemo((): Here => {
+    const size = { width: imageWidth, height: imageHeight };
+    return {
+      imageIds: [image.id, ...bandSets.flatMap((b) => b.set.imageIds)],
+      width: imageWidth,
+      height: imageHeight,
+      pointHref: (x, y) => {
+        const viewer = viewerRef.current;
+        const now = viewer ? settledView(viewer, size).z : 1;
+        const z = Math.min(maxZoom(size), Math.max(4, now));
+        const page = pageRef.current;
+        const m = page.story ? undefined : page.modeUrl;
+        const params = serializeViewerParams(
+          {
+            mode: m?.mode ?? "explore",
+            view: { x, y, z },
+            compare: m?.mode === "compare" ? m.state : undefined,
+            light: m?.mode === "light" ? m.state : undefined,
+            labels: page.story ? labelsOn && labels.length > 0 : page.labels,
+          },
+          m?.mode === "compare" ? m.defaultPair : undefined,
+          m?.mode === "light" ? m.opts : undefined,
+        );
+        return `${window.location.pathname}${params}`;
+      },
+    };
+  }, [image.id, bandSets, imageWidth, imageHeight, labelsOn, labels]);
+
+  // Q21: a row for this page moves the view in place and takes the row's link as the URL.
+  const openHref = useCallback(
+    (href: string) => {
+      const url = new URL(href, window.location.href);
+      const viewer = viewerRef.current;
+      const camera = cameraRef.current;
+      if (url.pathname !== window.location.pathname || !viewer || !camera) return false;
+      const size = { width: imageWidth, height: imageHeight };
+      if (journey && url.searchParams.get("mode") === "story") {
+        if (!story) setStoryStop(parseStop(url.search, journey.stops.length));
+        goTo(parseStop(url.search, journey.stops.length));
+        return true;
+      }
+      const state = parseViewerParams(url.search, size, modesFor(journey, compareOptions(), lightOptions), compareOptions(), lightOptions);
+      if (story) {
+        setStoryStop(stop);
+        setPaused(false);
+      }
+      setLabelsOn(labels.length > 0 && parseLabelsParam(url.search));
+      setOpenLabel(null);
+      setSheet("peek");
+      if (state.mode === "light" && state.light) setPosition(state.light.band);
+      holdUrlRef.current = `${url.pathname}${url.search}`;
+      replaceUrl(holdUrlRef.current);
+      if (state.view) camera.fly(state.view);
+      else viewer.viewport.goHome();
+      return true;
+    },
+    [imageWidth, imageHeight, journey, story, stop, goTo, compareOptions, lightOptions, labels],
+  );
 
   // The column's mission line: validated manifest fields only (design.md 5.3).
   const pairSides = active ? sides(active.pair) : null;
@@ -1325,6 +1403,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
             About this image
           </button>
           {/* K4: a kiosk runs full screen already, and a copied link has nowhere to go. */}
+          <Search variant="viewer" buttonClassName={styles.iconButton} index={search} here={here} onPick={openHref} />
           {!kiosk && (
             <button type="button" className={styles.iconButton} onClick={share} aria-label="Share this view">
               <LuShare aria-hidden />
@@ -1403,7 +1482,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       <div className={styles.topLeft}>
         {/* The credit never fades: the license asks that every user can see it. */}
         {!active && !lightShown && (
-          <p className={`${styles.credit} ${styles.glass}`} data-testid="credit">
+          <p className={`${styles.credit} ${styles.glass}`} data-testid="credit" data-credit>
             {info.credit}
           </p>
         )}
@@ -1548,7 +1627,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           </p>
         )}
         {!infoOpen && (
-          <button type="button" className={styles.sheetCredit} onClick={openFromCredit} data-testid="sheet-credit">
+          <button type="button" className={styles.sheetCredit} onClick={openFromCredit} data-testid="sheet-credit" data-credit>
             {active && pairSides ? (
               <>
                 <span className={styles.sheetCreditLine}>Left, {pairSides.left.short}: {info.credit}</span>

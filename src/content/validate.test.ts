@@ -503,3 +503,86 @@ describe("labels", () => {
     ]);
   });
 });
+
+describe("weekly pool (design.md 15.3, W1)", () => {
+  const PATH = "data/weekly.json";
+  const LABELS = "data/labels/demo-labels.json";
+  const approved = { status: "approved", date: "2026-11-17", notes: "fixture" };
+  const item = (extra: Record<string, unknown> = {}) => ({ kind: "stop", journey: "demo-tour", stop: "b", validation: approved, ...extra });
+  const run = (pool: unknown, more: { path: string; raw: unknown }[] = []) =>
+    errorsOf(validateContent([...fx.files(), { path: LABELS, raw: fx.labelSet() }, ...more, { path: PATH, raw: pool }]));
+
+  it("accepts stop and label references and loads them in order", () => {
+    const pool = [item(), { kind: "label", labels: "demo-labels", label: "b", validation: approved }];
+    expect(run(pool)).toEqual([]);
+    const r = validateContent([...fx.files(), { path: LABELS, raw: fx.labelSet() }, { path: PATH, raw: pool }]);
+    expect(r.ok && r.value.weekly.map((w) => w.kind)).toEqual(["stop", "label"]);
+  });
+
+  it("accepts an empty list, and content without the file has an empty pool", () => {
+    expect(run([])).toEqual([]);
+    const r = validateContent(fx.files());
+    expect(r.ok && r.value.weekly).toEqual([]);
+  });
+
+  it("names the entry whose reference does not resolve", () => {
+    expect(run([item(), item({ journey: "nope" })])).toEqual([`${PATH}: [1].journey: no Journey "nope" in data/journeys/`]);
+    expect(run([item({ stop: "zz" })])).toEqual([`${PATH}: [0].stop: no stop "zz" in Journey "demo-tour"`]);
+    expect(run([{ kind: "label", labels: "demo-labels", label: "zz", validation: approved }])).toEqual([
+      `${PATH}: [0].label: no label "zz" in data/labels/demo-labels.json`,
+    ]);
+    expect(run([{ kind: "label", labels: "nope", label: "a", validation: approved }])).toEqual([`${PATH}: [0].labels: no label set "nope" in data/labels/`]);
+  });
+
+  it("rejects a reference to an unapproved or mock item", () => {
+    const tour = clone(fx.journey());
+    tour.stops[1].validation = { status: "in-review", date: null, notes: "" };
+    const files = fx.files().map((f) => (f.path.includes("journeys") ? { ...f, raw: tour } : f));
+    expect(errorsOf(validateContent([...files, { path: PATH, raw: [item()] }]))).toEqual([`${PATH}: [0]: stop "b" of Journey "demo-tour" is not approved`]);
+    const mock = { ...clone(fx.journey()), slug: "mock-tour", mock: true };
+    expect(run([item({ journey: "mock-tour" })], [{ path: "data/mock/journeys/mock-tour.json", raw: mock }])).toEqual([
+      `${PATH}: [0]: Journey "mock-tour" is mock content`,
+    ]);
+  });
+
+  it("rejects a stop at the fit view, which has no single place (W2)", () => {
+    const tour = clone(fx.journey());
+    tour.stops[1].viewport.z = 1;
+    const files = fx.files().map((f) => (f.path.includes("journeys") ? { ...f, raw: tour } : f));
+    expect(errorsOf(validateContent([...files, { path: PATH, raw: [item()] }]))).toEqual([
+      `${PATH}: [0].stop: stop "b" shows the whole image and has no single place`,
+    ]);
+  });
+
+  it("takes a text override, a caveat quoted from the record and a field side", () => {
+    const tour = clone(fx.journey());
+    tour.stops[0].body = "Intro. The colors are assigned. More.";
+    const files = fx.files().map((f) => (f.path.includes("journeys") ? { ...f, raw: tour } : f));
+    const ok = [item({ body: "New opening. Text.", caveat: "The colors are assigned.", side: 200 })];
+    expect(errorsOf(validateContent([...files, { path: PATH, raw: ok }]))).toEqual([]);
+    expect(errorsOf(validateContent([...files, { path: PATH, raw: [item({ caveat: "Invented line." })] }]))).toEqual([
+      `${PATH}: [0].caveat: expected a line quoted from image "demo" (its caveats or a stop text on it), got "Invented line."`,
+    ]);
+    expect(errorsOf(validateContent([...files, { path: PATH, raw: [item({ side: 2000 })] }]))).toEqual([
+      `${PATH}: [0].side: expected at most 300 (the image's shorter side), got 2000`,
+    ]);
+  });
+
+  it("rejects malformed entries and unknown keys", () => {
+    expect(run({})).toEqual([`${PATH}: expected an array, got {}`]);
+    expect(run([{ kind: "image", validation: approved }])).toEqual([`${PATH}: [0].kind: expected one of stop, label, got "image"`]);
+    expect(run([item({ note: "x" })])).toEqual([`${PATH}: [0].note: unknown key`]);
+    expect(run([item({ body: "" })])).toEqual([`${PATH}: [0].body: expected a non-empty string, got ""`]);
+    const bare: Record<string, unknown> = item();
+    delete bare.validation;
+    expect(run([bare])).toEqual([`${PATH}: [0].validation: missing`]);
+  });
+});
+
+describe("weekly pool entry without a kind", () => {
+  it("is reported, not dropped", () => {
+    expect(errorsOf(validateContent([...fx.files(), { path: "data/weekly.json", raw: [{ journey: "demo-tour", stop: "b" }] }]))).toEqual([
+      "data/weekly.json: [0].kind: missing",
+    ]);
+  });
+});

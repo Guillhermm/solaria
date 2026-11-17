@@ -46,8 +46,7 @@ export const lensLevel = (tiles: TilePyramid, side: number, devicePx: number) =>
   return tiles.maxLevel;
 };
 
-export const lensTiles = (tiles: TilePyramid, field: Field, devicePx: number): LensTile[] => {
-  const level = lensLevel(tiles, field.side, devicePx);
+export const lensTiles = (tiles: TilePyramid, field: Field, devicePx: number, level = lensLevel(tiles, field.side, devicePx)): LensTile[] => {
   const d = 2 ** (tiles.maxLevel - level);
   const size = levelSize(tiles.width, tiles.height, tiles.maxLevel, level);
   const x0 = field.x - field.side / 2;

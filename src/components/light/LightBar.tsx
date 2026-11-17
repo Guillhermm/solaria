@@ -142,7 +142,7 @@ const LightBar = ({ stops, position, onPosition, showing, shows, draft, credits,
           <span className={compare.creditLabel}>Shows</span> {shows}
         </p>
       )}
-      <ul className={compare.credits} aria-label="Credits">
+      <ul className={compare.credits} aria-label="Credits" data-credit>
         {credits.map((c) => (
           <li key={c}>{c}</li>
         ))}

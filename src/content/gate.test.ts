@@ -3,7 +3,7 @@ import * as fx from "./__fixtures__/content";
 import { publishProblems } from "./gate";
 import type { Content } from "./types";
 
-const content = (): Content => ({ sources: [fx.source()], images: [fx.image()], journeys: [fx.journey()], pairs: [], bandSets: [], labels: [] });
+const content = (): Content => ({ sources: [fx.source()], images: [fx.image()], journeys: [fx.journey()], pairs: [], bandSets: [], labels: [], weekly: [] });
 
 describe("publishProblems", () => {
   it("is empty for an approved set", () => {

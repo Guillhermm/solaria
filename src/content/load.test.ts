@@ -40,7 +40,7 @@ describe("loadContent", () => {
   });
 
   it("treats a missing data directory as empty", () => {
-    expect(loadContent({ root: root([]), mode: "production" })).toEqual({ sources: [], images: [], journeys: [], pairs: [], bandSets: [], labels: [] });
+    expect(loadContent({ root: root([]), mode: "production" })).toEqual({ sources: [], images: [], journeys: [], pairs: [], bandSets: [], labels: [], weekly: [] });
   });
 
   it("reads data/mock only in development", () => {
@@ -155,5 +155,25 @@ describe("contentMode", () => {
     expect(contentMode({ NODE_ENV: "production", SOLARIA_CONTENT: "development" })).toBe("development");
     expect(contentMode({ NODE_ENV: "production", SOLARIA_CONTENT: "yes" })).toBe("production");
     expect(contentMode({ NODE_ENV: "development" })).toBe("development");
+  });
+});
+
+describe("the weekly pool file", () => {
+  const pool = [{ kind: "stop", journey: "demo-tour", stop: "b", validation: { status: "approved", date: "2026-11-17", notes: "fixture" } }];
+
+  it("is read from data/weekly.json when present", () => {
+    const c = loadContent({ root: root([...fx.files(), { path: "data/weekly.json", raw: pool }]), mode: "production" });
+    expect(c.weekly).toHaveLength(1);
+  });
+
+  it("is optional", () => {
+    expect(loadContent({ root: root(fx.files()), mode: "production" }).weekly).toEqual([]);
+  });
+
+  it("is held back by the production gate until each entry is approved", () => {
+    const draft = [{ ...pool[0], validation: { status: "in-review", date: null, notes: "" } }];
+    const dir = root([...fx.files(), { path: "data/weekly.json", raw: draft }]);
+    expect(() => loadContent({ root: dir, mode: "production" })).toThrow('weekly [0]: validation.status is "in-review", expected "approved"');
+    expect(loadContent({ root: dir, mode: "development" }).weekly).toHaveLength(1);
   });
 });

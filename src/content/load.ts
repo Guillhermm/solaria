@@ -15,6 +15,7 @@ export class ContentError extends Error {
 }
 
 const KINDS = ["sources", "images", "journeys", "pairs", "band-sets", "labels"] as const;
+const WEEKLY = "data/weekly.json";
 
 const readDir = (root: string, rel: string) => {
   let names: string[];
@@ -38,6 +39,14 @@ export const loadContent = (opts: { root: string; mode: Mode }): Content => {
   const dirs: string[] = KINDS.map((k) => `data/${k}`);
   if (opts.mode === "development") dirs.push(...KINDS.map((k) => `data/mock/${k}`), ...KINDS.map((k) => `data/staging/${k}`));
   const files = dirs.flatMap((d) => readDir(opts.root, d));
+  const weekly = join(opts.root, WEEKLY);
+  if (existsSync(weekly)) {
+    try {
+      files.push({ path: WEEKLY, raw: JSON.parse(readFileSync(weekly, "utf8")) as unknown });
+    } catch (err) {
+      throw new ContentError([`${WEEKLY}: not valid JSON (${(err as Error).message})`]);
+    }
+  }
   const result = validateContent(files);
   if (!result.ok) throw new ContentError(result.errors);
   if (opts.mode === "production") {

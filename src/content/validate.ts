@@ -37,7 +37,9 @@ import type {
   Stop,
   TilePyramid,
   Validation,
+  WeeklyItem,
 } from "./types";
+import { stopTarget } from "@/viewer/story";
 import { MIN_CONTROL_POINTS, fitSimilarity, residuals } from "./registration";
 
 const TO_ANGSTROM: Record<NonNullable<Band["wavelength"]>["unit"], number> = { Å: 1, nm: 10, µm: 1e4 };
@@ -602,10 +604,18 @@ const classify = (path: string) => {
 
 export const validateContent = (files: { path: string; raw: unknown }[]): Result<Content> => {
   const errors: string[] = [];
-  const content: Content = { sources: [], images: [], journeys: [], pairs: [], bandSets: [], labels: [] };
+  const content: Content = { sources: [], images: [], journeys: [], pairs: [], bandSets: [], labels: [], weekly: [] };
   const fileOf = new Map<unknown, string>();
+  let weeklyFile = false;
 
   for (const { path, raw } of files) {
+    if (path === WEEKLY_PATH) {
+      const r = validateWeekly(raw, path);
+      if (r.ok) content.weekly = r.value;
+      else errors.push(...r.errors);
+      weeklyFile = true;
+      continue;
+    }
     const info = classify(path);
     if (!info) {
       errors.push(`${path}: not a content file (expected data/{sources,images,journeys,pairs,band-sets,labels}/<name>.json or the same under data/mock/ or data/staging/)`);
@@ -762,5 +772,70 @@ export const validateContent = (files: { path: string; raw: unknown }[]): Result
     });
   }
 
+  if (weeklyFile) errors.push(...weeklyReferences(content, labelFileOf(content, fileOf)));
+
   return errors.length > 0 ? { ok: false, errors } : { ok: true, value: content };
+};
+
+const labelFileOf = (content: Content, fileOf: Map<unknown, string>) => new Map(content.labels.map((l) => [l.id, fileOf.get(l)!]));
+
+const WEEKLY_PATH = "data/weekly.json";
+
+// design.md 15.3, W1: the shape of each pool item; references are checked once all content is in.
+export const validateWeekly = (raw: unknown, file: string): Result<WeeklyItem[]> => {
+  const c = newCtx(file);
+  const optional = ["body", "caveat", "side"];
+  const item = (v: unknown, p: string): WeeklyItem | undefined => {
+    const n = c.errors.length;
+    if (typeof v !== "object" || v === null || Array.isArray(v)) return fail(c, p, "an object", v);
+    const kind = oneOf(c, (v as { kind?: unknown }).kind, `${p}.kind`, ["stop", "label"] as const);
+    if (!("kind" in v)) c.errors.push(`${c.file}: ${p}.kind: missing`);
+    if (!kind) return undefined;
+    const refs = kind === "label" ? ["labels", "label"] : ["journey", "stop"];
+    const o = object(c, v, p, ["kind", ...refs, "validation"], optional);
+    if (!o) return undefined;
+    const value: Record<string, unknown> = { kind };
+    for (const k of refs) value[k] = str(c, o[k], `${p}.${k}`);
+    if ("body" in o) value.body = str(c, o.body, `${p}.body`);
+    if ("caveat" in o) value.caveat = str(c, o.caveat, `${p}.caveat`);
+    if ("side" in o) value.side = int(c, o.side, `${p}.side`);
+    value.validation = validation(c, o.validation, `${p}.validation`);
+    return c.errors.length > n ? undefined : (value as unknown as WeeklyItem);
+  };
+  return result(c, arrayOf(c, raw, "", item));
+};
+
+const weeklyReferences = (content: Content, labelFiles: Map<string, string>) => {
+  const out: string[] = [];
+  const at = (i: number, key?: string) => `${WEEKLY_PATH}: [${i}]${key ? `.${key}` : ""}`;
+  content.weekly.forEach((w, i) => {
+    let imageId: string;
+    if (w.kind === "stop") {
+      const j = content.journeys.find((x) => x.slug === w.journey);
+      if (!j) return out.push(`${at(i, "journey")}: no Journey "${w.journey}" in data/journeys/`);
+      const stop = j.stops.find((s) => s.id === w.stop);
+      if (!stop) return out.push(`${at(i, "stop")}: no stop "${w.stop}" in Journey "${j.slug}"`);
+      if (j.mock) return out.push(`${at(i)}: Journey "${j.slug}" is mock content`);
+      if (j.validation.status !== "approved") return out.push(`${at(i)}: Journey "${j.slug}" is not approved`);
+      if (stop.validation.status !== "approved") return out.push(`${at(i)}: stop "${stop.id}" of Journey "${j.slug}" is not approved`);
+      if (!stopTarget(stop)) return out.push(`${at(i, "stop")}: stop "${stop.id}" shows the whole image and has no single place`);
+      imageId = stop.band ?? j.imageId;
+    } else {
+      const set = content.labels.find((l) => l.id === w.labels);
+      if (!set) return out.push(`${at(i, "labels")}: no label set "${w.labels}" in data/labels/`);
+      if (!set.labels.some((l) => l.id === w.label)) return out.push(`${at(i, "label")}: no label "${w.label}" in ${labelFiles.get(set.id)}`);
+      if (set.mock) return out.push(`${at(i)}: label set "${set.id}" is mock content`);
+      if (set.validation.status !== "approved") return out.push(`${at(i)}: label set "${set.id}" is not approved`);
+      imageId = set.imageIds[0];
+    }
+    const image = content.images.find((x) => x.id === imageId);
+    if (!image) return;
+    if (w.caveat !== undefined) {
+      const quoted = [...(image.caveats ?? []), ...content.journeys.filter((j) => j.imageId === image.id || j.bandSetId && content.bandSets.find((b) => b.id === j.bandSetId)?.imageIds.includes(image.id)).flatMap((j) => j.stops.map((s) => s.body))];
+      if (!quoted.some((t) => t.includes(w.caveat!))) out.push(`${at(i, "caveat")}: expected a line quoted from image "${image.id}" (its caveats or a stop text on it), got ${JSON.stringify(w.caveat)}`);
+    }
+    const shorter = Math.min(image.tiles.width, image.tiles.height);
+    if (w.side !== undefined && w.side > shorter) out.push(`${at(i, "side")}: expected at most ${shorter} (the image's shorter side), got ${w.side}`);
+  });
+  return out;
 };

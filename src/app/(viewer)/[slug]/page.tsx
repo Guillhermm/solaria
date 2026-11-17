@@ -6,6 +6,7 @@ import type { LightView } from "@/components/light/types";
 import { getContent } from "@/content/load";
 import { resolveTileBase } from "@/content/tiles";
 import { nextJourney } from "@/kiosk/kiosk";
+import { buildSearchIndex } from "@/search/build";
 import { infoFor } from "@/viewer/info";
 
 interface Params {
@@ -82,6 +83,7 @@ const ViewerPage = async ({ params }: Params) => {
       labels={labels}
       labelStops={labelStops}
       nextJourney={journey ? nextJourney(content.journeys.map((j) => j.slug), journey.slug) : undefined}
+      search={buildSearchIndex(content)}
     />
   );
 };

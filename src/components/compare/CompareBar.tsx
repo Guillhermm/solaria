@@ -66,7 +66,7 @@ const CompareBar = ({ layout, layouts, onLayout, headline, draft, credits, chips
           </button>
         </div>
       )}
-      <ul className={styles.credits} aria-label="Credits">
+      <ul className={styles.credits} aria-label="Credits" data-credit>
         {credits.map((c) => (
           <li key={c.label}>
             <span className={styles.creditLabel}>{c.label}</span> {c.credit}

@@ -216,6 +216,18 @@ export interface LabelSet {
   mock: boolean;
 }
 
+// One item of the detail-of-the-week pool (design.md 15.3, W1): a reference to a validated stop
+// or label, with what the card may say differently, each reviewed like any other content.
+interface WeeklyBase {
+  body?: string; // replaces the stop's body or the label's description on the card only
+  caveat?: string; // one line quoted from the image's record, shown under the text
+  side?: number; // the crop's field in image pixels, when the stop's own field is not wanted
+  validation: Validation;
+}
+
+export type WeeklyItem = WeeklyBase &
+  ({ kind: "stop"; journey: string; stop: string } | { kind: "label"; labels: string; label: string });
+
 export interface Content {
   sources: Source[];
   images: ImageManifest[];
@@ -223,4 +235,5 @@ export interface Content {
   pairs: ComparePair[];
   bandSets: BandSet[];
   labels: LabelSet[];
+  weekly: WeeklyItem[]; // data/weekly.json, in order; empty when the file is absent
 }

@@ -1,0 +1,79 @@
+[
+  {
+    "kind": "stop",
+    "journey": "andromeda",
+    "stop": "central-core",
+    "caveat": "The colors are assigned to two filters, so this is not natural color.",
+    "validation": {
+      "status": "approved",
+      "date": "2026-11-17",
+      "notes": "Validated for the detail of the week: see docs/science/weekly-pool.md"
+    }
+  },
+  {
+    "kind": "stop",
+    "journey": "andromeda",
+    "stop": "dust-lanes",
+    "caveat": "The colors are assigned to two filters, so this is not natural color.",
+    "validation": {
+      "status": "approved",
+      "date": "2026-11-17",
+      "notes": "Validated for the detail of the week: see docs/science/weekly-pool.md"
+    }
+  },
+  {
+    "kind": "stop",
+    "journey": "sun",
+    "stop": "sdo-ar-171",
+    "validation": {
+      "status": "approved",
+      "date": "2026-11-17",
+      "notes": "Validated for the detail of the week: see docs/science/weekly-pool.md"
+    }
+  },
+  {
+    "kind": "stop",
+    "journey": "andromeda",
+    "stop": "m32",
+    "body": "The small, fuzzy yellow patch at the center of this view, upper left of Andromeda's core, is Messier 32, a compact satellite galaxy of Andromeda. The release names it as a possible culprit behind Andromeda's more active history of interaction and star formation.",
+    "caveat": "The colors are assigned to two filters, so this is not natural color.",
+    "validation": {
+      "status": "approved",
+      "date": "2026-11-17",
+      "notes": "Validated for the detail of the week: see docs/science/weekly-pool.md"
+    }
+  },
+  {
+    "kind": "stop",
+    "journey": "sun",
+    "stop": "sdo-ar-211",
+    "validation": {
+      "status": "approved",
+      "date": "2026-11-17",
+      "notes": "Validated for the detail of the week: see docs/science/weekly-pool.md"
+    }
+  },
+  {
+    "kind": "stop",
+    "journey": "andromeda",
+    "stop": "ngc-206",
+    "caveat": "The colors are assigned to two filters, so this is not natural color.",
+    "validation": {
+      "status": "approved",
+      "date": "2026-11-17",
+      "notes": "Validated for the detail of the week: see docs/science/weekly-pool.md"
+    }
+  },
+  {
+    "kind": "stop",
+    "journey": "andromeda",
+    "stop": "toward-single-stars",
+    "caveat": "The colors are assigned to two filters, so this is not natural color.",
+    "side": 720,
+    "validation": {
+      "status": "approved",
+      "date": "2026-11-17",
+      "notes": "Validated for the detail of the week: see docs/science/weekly-pool.md"
+    }
+  }
+]
