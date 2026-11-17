@@ -641,3 +641,45 @@ Light reuses the Compare layer pattern (`docs/architecture-compare.md`, sections
   static HTML and the first client render agree whichever band a link asks for; until then the
   page image's own credit shows.
 - While a stop's fade runs, the credits of both bands in it show.
+
+## 14. Installable app and icons (F-06)
+
+Next's metadata files carry it, and all of them export as static files under
+`output: 'export'` (checked in the build: `/manifest.webmanifest`, `/icon.svg` and
+`/apple-icon.png` are listed as static routes, and the head gets the matching links).
+
+- `src/app/manifest.ts` returns the manifest; `src/app/favicon.ico`, `icon.svg` and
+  `apple-icon.png` become `<link rel="icon">` and `<link rel="apple-touch-icon">`;
+  `viewport.themeColor` in `layout.tsx` becomes `<meta name="theme-color">`. The color is
+  the dark `--ground` token, kept in `src/app/theme-color.ts`; `manifest.test.ts` fails if
+  the token and the constant drift apart.
+- The icons come from one SVG built in `scripts/generate-icons.ts` (`npx tsx
+  scripts/generate-icons.ts`): the header's `.mark` (a 10px square, 1.5px border, 1px
+  radius, turned 45 degrees) in `--text` on a `--ground` tile, rasterized with `sharp`,
+  which Next already installs. The "any" icons and the favicon are a rounded tile; the
+  Apple icon is full bleed because iOS rounds it; the maskable icon keeps the mark within
+  60% of the side, so its corners stay inside the 80% safe zone. The outputs are
+  committed; rerun the script after changing the mark or the tokens.
+
+**Manifest identity.** The manifest sets `id: "/"`, `start_url: "/"` and `scope: "/"`.
+In the W3C Web Application Manifest (Working Draft, 16 November 2026, "processing the id
+member"), `id` is parsed with the start URL's origin as the base and is dropped if it is
+not same origin as `start_url`. At `https://solaria.zenus.systems/` the id is therefore
+`https://solaria.zenus.systems/`. Browsers tell installed apps apart by that id (MDN,
+manifest `id` reference: a matching id updates an installed app, any other id is a
+distinct app), so another
+app on a sibling subdomain of zenus.systems, which is a different origin, can never
+collide with it even if it also uses `id: "/"`. Setting `id` explicitly keeps the identity
+fixed if `start_url` ever changes (with no `id`, the start URL is the id).
+
+**No service worker.** Chrome dropped the service worker requirement for installing from
+the browser menu in Chrome 108 on Android and 112 on desktop (developer.chrome.com,
+"Changes to the installability criteria"). MDN ("Making PWAs installable", October 2026)
+lists the Chromium requirements as `name` or `short_name`, 192px and 512px icons,
+`start_url`, `display`, and no `prefer_related_applications`, plus HTTPS, and says a
+service worker is not required. A service worker would only add the risk of serving stale
+tiles or pages, so none ships; offline support is F-07, planned.
+
+The local static server (`scripts/serve-static.ts`) serves `.webmanifest` as
+`application/octet-stream`; Chrome reads the manifest either way, and the production host
+should send `application/manifest+json`.

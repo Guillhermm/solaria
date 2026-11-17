@@ -1,14 +1,19 @@
 import React from "react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import Kiosk from "@/components/kiosk/Kiosk";
 import { getContent } from "@/content/load";
+import { GROUND } from "./theme-color";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "NASA 2025 Solaria",
   description: "Embiggen Your Eyes App",
+};
+
+export const viewport: Viewport = {
+  themeColor: GROUND,
 };
 
 const RootLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
