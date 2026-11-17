@@ -7,12 +7,30 @@ updated in the same commit that finishes the item. Plan: `docs/vision.md`; desig
 "Validated" below means the claim was checked against its source and the manifest
 records that check (see `docs/vision.md`, section 7).
 
+## Sprints
+
+Sprints run back to back. Each one ends with a short report, and the next starts right away.
+
+| Sprint | Goal | Items | Status |
+|---|---|---|---|
+| 1 | Clean, tested base | B-01 to B-07 | doing |
+| 2 | Content from manifests, static export | D-01 to D-07 | todo |
+| 3 | New visual base; R2 sync and mock data ready | V-01 to V-03, D-08, D-09 | todo |
+| 4 | Viewer as a page | X-01 to X-05 | todo |
+| 5 | Story mode and the Andromeda Journey | S-01 to S-04 | todo |
+| 6 | Home and About, launch-ready | L-01, L-02, L-05 | todo |
+| 7 | Compare | C-01 to C-05 | todo |
+| 8 | Light | G-01 to G-04 | todo |
+
+Waiting on the maintainer: host and analytics (L-03), deploy and domain (L-04, L-06), and
+the R2 bucket and its credentials (R-01, R-02).
+
 ## M0. Plan
 
 | ID | Item | Status | Done when |
 |---|---|---|---|
 | P-01 | Product vision, design direction, science checks of sources and comparisons | done | `docs/vision.md`, `docs/design.md`, `docs/science/` committed |
-| P-02 | Mockup of Home and Andromeda Journey (desktop and phone, dark and light) | doing | Mockups approved by the maintainer; direction C chosen, final pass pending |
+| P-02 | Mockup of Home and Andromeda Journey (desktop and phone, dark and light) | done | Direction C "Instrument" with the lens approved on 2026-11-17 |
 
 ## M1. Clean base
 
