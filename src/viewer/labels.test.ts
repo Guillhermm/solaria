@@ -83,6 +83,22 @@ describe("placeLabels", () => {
   });
 });
 
+describe("placeLabels around a circle", () => {
+  it("puts a chip that cannot go right off the circle's own box, its leader from the edge", () => {
+    const { chips } = placeLabels([markOf(label("a", 0, 0, 100), 900, 300, 1)], new Map([["a", size(140)]]), FREE, [], 16);
+    expect(chips[0].side).toBe("left");
+    expect(chips[0].chip.x + chips[0].chip.width).toBeCloseTo(784);
+    expect(chips[0].leader).toEqual([800, 300, 784, 300]);
+  });
+
+  it("goes above the circle's top when neither side fits", () => {
+    const narrow = { x: 800, y: 0, width: 200, height: 600 };
+    const { chips } = placeLabels([markOf(label("a", 0, 0, 40), 900, 300, 1)], new Map([["a", size(140)]]), narrow, [], 16);
+    expect(chips[0].side).toBe("above");
+    expect(chips[0].chip.y + chips[0].chip.height).toBeCloseTo(244);
+  });
+});
+
 describe("placePopover", () => {
   const anchor = { x: 100, y: 100, width: 80, height: 44 };
   it("sits right of its anchor, slid into the free area", () => {

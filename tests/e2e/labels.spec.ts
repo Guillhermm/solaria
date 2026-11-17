@@ -422,16 +422,30 @@ test.describe("where labels live", () => {
     await expect(toggle(page)).toHaveCount(0);
   });
 
-  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
-    test(`L6, L14: the Sun's region draws its circle in Light at ${viewport.width} px`, async ({ page }) => {
+  for (const [viewport, scheme] of [
+    [{ width: 1440, height: 900 }, "dark"],
+    [{ width: 390, height: 844 }, "dark"],
+    [{ width: 390, height: 844 }, "light"],
+  ] as const) {
+    test(`L6, L12, L14: the Sun's region draws its circle and its chip in Light at ${viewport.width} px, ${scheme}`, async ({ page }) => {
       await page.setViewportSize(viewport);
+      await page.emulateMedia({ colorScheme: scheme });
       await page.goto(`${SUN}?mode=light&labels=1`);
       await ready(page);
       await placed(page);
       const label = sun.labels[0];
-      // At 390 px the chip fits on no side next to the zoom buttons (L12): the circle stays, and
-      // About's Show is the way to it.
-      if (viewport.width > 768) await expect(chip(page, label.text)).toBeVisible();
+      await expect(chip(page, label.text)).toBeVisible();
+      // Clear of its own circle: no point of the chip's button inside the disk.
+      const clear = await page.evaluate((id) => {
+        const c = document.querySelector(`[data-testid=label-circle][data-id="${id}"]`)!.getBoundingClientRect();
+        const b = document.querySelector(`[data-testid=label-chip][data-id="${id}"]`)!.getBoundingClientRect();
+        const cx = c.x + c.width / 2;
+        const cy = c.y + c.height / 2;
+        const nx = Math.max(b.left, Math.min(cx, b.right));
+        const ny = Math.max(b.top, Math.min(cy, b.bottom));
+        return Math.hypot(nx - cx, ny - cy) - c.width / 2;
+      }, label.id);
+      expect(clear).toBeGreaterThanOrEqual(-1);
       const circle = page.locator(`[data-testid=label-circle][data-id=${label.id}]`);
       const s = await circle.evaluate((el) => {
         const cs = getComputedStyle(el);

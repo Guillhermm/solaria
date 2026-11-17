@@ -49,7 +49,8 @@ export const markOf = (label: FeatureLabel, cx: number, cy: number, scale: numbe
   return { id: label.id, cx, cy, circle: r >= MIN_CIRCLE_PX ? r : null };
 };
 
-// Where the leader starts: the ring's center, or the circle's edge at 45 degrees up and right.
+// Where a chip on the right hangs its leader: the ring's center, or the circle's edge at 45
+// degrees up and right. Left, above and below sit off the circle's own box.
 const anchorOf = (m: Mark) =>
   m.circle === null ? { x: m.cx, y: m.cy, edge: RING_PX / 2 } : { x: m.cx + m.circle / Math.SQRT2, y: m.cy - m.circle / Math.SQRT2, edge: 0 };
 
@@ -91,9 +92,9 @@ export const placeLabels = (marks: Mark[], sizes: Map<string, ChipSize>, free: B
   for (const m of shown) {
     const size = sizes.get(m.id);
     if (!size) continue;
-    const { x, y, edge } = anchorOf(m);
     const pad = (size.target - size.height) / 2;
     for (const side of SIDES) {
+      const { x, y, edge } = side === "right" || m.circle === null ? anchorOf(m) : { x: m.cx, y: m.cy, edge: m.circle };
       const near = edge + leader;
       const chip: Box =
         side === "right" ? { x: x + near, y: y - size.height / 2, width: size.width, height: size.height }
