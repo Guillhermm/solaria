@@ -94,6 +94,11 @@ describe("camera flights (design.md 6.1)", () => {
     expect(laptop.width).toBeCloseTo(42208 / 29);
   });
 
+  it("keeps a link's own zoom past native when asked to", () => {
+    const deep = viewBounds({ x: 26880, y: 3586, z: 29 }, ANDROMEDA, { width: 2560, height: 1440 }, Infinity);
+    expect(deep.width).toBeCloseTo(42208 / 29);
+  });
+
   it("scales the duration by zoom distance within 1200 to 1800 ms", () => {
     expect(flightMs(1, 1, 29)).toBe(FLIGHT_MIN_MS);
     expect(flightMs(1, 29, 29)).toBe(FLIGHT_MAX_MS);

@@ -41,10 +41,11 @@ export interface Bounds {
 }
 
 // The part of the image (in image pixels) a view shows in a viewer of the given size in screen
-// pixels. The camera never goes past one screen pixel per image pixel, so on a large screen a
-// deep stop shows more around it rather than magnified pixels.
-export const viewBounds = (view: Viewport, image: Size, viewer: Size): Bounds => {
-  const scale = Math.min(fitScale(viewer, image) * view.z, 1);
+// pixels. A Journey's camera never goes past one screen pixel per image pixel (`maxScale` 1), so on
+// a large screen a deep stop shows more around it rather than magnified pixels. A link's own view
+// (a URL, a search row) is kept exactly: maxScale Infinity.
+export const viewBounds = (view: Viewport, image: Size, viewer: Size, maxScale = 1): Bounds => {
+  const scale = Math.min(fitScale(viewer, image) * view.z, maxScale);
   const width = viewer.width / scale;
   const height = viewer.height / scale;
   return { x: view.x - width / 2, y: view.y - height / 2, width, height };
@@ -84,8 +85,8 @@ export interface Leg {
 // design.md 6.1: stops far apart (their views do not overlap) zoom out to a view holding
 // both, then zoom in, so the user keeps their place; close stops fly directly. The two legs
 // share the longest flight time.
-export const flightPlan = (from: Bounds, fromZ: number, to: Viewport, image: Size, viewer: Size, span: number): Leg[] => {
-  const target = viewBounds(to, image, viewer);
+export const flightPlan = (from: Bounds, fromZ: number, to: Viewport, image: Size, viewer: Size, span: number, maxScale = 1): Leg[] => {
+  const target = viewBounds(to, image, viewer, maxScale);
   if (overlaps(from, target)) return [{ bounds: target, ms: flightMs(fromZ, to.z, span) }];
   return [
     { bounds: union(from, target), ms: FLIGHT_MAX_MS / 2 },

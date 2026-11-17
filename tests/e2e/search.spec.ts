@@ -65,7 +65,7 @@ const boxes = (page: Page, selector: string) =>
     selector,
   );
 
-const CREDITS = "[data-testid=credit], [data-testid=sheet-credit], [data-testid=light-bar] ul[aria-label=Credits], footer [data-credit]";
+const CREDITS = "[data-testid=hero-credit], [data-testid=credit], [data-testid=sheet-credit], [data-testid=light-bar] ul[aria-label=Credits], footer [data-credit]";
 
 const remPx = (page: Page, v: string) =>
   page.evaluate((value) => {
@@ -84,19 +84,19 @@ const assertPanel = async (page: Page, where: string, viewer: boolean) => {
   const vw = page.viewportSize()!.width;
   const vh = page.viewportSize()!.height;
   const credits = (await boxes(page, CREDITS)).filter((c) => c.y < vh && c.y + c.height > 0);
+  // As built (15.5, D4): a credit in the upper half of the screen moves the panel to 0.5rem under it.
+  const above = credits.filter((c) => hits({ ...c, y: 0, height: vh }, { ...panel, y: 0, height: vh }) && c.y < vh / 2);
+  const under = (top: number) => Math.max(top, ...above.map((c) => c.y + c.height + 8));
   if (vw >= 768) {
     const gutter = await remPx(page, "var(--gutter)");
     expect(panel.width, `${where}: width`).toBeCloseTo(Math.min(640, vw - 2 * gutter), 0);
     expect(Math.abs(panel.x + panel.width / 2 - vw / 2), `${where}: centered`).toBeLessThanOrEqual(1);
-    // As built: a credit in the upper half of the screen moves the panel to 0.5rem under it.
-    const above = credits.filter((c) => hits({ ...c, y: 0, height: vh }, { ...panel, y: 0, height: vh }) && c.y < vh / 2);
-    const want = Math.max(96, ...above.map((c) => c.y + c.height + 8));
-    expect(Math.abs(panel.y - want), `${where}: top`).toBeLessThanOrEqual(1);
+    expect(Math.abs(panel.y - under(96)), `${where}: top`).toBeLessThanOrEqual(1);
     if (viewer) for (const g of await boxes(page, "main > header > *")) expect(hits(panel, g), `${where}: clear of the top bar`).toBe(false);
   } else {
     expect(Math.abs(panel.x - 12), `${where}: left edge`).toBeLessThanOrEqual(1);
     expect(Math.abs(vw - panel.x - panel.width - 12), `${where}: right edge`).toBeLessThanOrEqual(1);
-    expect(Math.abs(panel.y - 12), `${where}: top`).toBeLessThanOrEqual(1);
+    expect(Math.abs(panel.y - under(12)), `${where}: top`).toBeLessThanOrEqual(1);
   }
   expect(panel.y + panel.height, `${where}: inside the viewport`).toBeLessThanOrEqual(vh - 12 + 1);
   for (const c of credits) {
@@ -165,9 +165,11 @@ for (const cell of CELLS) {
         await open(page);
         expect(await dialog(page).evaluate((d) => d.matches(":modal"))).toBe(true);
         expect(await dialog(page).evaluate((d) => getComputedStyle(d, "::backdrop").backgroundColor)).toBe("rgba(0, 0, 0, 0)");
-        await assertPanel(page, `${path} empty`, path !== "/");
-        await input(page).fill("the");
-        await assertPanel(page, `${path} "the"`, path !== "/");
+        // S2 in every state: empty, results, no match, point.
+        for (const q of ["", "the", "your turn", "2048, 2048"]) {
+          await input(page).fill(q);
+          await assertPanel(page, `${path} "${q}"`, path !== "/");
+        }
         const style = await dialog(page).evaluate((d) => {
           const s = getComputedStyle(d);
           const ref = document.querySelector("[role=group][aria-label='View controls']");
@@ -184,6 +186,23 @@ for (const cell of CELLS) {
         expect(style.radius).toBe("4px");
         if (style.want) expect(style.bg).toBe(style.want);
         expect(style.duration).toContain("0.32s");
+      }
+    });
+
+    test("S3: the open panel never cuts through the loading status", async ({ page }) => {
+      // Tiles answer late, so the viewer stays loading long enough to say so.
+      await page.route(/\/tiles\/.+\/\d+\/\d+\/\d+\.jpg$/, async (r) => {
+        await new Promise((done) => setTimeout(done, 15_000));
+        await r.continue().catch(() => {});
+      });
+      await page.goto(IMAGE);
+      await page.locator('[data-testid="viewer"][data-open]').waitFor();
+      await expect(page.getByText("Still loading the detail.", { exact: false })).toBeVisible({ timeout: 8000 });
+      await open(page);
+      const panel = (await dialog(page).boundingBox())!;
+      for (const t of await boxes(page, "[data-testid=toasts] > *")) {
+        const shown = await page.locator("[data-testid=toasts]").evaluate((el) => getComputedStyle(el).visibility !== "hidden");
+        if (shown) expect(hits(panel, t), "loading status uncovered").toBe(false);
       }
     });
 
@@ -543,6 +562,36 @@ test.describe("phone behavior", () => {
     expect(new URL(page.url()).pathname + new URL(page.url()).search).toBe(`${IMAGE}?mode=explore&labels=1&x=17461&y=6482&z=6`);
   });
 });
+
+// Q3 and Q21: Light keeps the zoom the link asks for, opened fresh and moved in place.
+for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
+  test.describe(`Light zoom from the URL at ${viewport.width}`, () => {
+    test.use({ viewport });
+    const zoom = async (page: Page) => {
+      await settle(page);
+      await page.waitForTimeout(800);
+      return parseFloat((await page.getByTestId("readout").locator("span").nth(5).textContent())!);
+    };
+
+    test("a fresh load lands on z", async ({ page }) => {
+      await page.goto(`${SUN}?mode=light&labels=1&x=3020&y=2508&z=5.69`);
+      await ready(page);
+      expect(Math.abs((await zoom(page)) - 5.69) / 5.69).toBeLessThanOrEqual(0.01);
+    });
+
+    test("an in-place jump lands on z", async ({ page }) => {
+      await page.goto(`${SUN}?mode=light`);
+      await ready(page);
+      await settle(page);
+      await trigger(page).click();
+      await input(page).fill("active region");
+      await options(page).filter({ hasText: "Feature" }).first().click();
+      await expect(dialog(page)).toBeHidden();
+      expect(Math.abs((await zoom(page)) - 5.69) / 5.69).toBeLessThanOrEqual(0.01);
+      expect(new URL(page.url()).searchParams.get("z")).toBe("5.69");
+    });
+  });
+}
 
 test.describe("kiosk (Q26)", () => {
   test.use({ viewport: { width: 1440, height: 900 }, colorScheme: "dark" });

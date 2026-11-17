@@ -1174,3 +1174,9 @@
     display: none;
   }
 }
+
+/* S3 with search open (design.md 15.5, D9): the notes under the top bar wait behind the panel
+   rather than being cut by it; they come back when it closes. */
+.root:has(dialog[open]) .toasts {
+  visibility: hidden;
+}

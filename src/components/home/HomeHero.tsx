@@ -384,7 +384,9 @@ const HomeHero = ({ eyebrow, journeySlug, stops, image, tileBaseUrl, credit }: H
         </div>
       </div>
 
-      <p className={styles.credit}>{credit}</p>
+      <p className={styles.credit} data-testid="hero-credit" data-credit>
+        {credit}
+      </p>
 
       <svg className={styles.leaders} data-testid="leaders" aria-hidden>
         <path ref={aboveHalo} className={`${styles.leaderHalo} ${styles.above}`} />

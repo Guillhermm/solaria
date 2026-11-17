@@ -78,7 +78,8 @@ interface ExploreProps {
 }
 
 interface Camera {
-  fly: (view: Viewport, done?: () => void) => void;
+  // exact: the view a link asks for, past native zoom if need be (a Journey stop stops at native).
+  fly: (view: Viewport, done?: () => void, exact?: boolean) => void;
   panPx: (dy: number) => void; // moves the image up by dy screen pixels
   viewerPx: () => Size;
   syncMargins: () => void;
@@ -212,6 +213,9 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   const failuresRef = useRef(0);
   // A search row moved the view: the URL keeps the row's link until the user moves on (Q21).
   const holdUrlRef = useRef<string | null>(null);
+  // The view a link or a search row asked for, kept through frame changes (a Light bar or a sheet
+  // that arrives later) until the user moves.
+  const heldViewRef = useRef<Viewport | null>(null);
   const { width: imageWidth, height: imageHeight } = image.tiles;
   const pairIds = pairs.map((p) => p.pair.id).join(" ");
   const desktop = useSyncExternalStore(subscribeMedia, () => window.matchMedia(DESKTOP).matches, () => true);
@@ -471,6 +475,9 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         // Light pages take the same drawer, so both modes read and draw the same way.
         ...(pairs.length || bandSets.length ? { drawer: "canvas" } : {}),
         gestureSettingsMouse: { clickToZoom: false, dblClickToZoom: true },
+        // A link's zoom can ask past native on a wide screen (a label's z on the 4096 px Sun is
+        // about 1.25 screen pixels per image pixel at 1440x900); OpenSeadragon's default is 1.1.
+        maxZoomPixelRatio: 2,
       });
       viewerRef.current = viewer;
       const opened = viewer;
@@ -501,7 +508,8 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         width: host.clientWidth - margins.left - margins.right,
         height: host.clientHeight - margins.top - margins.bottom,
       });
-      const fly = (view: Viewport, done?: () => void) => {
+      const fly = (view: Viewport, done?: () => void, exact = false) => {
+        const cap = exact ? Infinity : 1;
         nextLeg = null;
         fitted = false;
         flying = true;
@@ -511,7 +519,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         const px = viewerPx();
         // design.md 5.8: under reduced motion a flight becomes a cut with a 200 ms fade.
         if (window.matchMedia(REDUCED).matches) {
-          fitImageBounds(viewBounds(view, size, px), 0);
+          fitImageBounds(viewBounds(view, size, px, cap), 0);
           host.animate([{ opacity: 0.2 }, { opacity: 1 }], { duration: 200, easing: "ease-out" });
           afterFlight = null;
           flying = false;
@@ -522,7 +530,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           return;
         }
         const from = { x: b.x * width, y: b.y * width, width: b.width * width, height: b.height * width };
-        const [first, second] = flightPlan(from, settledView(opened, size).z, view, size, px, span);
+        const [first, second] = flightPlan(from, settledView(opened, size).z, view, size, px, span, cap);
         started = false;
         fitImageBounds(first.bounds, first.ms);
         if (second) nextLeg = () => fitImageBounds(second.bounds, second.ms);
@@ -550,6 +558,10 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           if (inStory && !held && j) {
             if (flying) fly(j.stops[at].viewport);
             else fitImageBounds(viewBounds(j.stops[at].viewport, size, viewerPx()), 0);
+          } else if (heldViewRef.current) {
+            const held = heldViewRef.current;
+            if (flying) fly(held, afterFlight ?? undefined, true);
+            else fitImageBounds(viewBounds(held, size, viewerPx(), Infinity), 0);
           } else if (fitted) opened.viewport.goHome(true);
         }
         schedule();
@@ -562,6 +574,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       const moved = () => {
         fitted = false;
         holdUrlRef.current = null;
+        heldViewRef.current = null;
       };
       const panPx = (dy: number) => {
         const vp = opened.viewport;
@@ -648,6 +661,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           fitImageBounds(viewBounds(journey.stops[parseStop(window.location.search, journey.stops.length)].viewport, size, viewerPx()), 0);
           requestAnimationFrame(() => landedRef.current());
         } else if (view) {
+          heldViewRef.current = view;
           const vp = opened.viewport;
           const target = osdFromView(view, vp.getHomeZoom(), { width, height });
           vp.zoomTo(target.zoom, undefined, true);
@@ -976,6 +990,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   const goTo = useCallback(
     (index: number) => {
       if (!journey || index < 0 || index >= journey.stops.length) return;
+      heldViewRef.current = null;
       setSeen((s) => new Set(s).add(stop));
       setPaused(false);
       replaceUrl(`${window.location.pathname}${storySearch(index)}`);
@@ -1102,6 +1117,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       const label = labels.find((l) => l.id === id);
       const camera = cameraRef.current;
       if (!label || !camera) return;
+      heldViewRef.current = null;
       setSheet("peek");
       setLabelsOn(true);
       setOpenLabel(null);
@@ -1180,6 +1196,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
 
   const reset = useCallback(() => {
     holdUrlRef.current = null;
+    heldViewRef.current = null;
     pauseStory();
     viewerRef.current?.viewport.goHome();
   }, [pauseStory]);
@@ -1255,7 +1272,8 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       if (state.mode === "light" && state.light) setPosition(state.light.band);
       holdUrlRef.current = `${url.pathname}${url.search}`;
       replaceUrl(holdUrlRef.current);
-      if (state.view) camera.fly(state.view);
+      heldViewRef.current = state.view;
+      if (state.view) camera.fly(state.view, undefined, true);
       else viewer.viewport.goHome();
       return true;
     },

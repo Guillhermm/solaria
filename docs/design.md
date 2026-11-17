@@ -1250,6 +1250,15 @@ descriptions, stop bodies and credits, all from validated data.
   than 16 tiles (most stops: 20 to 42), the crop draws the next coarser level that fits in
   16. Today that gives 440 to 703 image pixels across the 340px crop (sharp at 1x, a little
   soft at 2x); Toward single stars (720 at full level) and NGC 206 are the sharpest.
+- **D9, Sprint 10 design gate.** The Home hero's credit counts as a credit for D4, so on a
+  phone the panel opens 0.5rem under it (all states: empty, results, no match, point).
+  While the dialog is open the viewer's notes ("Still loading the detail.", tile errors) are
+  hidden rather than cut by the panel; they return when it closes.
+- **D10, a link's zoom is kept exactly.** A URL or a search row with x, y, z lands on that
+  zoom (readout within 1%), on a fresh load and in place, and keeps it when the frame changes
+  after opening (the Light bar, the phone sheet) until the user moves. Journey stops still
+  stop at native zoom; OpenSeadragon's zoom limit is 2 screen pixels per image pixel
+  (was its default 1.1) so a label's z fits on a wide screen.
 - **D8, the active row's context is `--text-2`.** `--text-muted` on the `--hairline` ground
   of the active row measures 3.9:1 in the light theme, under Q20's 4.5:1; the other rows
   keep `--text-muted` (Q19).
