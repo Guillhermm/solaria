@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start -H 127.0.0.1 -p 8434",
     "lint": "eslint",
+    "fetch-source": "tsx scripts/fetch-source.ts",
     "generate-tiles": "tsx scripts/generate-tiles.ts",
     "test": "vitest run",
     "test:e2e": "playwright test",
