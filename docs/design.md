@@ -80,7 +80,7 @@ as an attract loop, any touch takes control, 90 s idle returns to the loop with 
 ```
 /                      Home: hero with loupe and panorama strip, Journeys index
 /[journey]             Journey viewer (mode via ?mode=story|explore|compare|light)
-                       viewport via ?x=&y=&z=  (image coordinates, 0..1 width units)
+                       viewport via ?x=&y=&z=  (image pixels; z is zoom relative to fit)
 /about                 What Solaria is, credits, data sources, accessibility statement
 ```
 
