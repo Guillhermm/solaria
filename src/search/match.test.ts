@@ -111,6 +111,15 @@ describe("parsePoint (Q22)", () => {
     expect(parsePoint("10.6, -3.2")).toEqual({ x: 11, y: -3 });
   });
 
+  it("reads -0.4 as 0, never -0", () => {
+    expect(Object.is(parsePoint("-0.4, 5")?.x, 0)).toBe(true);
+  });
+
+  it("rejects numbers past the safe integers, which would print in exponent form", () => {
+    expect(parsePoint("99999999999999999999999, 1")).toBeNull();
+    expect(lines("99999999999999999999999, 1").some((l) => l.includes("e+"))).toBe(false);
+  });
+
   it("rejects anything else", () => {
     for (const q of ["17461", "1,2,3", "1e3, 4", "x 1 2", "1,, 2", ""]) expect(parsePoint(q)).toBeNull();
   });

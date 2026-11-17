@@ -80,8 +80,9 @@ describe("the index of the real content", () => {
     expect(index.entries.some((e) => e.text === "Your turn" || e.text === "The Andromeda Galaxy" || e.text === "One Sun, seven bands")).toBe(false);
   });
 
-  it("serializes to 8 KB or less (Q2)", () => {
-    expect(new TextEncoder().encode(JSON.stringify(index)).length).toBeLessThanOrEqual(8192);
+  // In the page the index sits inside the RSC payload's string literal, escaped a second time.
+  it("serializes to 8 KB or less as inlined in the HTML (Q2)", () => {
+    expect(new TextEncoder().encode(JSON.stringify(JSON.stringify(index))).length).toBeLessThanOrEqual(8192);
   });
 
   it("links the four labels as Q3 lists them", () => {

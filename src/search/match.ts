@@ -42,10 +42,13 @@ export const tierOf = (text: readonly string[], query: readonly string[]): 0 | 1
 
 const POINT = /^\s*(-?\d+(?:\.\d+)?)\s*(?:,\s*|\s+)(-?\d+(?:\.\d+)?)\s*$/;
 
-// Q22.
+// Q22. A number past the safe integers would print as 1e+24, not as typed, and is in no image
+// anyway, so it is not a point. "+ 0" turns a rounded -0.4 into 0.
 export const parsePoint = (query: string) => {
   const m = POINT.exec(query);
-  return m ? { x: Math.round(Number(m[1])), y: Math.round(Number(m[2])) } : null;
+  if (!m) return null;
+  const [x, y] = [m[1], m[2]].map((v) => Math.round(Number(v)) + 0);
+  return Number.isSafeInteger(x) && Number.isSafeInteger(y) ? { x, y } : null;
 };
 
 // Q25: detected, not converted.
