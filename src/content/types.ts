@@ -196,10 +196,31 @@ export interface BandSet extends ImageGroup {
   imageIds: string[];
 }
 
+// A named feature on an image, in full-resolution pixels (design.md 14.2). `r` is the extent
+// where a record measured one; a point feature has none.
+export interface FeatureLabel {
+  id: string;
+  text: string;
+  x: number;
+  y: number;
+  r?: number;
+  description: string;
+}
+
+// The labels of one image, or of every image of a band set that shares one pixel grid.
+export interface LabelSet {
+  id: string; // file name
+  imageIds: string[];
+  labels: FeatureLabel[];
+  validation: Validation;
+  mock: boolean;
+}
+
 export interface Content {
   sources: Source[];
   images: ImageManifest[];
   journeys: Journey[];
   pairs: ComparePair[];
   bandSets: BandSet[];
+  labels: LabelSet[];
 }

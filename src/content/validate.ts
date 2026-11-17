@@ -27,6 +27,8 @@ import type {
   Difference,
   ImageManifest,
   Journey,
+  FeatureLabel,
+  LabelSet,
   PairLabel,
   ProductType,
   Registration,
@@ -557,24 +559,56 @@ export const validateBandSet = (raw: unknown, file: string): Result<BandSet> => 
   return result(c, value);
 };
 
-type Kind = "sources" | "images" | "journeys" | "pairs" | "band-sets";
+export const validateLabels = (raw: unknown, file: string): Result<LabelSet> => {
+  const c = newCtx(file);
+  const o = object(c, raw, "", ["id", "imageIds", "labels", "validation", "mock"]);
+  if (!o) return bad(c);
+  const n = c.errors.length;
+  const label = (v: unknown, p: string) => {
+    const m = c.errors.length;
+    const lo = object(c, v, p, ["id", "text", "x", "y", "description"], ["r"]);
+    const value = lo && finish<FeatureLabel>(c, m, {
+      id: str(c, lo.id, `${p}.id`),
+      text: str(c, lo.text, `${p}.text`),
+      x: num(c, lo.x, `${p}.x`),
+      y: num(c, lo.y, `${p}.y`),
+      r: "r" in lo ? num(c, lo.r, `${p}.r`, true) : undefined,
+      description: str(c, lo.description, `${p}.description`),
+    });
+    if (value && value.r === undefined) delete value.r;
+    return value;
+  };
+  const labels = arrayOf(c, o.labels, "labels", label, true);
+  const ids = labels?.map((l) => l.id);
+  if (ids && new Set(ids).size !== ids.length) fail(c, "labels", "distinct label ids", ids);
+  const value = finish<LabelSet>(c, n, {
+    id: str(c, o.id, "id"),
+    imageIds: distinct(c, arrayOf(c, o.imageIds, "imageIds", (x, q) => str(c, x, q), true), "imageIds"),
+    labels,
+    validation: validation(c, o.validation, "validation"),
+    mock: bool(c, o.mock, "mock"),
+  });
+  return result(c, value);
+};
+
+type Kind = "sources" | "images" | "journeys" | "pairs" | "band-sets" | "labels";
 
 // data/staging/ holds real content still in science review: read in development only, like
 // data/mock/, but not mock.
 const classify = (path: string) => {
-  const m = /^data\/(mock\/|staging\/)?(sources|images|journeys|pairs|band-sets)\/([^/]+)\.json$/.exec(path);
+  const m = /^data\/(mock\/|staging\/)?(sources|images|journeys|pairs|band-sets|labels)\/([^/]+)\.json$/.exec(path);
   return m ? { kind: m[2] as Kind, name: m[3], mock: m[1] === "mock/" } : undefined;
 };
 
 export const validateContent = (files: { path: string; raw: unknown }[]): Result<Content> => {
   const errors: string[] = [];
-  const content: Content = { sources: [], images: [], journeys: [], pairs: [], bandSets: [] };
+  const content: Content = { sources: [], images: [], journeys: [], pairs: [], bandSets: [], labels: [] };
   const fileOf = new Map<unknown, string>();
 
   for (const { path, raw } of files) {
     const info = classify(path);
     if (!info) {
-      errors.push(`${path}: not a content file (expected data/{sources,images,journeys,pairs,band-sets}/<name>.json or the same under data/mock/ or data/staging/)`);
+      errors.push(`${path}: not a content file (expected data/{sources,images,journeys,pairs,band-sets,labels}/<name>.json or the same under data/mock/ or data/staging/)`);
       continue;
     }
     const r =
@@ -582,6 +616,7 @@ export const validateContent = (files: { path: string; raw: unknown }[]): Result
       : info.kind === "images" ? validateImage(raw, path)
       : info.kind === "pairs" ? validatePair(raw, path)
       : info.kind === "band-sets" ? validateBandSet(raw, path)
+      : info.kind === "labels" ? validateLabels(raw, path)
       : validateJourney(raw, path);
     if (!r.ok) {
       errors.push(...r.errors);
@@ -598,6 +633,7 @@ export const validateContent = (files: { path: string; raw: unknown }[]): Result
     else if (info.kind === "images") content.images.push(value as ImageManifest);
     else if (info.kind === "pairs") content.pairs.push(value as ComparePair);
     else if (info.kind === "band-sets") content.bandSets.push(value as BandSet);
+    else if (info.kind === "labels") content.labels.push(value as LabelSet);
     else content.journeys.push(value as Journey);
   }
 
@@ -704,6 +740,25 @@ export const validateContent = (files: { path: string; raw: unknown }[]): Result
     reg.controlPoints.forEach((cp, i) => {
       if (mov && outside(cp.moving, mov)) errors.push(`${file}: registration.controlPoints[${i}].moving: (${cp.moving.x}, ${cp.moving.y}) lies outside image "${mov.id}"`);
       if (ref && outside(cp.reference, ref)) errors.push(`${file}: registration.controlPoints[${i}].reference: (${cp.reference.x}, ${cp.reference.y}) lies outside image "${ref.id}"`);
+    });
+  }
+
+  // A label set names images that exist, each in one set only, and every label lies on each of them.
+  const labeled = new Map<string, string>();
+  for (const set of content.labels) {
+    const file = fileOf.get(set)!;
+    set.imageIds.forEach((id, i) => {
+      const img = images.get(id);
+      if (!img) {
+        errors.push(`${file}: imageIds[${i}]: no image "${id}" in data/images/`);
+        return;
+      }
+      const other = labeled.get(id);
+      if (other) errors.push(`${file}: imageIds[${i}]: image "${id}" already has labels in ${other}`);
+      labeled.set(id, file);
+      set.labels.forEach((l, k) => {
+        if (outside(l, img)) errors.push(`${file}: labels[${k}]: (${l.x}, ${l.y}) lies outside image "${id}" (${img.tiles.width} x ${img.tiles.height})`);
+      });
     });
   }
 

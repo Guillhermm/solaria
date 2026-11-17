@@ -1,0 +1,33 @@
+{
+  "id": "andromeda-phat-phast-2025",
+  "imageIds": ["andromeda-phat-phast-2025"],
+  "labels": [
+    {
+      "id": "andromeda-core",
+      "text": "Andromeda core",
+      "x": 17461,
+      "y": 6482,
+      "description": "The bright central core of the galaxy, inside its yellowish inner region."
+    },
+    {
+      "id": "andromeda-m32",
+      "text": "Satellite galaxy M32",
+      "x": 11412,
+      "y": 2448,
+      "description": "A compact satellite galaxy of Andromeda, the small, fuzzy yellow patch to the upper left of the center."
+    },
+    {
+      "id": "andromeda-ngc206",
+      "text": "NGC 206",
+      "x": 5330,
+      "y": 7260,
+      "description": "A concentration of bright blue stars in Andromeda, one of the regions NASA marks on this mosaic."
+    }
+  ],
+  "validation": {
+    "status": "approved",
+    "date": "2026-11-17",
+    "notes": "Validated: see docs/science/feature-labels.md"
+  },
+  "mock": false
+}

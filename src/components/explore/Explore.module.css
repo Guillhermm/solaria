@@ -147,6 +147,13 @@
   color: var(--accent-press);
 }
 
+/* L2: on, the toggle fills with the accent, so the state reads without color alone. */
+.labelsToggle[aria-pressed="true"],
+.labelsToggle[aria-pressed="true"]:hover {
+  color: var(--ground);
+  background: var(--accent);
+}
+
 .wordmark {
   display: inline-flex;
   flex: none;
@@ -962,6 +969,12 @@
   .root[data-sheet="min"] .nav,
   .root[data-sheet="full"] .overview,
   .root[data-sheet="full"] .controls {
+    display: none;
+  }
+
+  /* L19 and S3: a label's description docks above the sheet, across the width, where the zoom
+     buttons float; they step aside until it closes. */
+  .root[data-label-open] .controls {
     display: none;
   }
 

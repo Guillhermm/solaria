@@ -129,7 +129,7 @@ test("the info panel shows the manifest's fields, every caveat and the source li
     ["Released", "2025-01-16"],
     ["Credit", source.credit],
   ]);
-  await expect(panel.getByRole("listitem")).toHaveText(manifest.caveats);
+  await expect(panel.getByRole("region", { name: "Caveats" }).getByRole("listitem")).toHaveText(manifest.caveats);
   const link = panel.getByRole("link", { name: /Source page/ });
   await expect(link).toHaveAttribute("href", source.pageUrl);
   await expect(link).toHaveAttribute("rel", "noopener noreferrer");

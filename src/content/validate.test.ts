@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import * as fx from "./__fixtures__/content";
-import { validateBandSet, validateContent, validateImage, validateJourney, validatePair, validateSource } from "./validate";
+import { validateBandSet, validateContent, validateImage, validateJourney, validateLabels, validatePair, validateSource } from "./validate";
 
 const clone = <T>(v: T): T => structuredClone(v);
 
@@ -451,5 +451,55 @@ describe("pairs and band sets", () => {
         "data/mock/pairs/demo-pair.json: mock: expected true for a file under data/mock/, got false",
       ]);
     });
+  });
+});
+
+describe("labels", () => {
+  const PATH = "data/labels/demo-labels.json";
+  const withLabels = (edit: (l: Record<string, unknown>) => void = () => {}) => {
+    const raw = clone(fx.labelSet()) as unknown as Record<string, unknown>;
+    edit(raw);
+    return errorsOf(validateContent([...fx.files(), { path: PATH, raw }]));
+  };
+  it("accept a set with a point and a circle", () => {
+    expect(validateLabels(fx.labelSet(), PATH).ok).toBe(true);
+    expect(withLabels()).toEqual([]);
+  });
+  it("load into content", () => {
+    const r = validateContent([...fx.files(), { path: PATH, raw: fx.labelSet() }]);
+    expect(r.ok && r.value.labels.map((l) => l.id)).toEqual(["demo-labels"]);
+  });
+  it("reject a missing text, a zero radius and an unknown key", () => {
+    const raw = clone(fx.labelSet()) as unknown as { labels: Record<string, unknown>[] };
+    delete raw.labels[0].text;
+    raw.labels[1].r = 0;
+    raw.labels[1].size = 3;
+    expect(errorsOf(validateLabels(raw, PATH))).toEqual([
+      `${PATH}: labels[0].text: missing`,
+      `${PATH}: labels[1].size: unknown key`,
+      `${PATH}: labels[1].r: expected a positive number, got 0`,
+    ]);
+  });
+  it("reject duplicate label ids", () => {
+    const raw = clone(fx.labelSet());
+    raw.labels[1].id = "a";
+    expect(errorsOf(validateLabels(raw, PATH))).toEqual([`${PATH}: labels: expected distinct label ids, got ["a","a"]`]);
+  });
+  it("reject an unknown image and a label outside the image", () => {
+    expect(withLabels((l) => (l.imageIds = ["nope"]))).toEqual([`${PATH}: imageIds[0]: no image "nope" in data/images/`]);
+    expect(withLabels((l) => ((l.labels as { x: number }[])[0].x = 1001))).toEqual([
+      `${PATH}: labels[0]: (1001, 50) lies outside image "demo" (1000 x 300)`,
+    ]);
+  });
+  it("reject an image labeled by two sets", () => {
+    const second = { ...clone(fx.labelSet()), id: "other" };
+    expect(errorsOf(validateContent([...fx.files(), { path: PATH, raw: fx.labelSet() }, { path: "data/labels/other.json", raw: second }]))).toEqual([
+      `data/labels/other.json: imageIds[0]: image "demo" already has labels in ${PATH}`,
+    ]);
+  });
+  it("reject a file name that differs from the id", () => {
+    expect(errorsOf(validateContent([...fx.files(), { path: "data/labels/x.json", raw: fx.labelSet() }]))).toEqual([
+      'data/labels/x.json: id: expected the file name "x", got "demo-labels"',
+    ]);
   });
 });

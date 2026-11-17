@@ -1,0 +1,28 @@
+{
+  "id": "sun-sdo-2024-05-10",
+  "imageIds": [
+    "sun-sdo-2024-05-10-aia-94",
+    "sun-sdo-2024-05-10-aia-171",
+    "sun-sdo-2024-05-10-aia-193",
+    "sun-sdo-2024-05-10-aia-211",
+    "sun-sdo-2024-05-10-aia-304",
+    "sun-sdo-2024-05-10-aia-1700",
+    "sun-sdo-2024-05-10-hmi-6173"
+  ],
+  "labels": [
+    {
+      "id": "sun-ar-13664",
+      "text": "Active region 13664",
+      "x": 3020,
+      "y": 2508,
+      "r": 240,
+      "description": "NOAA active region 13664 is on the disk, lower right."
+    }
+  ],
+  "validation": {
+    "status": "approved",
+    "date": "2026-11-17",
+    "notes": "Validated: see docs/science/feature-labels.md"
+  },
+  "mock": false
+}

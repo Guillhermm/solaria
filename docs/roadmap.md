@@ -148,7 +148,7 @@ C-05 waits for R2: the Webb frame is about 2,566 tiles and 110 MB (estimated), t
 |---|---|---|
 | F-01 | Kiosk mode: attract loop, idle reset, no links out | todo |
 | F-02 | Detail of the week, rotated at build time | todo |
-| F-03 | Labeled features on images, each label validated | todo |
+| F-03 | Labeled features on images, each label validated | done |
 | F-04 | Search by feature name, then by coordinates | todo |
 | F-05 | Mars Journey from HiRISE orthorectified pairs only | todo |
 | F-06 | Brazilian Portuguese | todo |

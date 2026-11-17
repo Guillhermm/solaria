@@ -13,7 +13,9 @@ data/                     content, JSON only; written by hand and by scripts
   journeys/<slug>.json    Journey stops
   pairs/<id>.json         Compare pair: two image ids, `differs` flags, registration, note
   band-sets/<id>.json     Light band set: two or more image ids, same fields as a pair
-  mock/{sources,images,journeys,pairs,band-sets}/  mock content, loaded by `next dev` only (D-09)
+  labels/<id>.json        feature labels (F-03): image ids that share one pixel grid, and
+                          { id, text, x, y, r?, description } per label; an image is in one set at most
+  mock/{sources,images,journeys,pairs,band-sets,labels}/  mock content, loaded by `next dev` only (D-09)
   staging/{sources,images,pairs,...}/  real content in science review: read in development
                           only, `mock: false`; moved to data/ once approved (Sprint 7)
 scripts/                  pipeline, Node only, never imported by the app
@@ -112,8 +114,8 @@ export const loadContent = (opts: { root: string; mode: Mode }): Content;
 export const getContent = (): Content; // root = process.cwd(), mode from NODE_ENV, memoized
 ```
 
-- Reads `data/{sources,images,journeys,pairs,band-sets}/*.json` with `readdirSync` and `JSON.parse`, so a
-  new file needs no index entry. Reads `data/mock/**` (same five kinds) only when `mode` is `development`.
+- Reads `data/{sources,images,journeys,pairs,band-sets,labels}/*.json` with `readdirSync` and `JSON.parse`, so a
+  new file needs no index entry. Reads `data/mock/**` (same six kinds) only when `mode` is `development`.
 - Runs `validateContent` (section 5), then in `production` mode `publishProblems`
   (section 9). Any problem throws one `ContentError` whose message lists every problem
   with its file and field path. Thrown during prerender, it fails `next build`.

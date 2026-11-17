@@ -40,7 +40,7 @@ describe("loadContent", () => {
   });
 
   it("treats a missing data directory as empty", () => {
-    expect(loadContent({ root: root([]), mode: "production" })).toEqual({ sources: [], images: [], journeys: [], pairs: [], bandSets: [] });
+    expect(loadContent({ root: root([]), mode: "production" })).toEqual({ sources: [], images: [], journeys: [], pairs: [], bandSets: [], labels: [] });
   });
 
   it("reads data/mock only in development", () => {

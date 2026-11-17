@@ -14,7 +14,7 @@ export class ContentError extends Error {
   }
 }
 
-const KINDS = ["sources", "images", "journeys", "pairs", "band-sets"] as const;
+const KINDS = ["sources", "images", "journeys", "pairs", "band-sets", "labels"] as const;
 
 const readDir = (root: string, rel: string) => {
   let names: string[];

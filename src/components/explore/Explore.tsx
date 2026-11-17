@@ -23,6 +23,7 @@ import {
   LuPlus,
   LuRotateCcw,
   LuShare,
+  LuTag,
   LuX,
 } from "react-icons/lu";
 import type OpenSeadragon from "openseadragon";
@@ -36,7 +37,7 @@ import LightBar from "@/components/light/LightBar";
 import type { LightView } from "@/components/light/types";
 import { type Fade, useLightLayer } from "@/components/light/useLightLayer";
 import { tileSource } from "@/content/tiles";
-import type { ImageManifest, Journey, Viewport } from "@/content/types";
+import type { FeatureLabel, ImageManifest, Journey, Stop, Viewport } from "@/content/types";
 import type { Info } from "@/viewer/info";
 import { overviewHeightRem, shapeOf } from "@/viewer/overview";
 import { keyAction, zoomAnnouncement } from "@/viewer/keys";
@@ -48,7 +49,9 @@ import { dividerValueText } from "@/viewer/divider";
 import { reticleSide } from "@/viewer/route";
 import { type Bounds, flightPlan, parseStop, stepStop, stopNumber, stopOf, stopTarget, storySearch, viewBounds, zoomSpan } from "@/viewer/story";
 import { formatInt, formatZoom, homeView, osdFromView, type Size, viewFromOsd } from "@/viewer/view";
+import { labelView, parseLabelsParam } from "@/viewer/labels";
 import { drawRuler } from "./drawRuler";
+import FeatureLabels, { type LabelPainter } from "./FeatureLabels";
 import InfoPanel from "./InfoPanel";
 import RouteOverlay from "./RouteOverlay";
 import StoryPanel from "./StoryPanel";
@@ -62,10 +65,14 @@ interface ExploreProps {
   journey?: Journey; // a Journey page: Story first, then Explore on the same image
   pairs?: CompareView[]; // Compare pairs this image is the reference of, the default first
   bandSets?: LightView[]; // Light band sets this image opens, the default first
+  labels?: FeatureLabel[]; // validated feature labels of this image (design.md 14.2)
+  labelStops?: Stop[]; // the stops of the Journeys on this image: Show takes the nearest one's zoom
 }
 
 interface Camera {
-  fly: (view: Viewport) => void;
+  fly: (view: Viewport, done?: () => void) => void;
+  panPx: (dy: number) => void; // moves the image up by dy screen pixels
+  viewerPx: () => Size;
   syncMargins: () => void;
   schedule: () => void;
   moved: () => void; // the user moved the view: it no longer follows the fit
@@ -101,13 +108,14 @@ type ModeUrl =
   | { mode: "light"; state: LightState; opts: LightOptions };
 
 // The page's mode and its state come along, so a view change never leaves Compare or Light.
-const viewUrl = (viewer: OpenSeadragon.Viewer, size: Size, m?: ModeUrl) =>
+const viewUrl = (viewer: OpenSeadragon.Viewer, size: Size, m?: ModeUrl, labels = false) =>
   `${window.location.pathname}${serializeViewerParams(
     {
       mode: m?.mode ?? "explore",
       view: settledView(viewer, size),
       compare: m?.mode === "compare" ? m.state : undefined,
       light: m?.mode === "light" ? m.state : undefined,
+      labels,
     },
     m?.mode === "compare" ? m.defaultPair : undefined,
     m?.mode === "light" ? m.opts : undefined,
@@ -168,9 +176,11 @@ const BAND_FADE_MS = 700;
 
 const NO_PAIRS: CompareView[] = [];
 const NO_SETS: LightView[] = [];
+const NO_LABELS: FeatureLabel[] = [];
+const NO_STOPS: Stop[] = [];
 const BLINK_MS = 800;
 
-const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets = NO_SETS }: ExploreProps) => {
+const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets = NO_SETS, labels = NO_LABELS, labelStops = NO_STOPS }: ExploreProps) => {
   const rootRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
@@ -266,6 +276,14 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   const canFullscreen = useSyncExternalStore(noSubscribe, () => document.fullscreenEnabled, () => true);
   const navId = useId();
   const storyId = useId();
+  const popoverId = useId();
+  // Feature labels: wanted survives Story and Compare, shown only in Explore and Light (L4).
+  const [labelsOn, setLabelsOn] = useState(false);
+  const [openLabel, setOpenLabel] = useState<string | null>(null);
+  const [viewerReady, setViewerReady] = useState(false);
+  const painterRef = useRef<LabelPainter | null>(null);
+  const labelsMode = labels.length > 0 && (mode === "explore" || mode === "light");
+  const labelsShown = labelsMode && labelsOn && viewerReady;
 
   const size = { width: image.tiles.width, height: image.tiles.height };
   const modeUrl: ModeUrl | undefined = active
@@ -273,9 +291,11 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     : lighting && lightActive && lightOptions
       ? { mode: "light", state: { set: lightActive.set.id, band }, opts: lightOptions }
       : undefined;
-  const pageRef = useRef({ story, stop, paused, journey, modeUrl, split, band });
+  const labelsInUrl = labelsMode && labelsOn;
+  const closeLabelRef = useRef<() => void>(() => {});
+  const pageRef = useRef({ story, stop, paused, journey, modeUrl, split, band, labels: labelsInUrl });
   useEffect(() => {
-    pageRef.current = { story, stop, paused, journey, modeUrl, split, band };
+    pageRef.current = { story, stop, paused, journey, modeUrl, split, band, labels: labelsInUrl };
   });
   const home = homeView(size);
   const shape = shapeOf(size);
@@ -391,6 +411,11 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           if (i === at) el.style.setProperty("--side", `${reticleSide(RETICLE_REM * rem, scale, s.marker?.r)}px`);
         });
       }
+      const hostBox = host.getBoundingClientRect();
+      painterRef.current?.({
+        toScreen: (x, y) => ({ x: hostBox.left + margins.left + (x - bounds.x * width) * scale, y: hostBox.top + margins.top + (y - bounds.y * width) * scale }),
+        scale,
+      });
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(paint);
@@ -436,6 +461,8 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       const span = journey ? zoomSpan(journey.stops) : 1;
       // A flight's second leg waits for the first to land; any user gesture drops it.
       let nextLeg: (() => void) | null = null;
+      // What waits for the flight to land (Show opens a label's description there).
+      let afterFlight: (() => void) | null = null;
       let fitted = false;
       let flying = false;
       const springs = () => {
@@ -456,10 +483,11 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         width: host.clientWidth - margins.left - margins.right,
         height: host.clientHeight - margins.top - margins.bottom,
       });
-      const fly = (view: Viewport) => {
+      const fly = (view: Viewport, done?: () => void) => {
         nextLeg = null;
         fitted = false;
         flying = true;
+        afterFlight = done ?? null;
         const vp = opened.viewport;
         const b = vp.getBounds();
         const px = viewerPx();
@@ -467,6 +495,8 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         if (window.matchMedia(REDUCED).matches) {
           fitImageBounds(viewBounds(view, size, px), 0);
           host.animate([{ opacity: 0.2 }, { opacity: 1 }], { duration: 200, easing: "ease-out" });
+          afterFlight = null;
+          if (done) requestAnimationFrame(done);
           return;
         }
         const from = { x: b.x * width, y: b.y * width, width: b.width * width, height: b.height * width };
@@ -498,7 +528,13 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       const moved = () => {
         fitted = false;
       };
-      cameraRef.current = { fly, syncMargins, schedule, moved };
+      const panPx = (dy: number) => {
+        const vp = opened.viewport;
+        moved();
+        vp.panBy(new OSD.Point(0, (dy * vp.getBoundsNoRotate(true).width) / viewerPx().width));
+        vp.applyConstraints();
+      };
+      cameraRef.current = { fly, panPx, viewerPx, syncMargins, schedule, moved };
       // Whether the view is the fit: true after opening without a view and after Home, false
       // once the user or a flight moves it. Only a fitted view follows a new frame.
       opened.addHandler("home", () => {
@@ -507,6 +543,10 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       for (const name of ["canvas-press", "canvas-scroll", "canvas-pinch"] as const) opened.addHandler(name, moved);
       for (const name of ["canvas-press", "canvas-scroll", "canvas-pinch"] as const) opened.addHandler(name, pause);
       opened.navigator?.addHandler("canvas-press", pause);
+      // L20: a tap on the image closes a label's description.
+      opened.addHandler("canvas-click", (e) => {
+        if (e.quick) closeLabelRef.current();
+      });
       opened.canvas.setAttribute("role", "application");
       opened.canvas.setAttribute(
         "aria-label",
@@ -575,6 +615,9 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           vp.applyConstraints(true);
         }
         host.dataset.open = "";
+        // L2: a link with labels=1 opens with them on, in the modes that show them.
+        if (parseLabelsParam(window.location.search)) setLabelsOn(true);
+        setViewerReady(true);
         schedule();
         // design.md 5.8: Compare is hidden where the drawer cannot rotate an image.
         if (pairs.length || bandSets.length) setOpened({ OSD, viewer: opened, margins: () => margins, rotates: opened.drawer.canRotate() });
@@ -587,10 +630,13 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           return;
         }
         flying = false;
+        const done = afterFlight;
+        afterFlight = null;
+        done?.();
         // design.md 7.1: in Explore the URL follows the view 400 ms after it settles; in Story
         // it holds the stop.
         clearTimeout(urlTimer);
-        if (!pageRef.current.story) urlTimer = window.setTimeout(() => replaceUrl(viewUrl(opened, { width, height }, pageRef.current.modeUrl)), 400);
+        if (!pageRef.current.story) urlTimer = window.setTimeout(() => replaceUrl(viewUrl(opened, { width, height }, pageRef.current.modeUrl, pageRef.current.labels)), 400);
         // design.md 7.1: the zoom is announced once it settles, never per frame; a stop
         // announces its title instead, unless the user has taken the camera.
         clearTimeout(liveTimer);
@@ -627,6 +673,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       clearTimeout(slowTimer);
       themeObserver?.disconnect();
       setOpened(null);
+      setViewerReady(false);
       viewer?.destroy();
       viewerRef.current = null;
       cameraRef.current = null;
@@ -714,7 +761,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     const timer = window.setTimeout(() => {
       const viewer = viewerRef.current;
       const m = pageRef.current.modeUrl;
-      if (viewer && m) replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }, m));
+      if (viewer && m) replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }, m, pageRef.current.labels));
     }, 400);
     return () => clearTimeout(timer);
   }, [comparing, lighting, split, band, imageWidth, imageHeight]);
@@ -749,10 +796,10 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       if (to === "compare") setCompare({ mode: "compare" });
       else if (to === "light" && lightOptions) {
         const set = lightOptions.sets[0];
-        replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }, { mode: "light", state: { set: set.id, band: nearestStop(position, set.imageIds.length) }, opts: lightOptions }));
-      } else replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }));
+        replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }, { mode: "light", state: { set: set.id, band: nearestStop(position, set.imageIds.length) }, opts: lightOptions }, labelsOn));
+      } else replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }, undefined, labelsOn));
     },
-    [setCompare, lightOptions, position, imageWidth, imageHeight],
+    [setCompare, lightOptions, position, imageWidth, imageHeight, labelsOn],
   );
 
   // Markers move with the image; a new stop or mode places them again at once.
@@ -827,7 +874,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   const share = useCallback(async () => {
     const viewer = viewerRef.current;
     if (!viewer) return;
-    const url = new URL(viewUrl(viewer, { width: image.tiles.width, height: image.tiles.height }, pageRef.current.modeUrl), window.location.href).href;
+    const url = new URL(viewUrl(viewer, { width: image.tiles.width, height: image.tiles.height }, pageRef.current.modeUrl, pageRef.current.labels), window.location.href).href;
     replaceUrl(url);
     try {
       // Phones get the system share sheet; elsewhere the link goes to the clipboard.
@@ -903,8 +950,8 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     setStoryStop(stop);
     setSeen((s) => new Set(s).add(stop));
     setPaused(false);
-    replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }));
-  }, [stop, imageWidth, imageHeight]);
+    replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }, undefined, labelsOn && labels.length > 0));
+  }, [stop, imageWidth, imageHeight, labelsOn, labels]);
 
   // design.md 7.1: E, C and L switch between Explore, Compare and Light where they are offered.
   const offered = useMemo(
@@ -946,14 +993,78 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [story]);
 
+  // L20: closing a description gives focus back to its chip, or the image where it is hidden.
+  const closeLabel = useCallback(() => {
+    const id = openLabel;
+    setOpenLabel(null);
+    if (!id) return;
+    const chip = rootRef.current?.querySelector<HTMLElement>(`[data-testid=label-chip][data-id="${id}"]`);
+    if (chip && getComputedStyle(chip).visibility !== "hidden") chip.focus();
+    else viewerRef.current?.canvas.focus();
+  }, [openLabel]);
+  useEffect(() => {
+    closeLabelRef.current = closeLabel;
+  }, [closeLabel]);
+
+  const toggleLabel = useCallback((id: string) => {
+    if (openLabel === id) closeLabel();
+    else setOpenLabel(id);
+  }, [openLabel, closeLabel]);
+
+  const writeLabelsUrl = useCallback((on: boolean) => {
+    const viewer = viewerRef.current;
+    if (viewer) replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }, pageRef.current.modeUrl, on));
+  }, [imageWidth, imageHeight]);
+
+  const toggleLabels = useCallback(() => {
+    const on = !labelsOn;
+    setLabelsOn(on);
+    setOpenLabel(null);
+    writeLabelsUrl(on);
+    announce(on ? "Feature labels shown" : "Feature labels hidden");
+  }, [labelsOn, writeLabelsUrl, announce]);
+
+  // L23: Show turns labels on, flies to the feature and opens its description there.
+  const showLabel = useCallback(
+    (id: string) => {
+      const label = labels.find((l) => l.id === id);
+      const camera = cameraRef.current;
+      if (!label || !camera) return;
+      setSheet("peek");
+      setLabelsOn(true);
+      setOpenLabel(null);
+      if (story) toExplore();
+      else writeLabelsUrl(true);
+      camera.fly(labelView(label, labelStops, { width: imageWidth, height: imageHeight }, camera.viewerPx()), () => {
+        setOpenLabel(id);
+        requestAnimationFrame(() => {
+          const chip = rootRef.current?.querySelector<HTMLElement>(`[data-testid=label-chip][data-id="${id}"]`);
+          if (chip && getComputedStyle(chip).visibility !== "hidden") chip.focus();
+          else rootRef.current?.querySelector<HTMLElement>("[data-testid=label-popover] button")?.focus();
+        });
+      });
+    },
+    [labels, labelStops, story, toExplore, writeLabelsUrl, imageWidth, imageHeight],
+  );
+
+  const panLabel = useCallback((dy: number) => cameraRef.current?.panPx(dy), []);
+
+  // A new label state is placed on the next frame, not on the next pan.
+  useEffect(() => {
+    cameraRef.current?.schedule();
+  }, [labelsShown, openLabel]);
+
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "Escape" && infoOpen) {
+      if (e.key === "Escape" && openLabel) {
+        e.preventDefault();
+        closeLabel();
+      } else if (e.key === "Escape" && infoOpen) {
         e.preventDefault();
         closeInfo();
       }
     },
-    [infoOpen, closeInfo],
+    [infoOpen, closeInfo, openLabel, closeLabel],
   );
 
   // Story keys work wherever focus is on the page, the body included, but never while typing.
@@ -1051,6 +1162,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       data-paused={(story && paused) || undefined}
       data-layout={comparing ? layout : undefined}
       data-modes={modeSwitch ? "" : undefined}
+      data-label-open={(labelsShown && openLabel) || undefined}
       onKeyDown={onKeyDown}
     >
       <div ref={canvasRef} className={styles.canvas} data-theme="dark" data-testid="viewer" />
@@ -1095,8 +1207,8 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       )}
 
       <div className={`${styles.rulers} ${styles.dim}`} aria-hidden>
-        <canvas ref={rulerTopRef} className={styles.rulerTop} />
-        <canvas ref={rulerLeftRef} className={styles.rulerLeft} />
+        <canvas ref={rulerTopRef} className={styles.rulerTop} data-ruler="top" />
+        <canvas ref={rulerLeftRef} className={styles.rulerLeft} data-ruler="left" />
       </div>
 
       <header className={styles.topbar}>
@@ -1230,8 +1342,12 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       {/* Credit and notes stack under the top bar, clear of the overview in every shape. */}
       <div className={styles.topLeft}>
         {/* The credit never fades: the license asks that every user can see it. */}
-        {!active && !lightShown && <p className={`${styles.credit} ${styles.glass}`}>{info.credit}</p>}
-        <div className={styles.toasts} role="status">
+        {!active && !lightShown && (
+          <p className={`${styles.credit} ${styles.glass}`} data-testid="credit">
+            {info.credit}
+          </p>
+        )}
+        <div className={styles.toasts} role="status" data-testid="toasts">
           {toast && (
             <div className={`${styles.toast} ${styles.glass}`}>
               <p>{toast.text}</p>
@@ -1248,6 +1364,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       <div ref={sheetRef} className={styles.sheet} data-testid="sheet">
         <div
           className={styles.grip}
+          data-testid="sheet-grip"
           onPointerDown={drag.onPointerDown}
           onPointerMove={drag.onPointerMove}
           onPointerUp={drag.onPointerUp}
@@ -1302,6 +1419,17 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           <button type="button" className={styles.iconButton} onClick={() => zoomBy(0.5)} aria-label="Zoom out">
             <LuMinus aria-hidden />
           </button>
+          {labelsMode && (
+            <button
+              type="button"
+              className={`${styles.iconButton} ${styles.labelsToggle}`}
+              onClick={toggleLabels}
+              aria-label="Feature labels"
+              aria-pressed={labelsOn}
+            >
+              <LuTag aria-hidden />
+            </button>
+          )}
           <button type="button" className={styles.iconButton} onClick={reset} aria-label="Reset view">
             <LuRotateCcw aria-hidden />
           </button>
@@ -1317,7 +1445,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           )}
         </div>
 
-        <div ref={overviewRef} className={`${styles.overview} ${styles.glass} ${styles.fade}`}>
+        <div ref={overviewRef} className={`${styles.overview} ${styles.glass} ${styles.fade}`} data-testid="overview">
           <p className={styles.overviewHead}>
             <span>Overview</span>
             <span className={styles.size}>
@@ -1360,7 +1488,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           </p>
         )}
         {!infoOpen && (
-          <button type="button" className={styles.sheetCredit} onClick={openFromCredit}>
+          <button type="button" className={styles.sheetCredit} onClick={openFromCredit} data-testid="sheet-credit">
             {active && pairSides ? (
               <>
                 <span className={styles.sheetCreditLine}>Left, {pairSides.left.short}: {info.credit}</span>
@@ -1378,10 +1506,23 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           </button>
         )}
 
-        <div className={`${styles.info} ${styles.glass}`} hidden={!infoOpen}>
-          <InfoPanel id={infoId} info={shownInfo} onClose={closeInfo} titleRef={infoTitleRef} />
+        <div className={`${styles.info} ${styles.glass}`} hidden={!infoOpen} data-testid="info">
+          <InfoPanel id={infoId} info={shownInfo} onClose={closeInfo} titleRef={infoTitleRef} labels={labels} onShowLabel={showLabel} />
         </div>
       </div>
+
+      {/* After the sheet, so the chips follow the view controls in the tab order (L22). */}
+      {labelsShown && (
+        <FeatureLabels
+          labels={labels}
+          painterRef={painterRef}
+          openId={openLabel}
+          popoverId={popoverId}
+          onToggle={toggleLabel}
+          onClose={closeLabel}
+          onPan={panLabel}
+        />
+      )}
 
       <div className={styles.progress} aria-hidden />
 

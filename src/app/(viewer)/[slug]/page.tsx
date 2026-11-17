@@ -66,6 +66,10 @@ const ViewerPage = async ({ params }: Params) => {
           return bands.length === set.imageIds.length ? [{ set, bands }] : [];
         });
 
+  // Labels of this image; Show takes its zoom from the stops of the Journeys on the same image.
+  const labels = content.labels.find((l) => l.imageIds.includes(image.id))?.labels;
+  const labelStops = content.journeys.filter((j) => j.imageId === image.id).flatMap((j) => j.stops);
+
   return (
     <Explore
       image={image}
@@ -74,6 +78,8 @@ const ViewerPage = async ({ params }: Params) => {
       journey={journey}
       pairs={pairs}
       bandSets={bandSets}
+      labels={labels}
+      labelStops={labelStops}
     />
   );
 };

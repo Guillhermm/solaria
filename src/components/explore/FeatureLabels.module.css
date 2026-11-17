@@ -1,0 +1,184 @@
+/* Feature labels (design.md 14.2): rings, circles and chips on the image keep the dark values
+   in both themes; the description follows the theme like the other glass panels. */
+
+.layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  clip-path: inset(calc(var(--inset-top) + var(--ruler)) 0 0 calc(var(--column) + var(--ruler-left)));
+}
+
+.svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.mark {
+  visibility: hidden;
+  transition: opacity var(--dur-base) var(--ease-standard);
+}
+
+.halo {
+  fill: none;
+  stroke: var(--halo);
+  stroke-width: 3px;
+}
+
+.ring {
+  fill: none;
+  stroke: var(--marker);
+  stroke-width: 1.5px;
+}
+
+.circle {
+  fill: none;
+  stroke: var(--marker);
+  stroke-width: 1px;
+  stroke-dasharray: 4 3;
+}
+
+line.halo {
+  stroke-width: 3px;
+}
+
+.leader {
+  stroke: var(--marker);
+  stroke-opacity: 0.55;
+  stroke-width: 1px;
+}
+
+/* The button is the chip plus transparent padding to a 2.75rem target; nothing else of the
+   layer takes the pointer, so pans and pinches reach the image. */
+.chip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  min-height: var(--target);
+  padding: 0;
+  font: inherit;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  pointer-events: auto;
+  visibility: hidden;
+  transition: opacity var(--dur-base) var(--ease-standard);
+}
+
+.face {
+  display: block;
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1rem;
+  white-space: nowrap;
+  color: var(--text);
+  background: var(--glass);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+}
+
+.chip:hover .face,
+.chip[aria-expanded="true"] .face {
+  border-color: var(--accent);
+}
+
+@starting-style {
+  .mark,
+  .chip {
+    opacity: 0;
+  }
+}
+
+.popover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: min(22rem, calc(100% - 2 * var(--edge)));
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  color: var(--text);
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(1.25rem) saturate(1.3);
+  backdrop-filter: blur(1.25rem) saturate(1.3);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-panel);
+}
+
+.popover[hidden] {
+  display: none;
+}
+
+.popHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-inline-end: calc(-1 * var(--space-3));
+}
+
+.popTitle {
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: var(--tracking-title);
+}
+
+.popBody {
+  max-width: 42ch;
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-body);
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+.close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--target);
+  height: var(--target);
+  padding: 0;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.close svg {
+  width: var(--icon);
+  height: var(--icon);
+}
+
+.close:hover {
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mark,
+  .chip {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .face {
+    border-color: CanvasText;
+  }
+
+  .ring,
+  .circle,
+  .leader {
+    stroke: CanvasText;
+  }
+}

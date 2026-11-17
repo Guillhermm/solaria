@@ -56,5 +56,13 @@ export const publishProblems = (content: Content): string[] => {
       if (!approvedImages.has(id)) out.push(`${what}: image "${id}" is not approved`);
     }
   }
+  for (const l of content.labels) {
+    const what = `labels ${l.id}`;
+    mock(what, l.mock);
+    review(what, l.validation);
+    for (const id of l.imageIds) {
+      if (!approvedImages.has(id)) out.push(`${what}: image "${id}" is not approved`);
+    }
+  }
   return out;
 };

@@ -130,3 +130,12 @@ describe("light mode in the URL", () => {
     expect(serializeViewerParams({ ...state, light: { set: "sun", band: 0 } }, undefined, LIGHT)).toBe("?mode=light&x=10&y=20&z=2");
   });
 });
+
+describe("labels in the URL", () => {
+  const view = { x: 1, y: 2, z: 3 };
+  it("writes labels=1 in Explore and Light only", () => {
+    expect(serializeViewerParams({ mode: "explore", view, labels: true })).toBe("?mode=explore&labels=1&x=1&y=2&z=3");
+    expect(serializeViewerParams({ mode: "explore", view: null, labels: false })).toBe("?mode=explore");
+    expect(serializeViewerParams({ mode: "story", view: null, labels: true })).toBe("?mode=story");
+  });
+});

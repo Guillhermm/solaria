@@ -19,7 +19,7 @@ const readKind = (kind: string) => {
 
 describe("the real data directory", () => {
   it("validates", () => {
-    const files = ["sources", "images", "journeys", "pairs", "band-sets"].flatMap(readKind);
+    const files = ["sources", "images", "journeys", "pairs", "band-sets", "labels"].flatMap(readKind);
     const r = validateContent(files);
     expect(r.ok ? [] : r.errors).toEqual([]);
     expect(files.length).toBeGreaterThan(0);
@@ -99,5 +99,19 @@ describe("the real data directory", () => {
     const c = loadContent({ root: process.cwd(), mode: "production" });
     expect([c.pairs.some((p) => p.mock), c.bandSets.map((b) => b.id)]).toEqual([false, ["sun-sdo-2024-05-10"]]);
     expect(c.images.some((i) => i.mock)).toBe(false);
+  });
+});
+
+// design.md 14.2: exactly the validated set of 2026-11-17 (docs/science/feature-labels.md).
+describe("feature labels", () => {
+  it("are the four validated labels, at their checked positions", () => {
+    const { labels } = loadContent({ root: process.cwd(), mode: "production" });
+    const all = labels.flatMap((set) => set.labels.map((l) => [set.id, l.id, l.text, l.x, l.y, l.r ?? null]));
+    expect(all).toEqual([
+      ["andromeda-phat-phast-2025", "andromeda-core", "Andromeda core", 17461, 6482, null],
+      ["andromeda-phat-phast-2025", "andromeda-m32", "Satellite galaxy M32", 11412, 2448, null],
+      ["andromeda-phat-phast-2025", "andromeda-ngc206", "NGC 206", 5330, 7260, null],
+      ["sun-sdo-2024-05-10", "sun-ar-13664", "Active region 13664", 3020, 2508, 240],
+    ]);
   });
 });

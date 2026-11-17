@@ -3,7 +3,7 @@ import * as fx from "./__fixtures__/content";
 import { publishProblems } from "./gate";
 import type { Content } from "./types";
 
-const content = (): Content => ({ sources: [fx.source()], images: [fx.image()], journeys: [fx.journey()], pairs: [], bandSets: [] });
+const content = (): Content => ({ sources: [fx.source()], images: [fx.image()], journeys: [fx.journey()], pairs: [], bandSets: [], labels: [] });
 
 describe("publishProblems", () => {
   it("is empty for an approved set", () => {
@@ -111,6 +111,26 @@ describe("publishProblems", () => {
       const c = withGroups();
       c.bandSets[0].whatDiffers = " ";
       expect(publishProblems(c)).toEqual(["band set demo-bands: whatDiffers is empty"]);
+    });
+  });
+
+  describe("labels", () => {
+    it("pass when approved on an approved image", () => {
+      expect(publishProblems({ ...content(), labels: [fx.labelSet()] })).toEqual([]);
+    });
+
+    it("flag a draft or mock set and an unapproved image", () => {
+      const c = { ...content(), labels: [fx.labelSet()] };
+      c.labels[0].validation.status = "in-review";
+      c.labels[0].mock = true;
+      c.images[0].validation.status = "draft";
+      expect(publishProblems(c)).toEqual([
+        'image demo: validation.status is "draft", expected "approved"',
+        'journey demo-tour: image "demo" is not approved',
+        "labels demo-labels: mock content cannot be published",
+        'labels demo-labels: validation.status is "in-review", expected "approved"',
+        'labels demo-labels: image "demo" is not approved',
+      ]);
     });
   });
 });

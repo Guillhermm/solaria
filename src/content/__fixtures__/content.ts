@@ -1,5 +1,5 @@
 import { applySimilarity, fitSimilarity, residuals } from "../registration";
-import type { BandSet, ComparePair, ControlPoint, ImageManifest, Journey, Registration, Source, Stop } from "../types";
+import type { BandSet, LabelSet, ComparePair, ControlPoint, ImageManifest, Journey, Registration, Source, Stop } from "../types";
 
 const approved = { status: "approved", date: "2026-11-17", notes: "fixture" } as const;
 const SHA = "a".repeat(64);
@@ -113,3 +113,14 @@ export const files = (): { path: string; raw: unknown }[] => [
   { path: "data/images/demo.json", raw: image() },
   { path: "data/journeys/demo-tour.json", raw: journey() },
 ];
+
+export const labelSet = (): LabelSet => ({
+  id: "demo-labels",
+  imageIds: ["demo"],
+  labels: [
+    { id: "a", text: "Feature A", x: 100, y: 50, description: "A point feature." },
+    { id: "b", text: "Feature B", x: 900, y: 250, r: 40, description: "A feature with an extent." },
+  ],
+  validation: { ...approved },
+  mock: false,
+});

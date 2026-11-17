@@ -844,6 +844,14 @@ stop markers are), so a light-theme assertion reads the same colors as a dark on
   existing stop zoom nearest that point) and opens its popover. This is the path to a
   label whose chip is hidden and the text alternative for the overlay.
 
+**As built (Sprint 9).** One labels file may name several images on one pixel grid, so the
+seven SDO bands share `data/labels/sun-sdo-2024-05-10.json`. In L10, an overlay across the
+width (the phone sheet) sets the foot of the free area, and an overlay at a side (controls,
+overview, readout, a bottom Light bar) closes the corner below its top edge, inflated by
+`--edge`; markers there are not drawn. On a phone the view controls step aside while a
+description is docked (L19 and S3 would otherwise collide). At 390x844 the Sun region's
+chip fits on no side next to the zoom buttons at fit, so its circle shows alone (L12).
+
 **Copy.** Toggle name "Feature labels"; live region "Feature labels shown" / "Feature labels
 hidden"; About heading "Labeled features"; row action "Show". Label and description text
 come only from the validated data.

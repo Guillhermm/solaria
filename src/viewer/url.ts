@@ -19,6 +19,7 @@ export interface ViewerState {
   view: Viewport | null; // null: the image at fit
   compare?: CompareState; // only in compare mode
   light?: LightState; // only in light mode
+  labels?: boolean; // feature labels on (design.md 14.2, L2); Explore and Light only
 }
 
 export const DEFAULT_SPLIT = 50;
@@ -87,7 +88,7 @@ export const parseViewerParams = (
 
 // Compare defaults (the first pair, wipe, split 50) and Light defaults (the first set and band)
 // are left out.
-export const serializeViewerParams = ({ mode, view, compare, light }: ViewerState, defaultPair?: string, lightOpts?: LightOptions) => {
+export const serializeViewerParams = ({ mode, view, compare, light, labels }: ViewerState, defaultPair?: string, lightOpts?: LightOptions) => {
   const params = new URLSearchParams({ mode });
   if (mode === "light" && light && lightOpts) for (const [k, v] of lightParams(light, lightOpts)) params.set(k, v);
   if (mode === "compare" && compare) {
@@ -95,6 +96,7 @@ export const serializeViewerParams = ({ mode, view, compare, light }: ViewerStat
     if (compare.layout !== "wipe") params.set("layout", compare.layout);
     if (compare.split !== DEFAULT_SPLIT) params.set("split", String(Math.round(compare.split)));
   }
+  if (labels && (mode === "explore" || mode === "light")) params.set("labels", "1");
   if (view) {
     params.set("x", String(Math.round(view.x)));
     params.set("y", String(Math.round(view.y)));
