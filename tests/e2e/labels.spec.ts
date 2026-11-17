@@ -281,6 +281,8 @@ for (const cell of CELLS) {
     });
 
     test("L14: at every Andromeda Journey stop view, in Explore, nothing collides", async ({ page }) => {
+      // One page load per stop: under a full parallel run that outgrows the default 30 s.
+      test.slow();
       for (const stop of journey.stops) {
         const { x, y, z } = stop.viewport;
         await page.goto(`${IMAGE}?mode=explore&labels=1&x=${x}&y=${y}&z=${z}`);

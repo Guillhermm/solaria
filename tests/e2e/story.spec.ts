@@ -33,6 +33,8 @@ const atStop = async (page: Page, i: number) => {
 };
 
 test("the Journey runs from the first stop to Explore", async ({ page }) => {
+  // Every stop is a real-time flight: under a full parallel run that outgrows the default 30 s.
+  test.slow();
   await page.goto(PATH);
   await ready(page);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(journey.title);
