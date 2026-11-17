@@ -1,6 +1,6 @@
 import { defineConfig } from "@playwright/test";
 
-const PORT = 8434;
+const PORT = Number(process.env.E2E_PORT ?? 8434);
 
 export default defineConfig({
   testDir: "tests/e2e",
@@ -8,7 +8,7 @@ export default defineConfig({
   webServer: {
     command: `npm run build && npx next start -H 127.0.0.1 -p ${PORT}`,
     url: `http://127.0.0.1:${PORT}`,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 300_000,
   },
 });
