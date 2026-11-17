@@ -936,3 +936,288 @@ https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html ; the
 priority-and-collision labeling of web maps (labels drop by rank rather than overlap) as in
 MapLibre's symbol placement, https://maplibre.org/maplibre-style-spec/layers/#symbol .
 Not re-fetched for this section.
+
+## 15. Search and detail of the week: acceptance
+
+Specified on 2026-11-17 for roadmap F-04 and F-02, in direction C. Status: planned for
+Sprint 10; nothing in this section is built yet. Sky coordinates (RA and Dec) are planned
+beyond Sprint 10: they need a validated sky mapping per image (6.3). The conventions of 14
+hold: four cells per rule (390x844 and 1440x900, dark and light), boxes from
+`boundingBox()` in CSS pixels, 1px tolerance.
+
+### 15.1 Standing rules
+
+S1 to S4 (14.1) hold for every element added here. Three more apply to every rule below:
+
+- **S5, idle fade.** The viewer's Search button carries the same idle class as Share: on a
+  fine pointer at 40.0625rem and up its opacity is 0 after the idle delay and 1 again on
+  pointer move; on a phone it stays at 1. While the search dialog is open the viewer never
+  goes idle.
+- **S6, reduced motion.** Every transition named here has a reduced-motion variant: under
+  `prefers-reduced-motion: reduce` its computed `transition-duration` is 0s and a camera
+  flight is the 200 ms cut of 5.8.
+- **S7, CLS 0 on Home.** Cumulative layout shift on Home, measured from navigation until
+  1 s after the detail-of-the-week crop has scrolled into view, is 0 at both widths.
+
+### 15.2 F-04, search
+
+**Index.**
+
+- Q1. The index is built at build time from content whose validation status is `approved`
+  and whose `mock` is false, and is inlined into the page: opening search or typing makes
+  no network request. It holds three kinds: every image title (10), every label text in
+  `data/labels` (4) and every Journey stop title (14), 28 entries today. A mock or
+  unapproved entry never appears (unit test with a fixture).
+- Q2. The serialized index is 8 KB or less in each page's HTML.
+- Q3. Each entry links as follows; the parameter order is the one `serializeViewerParams`
+  writes.
+  - Image: `/<id>/?mode=explore`.
+  - Journey stop: `/<journey slug>/?mode=story&stop=N`, N from 1.
+  - Label: the image that owns it, labels on, centered on the feature. Light when the
+    labels file belongs to a band set (its first image's page), else Explore. Zoom: with
+    `r`, z = min(W, H) / (3r) to two decimals, so the radius fills a third of the shorter
+    side as in L23; without `r`, the zoom of the stop on that image whose target
+    (`stopTarget`) is nearest the feature. Today's four:
+    `/andromeda-phat-phast-2025/?mode=explore&labels=1&x=17461&y=6482&z=6`,
+    `…&x=11412&y=2448&z=12`, `…&x=5330&y=7260&z=15` and
+    `/sun-sdo-2024-05-10-aia-94/?mode=light&labels=1&x=3020&y=2508&z=5.69`.
+
+**Entry points.**
+
+- Q4. Home header: a Search button first in the nav group, Lucide `search` at 1.125rem.
+  From 48rem up it shows the text "Search" and a `/` keycap (keycap `aria-hidden`); below
+  48rem it is icon only, 44x44 or larger, accessible name "Search". It has
+  `aria-keyshortcuts="/"` at every width.
+- Q5. Viewer: an icon button named "Search" in the top bar's right group, directly before
+  Share, 44x44 or larger, in every mode. At 390x844 no two top bar groups intersect and
+  none wraps to a second line (S3).
+- Q6. Pressing `/` on Home or in the viewer opens search, whatever Shift state the layout
+  needs to type it, unless focus is in a text field or a dialog is already open. The `/` is
+  not typed into the input. Ctrl, Cmd and Alt combinations pass through.
+
+**Dialog.**
+
+- Q7. A modal `<dialog>` opened with `showModal()`, accessible name "Search": everything
+  outside it is inert while it is open, so S3 is checked with it closed. Its `::backdrop`
+  is transparent (computed `rgba(0, 0, 0, 0)`): the image stays visible and nothing is
+  dimmed.
+- Q8. From 48rem up: the panel is `min(40rem, 100vw - 2 * --gutter)` wide, horizontally
+  centered, top edge 6rem below the viewport top, and it intersects no top bar group.
+  Below 48rem: it spans from the left `--edge` to the right `--edge`, top edge at `--edge`
+  plus the safe-area inset.
+- Q9. In both cases the panel's bottom edge stays 0.5rem or more above the top edge of the
+  visible image credit, so S2 holds with the dialog open; past that height the result list
+  scrolls inside the panel.
+- Q10. Glass panel as L21 (background equal to the view controls group's in the viewer,
+  `--glass` on Home), 1px `--hairline`, radius `--radius-panel`. It opens with opacity 0 to
+  1 and a 0.5rem rise over `--dur-panel` `--ease-standard`, and closes over `--dur-base`
+  `--ease-exit` (S6).
+- Q11. Input: one line, Geist 1rem or larger (so iOS does not zoom), `maxlength` 80,
+  `autocomplete="off"`, `spellcheck="false"`, `autocapitalize="off"`,
+  `enterkeyhint="go"`. It takes focus on open. A visible Close button (44x44, "Close")
+  sits at the input's right end.
+- Q12. Esc, Close or a press outside the panel closes it, and focus returns to the element
+  that had it before (the Search button, or the element where `/` was pressed). In the
+  viewer, Esc with the dialog open closes only the dialog: it does not exit fullscreen or
+  close a sheet or popover.
+- Q13. From 48rem up on a fine pointer, a hint row under the list reads "↑ ↓ Move",
+  "Enter Open", "Esc Close" in Label type with Geist Mono keycaps. It is not rendered on a
+  phone.
+
+**Matching.**
+
+- Q14. Normalization of query and entry text: Unicode NFKD, combining marks removed,
+  lowercase, split on every character outside `a-z` and `0-9`. "Å" becomes "a", so
+  "171 a" finds "171 Å, the same view".
+- Q15. An entry matches when every query word is a prefix of some word of its text. Rank,
+  in order: tier (0 the normalized words equal the query's, 1 the text's first words are the
+  query's with the last one as a prefix, 2 any other match), then entries on the current page's image first (viewer only), then kind
+  (label, stop, image), then data order (Journeys in roadmap order and stops in order,
+  labels in file order, images by id). At most 8 rows show.
+- Q16. Test vectors on Home: "m32" gives Satellite galaxy M32, then The companion galaxy
+  M32. "andromeda" gives Andromeda core, then Andromeda Galaxy (M31), Hubble PHAT+PHAST
+  panorama, then The Andromeda Galaxy. "171" gives 171 Å, the same view, then The Sun,
+  SDO AIA 171 Å, 2024-05-10 12:00 UTC. "your turn" gives two Your turn rows, Andromeda's
+  first. "sun" gives One Sun, seven bands, then the seven SDO images, 8 rows and no overflow
+  line. "the" matches 14 entries: The Andromeda Galaxy, The bright center, The companion
+  galaxy M32, then five SDO images, with "Showing 8 of 14. Type more to narrow." under
+  them (the line shows only past 8). "pillars" gives the 1995 image, then 2014.
+- Q17. Results update on every input event with no debounce and no animation. The live
+  region (`role="status"` inside the dialog) says "1 result", "{n} results" or "No
+  results", debounced to 500 ms.
+
+**Rows.**
+
+- Q18. The list follows the WAI-ARIA combobox pattern with a listbox popup: the input has
+  `role="combobox"`, `aria-expanded`, `aria-controls` and `aria-activedescendant`; each row
+  is a `role="option"`. The first row is active by default. Up and Down move the active
+  row and stop at the ends; Enter opens it; a click or tap on a row opens it. Every row is
+  44px tall or more.
+- Q19. A row shows a kind glyph drawn in the instrument language (label: the L5 ring;
+  stop: a bracket; image: a frame; point: a crosshair), the name in Body type with the
+  matched word prefixes at weight 600 (weight, not color, marks the match), a context line
+  in `--text-muted`, and a kind tag in Label type: "Feature", "Stop", "Image" or "Point".
+  Context: a label shows its image's title (the band set's title for a band set); a stop
+  shows "{Journey title} · Stop {n} of {m}" (`stopOf`); an image shows none.
+- Q20. The active row has a 2px `--accent` bar at its left edge and the `--hairline`
+  background; `aria-selected="true"` is on it alone. Name and context text against the
+  panel: 4.5:1 or more (computed colors).
+- Q21. Opening a row closes the dialog. A row for the page already open moves the view in
+  place (fly to x, y, z with labels on, or go to stop N) and updates the URL through the
+  existing `replaceState`, with no document reload; any other row navigates client side.
+  After either, the URL equals the row's href (Q3).
+
+**Coordinates.**
+
+- Q22. A query is a point when it is two numbers separated by a comma, spaces or both:
+  `^\s*-?\d+(\.\d+)?\s*(,\s*|\s+)-?\d+(\.\d+)?\s*$`. Decimals round to integers. "17461,
+  6482", "17461 6482" and " 17461 ,6482 " are the same point. A point query still runs name
+  matching (Q15); point rows sit after the name rows under the group label "Go to a point".
+- Q23. In the viewer a point is in the current image's pixels (the reference image's in
+  Compare, the shared grid in Light). When 0 ≤ x < W and 0 ≤ y < H one row "Go to {x}, {y}",
+  context "In this image", opens it: Story switches to Explore, other modes stay; z is the
+  current zoom when it is 4 or more, else 4, capped at `maxZoom`. After the flight the
+  readout shows Center x and Center y equal to the point (for a point at least half a view
+  from every edge) and the URL carries the same x, y and z.
+- Q24. On Home a point gives one row per image that contains it, "Go to {x}, {y}" with the
+  image title as context, to `/<id>/?mode=explore&x=&y=&z=4`. The images of one band set
+  are one row, to its first image in Light (`?mode=light&x=&y=&z=4`) with the band set's
+  title as context. Order: Journey images in roadmap order, then the rest by id. "2048,
+  2048" gives Andromeda, the Sun band set, then Pillars of Creation, Hubble 2014 (the 1995
+  frame is 1518 by 1497).
+- Q25. Sky coordinates are detected, not converted: a query with a digit followed by `h`,
+  `m`, `s`, `°`, `′`, `″`, `'` or `"`, or with the word `ra` or `dec`, shows the sky note
+  (copy below) and no point row. Converting RA and Dec to pixels is planned.
+
+**States** (each a non-selectable status line in the panel, `--text-2`, Body type).
+
+| State | When | Copy |
+|---|---|---|
+| Empty query | input empty | hint line, then the "Labeled features" group listing every label as a row (all images on Home, the current image's first in the viewer) |
+| No match | no name row and no point row | "No matches for “{query}”." then the hint line |
+| Point outside, viewer | Q22 matches, outside the image | "No pixel at {x}, {y} in this image. Points run from 0, 0 to {W − 1}, {H − 1}." |
+| Point outside, Home | Q22 matches, no image contains it | "No image has a pixel at {x}, {y}." |
+| Sky coordinates | Q25 | "Sky coordinates (RA and Dec) are not supported yet. Type image pixels instead, like {example}." |
+| Empty index | Q1 finds nothing | "Nothing to search yet." |
+
+`{example}` is the center of the current image, floor(W / 2), floor(H / 2), or of the
+Home hero image on Home: "21104, 4935" for Andromeda. Numbers in these strings are
+written as the user types them, without digit grouping. The hint line is "Search image
+titles, feature labels and Journey stop titles. To go to a point, type its image pixels,
+like {example}." A point state line replaces the point rows only; name rows above it
+still show.
+
+- Q26. Kiosk (14.3): the Search button, Close and every row are 56x56px or larger and K9's
+  8px spacing holds; Q13 is not rendered; the reset of K14 closes the dialog. Results are
+  same-origin, so K3 holds.
+
+### 15.3 F-02, detail of the week
+
+**Pool and pick.**
+
+- W1. The pool is `data/weekly.json`, an ordered list of references to items that already
+  exist and are validated: `{ "kind": "stop", "journey": slug, "stop": id }` or
+  `{ "kind": "label", "labels": file id, "label": id }`. The content validator fails the
+  build, naming the entry, when a reference does not resolve or resolves to an unapproved
+  or mock item. A missing file or an empty list renders no card and fails nothing.
+- W2. Only stops with a single place (`aimableStops`) and stops whose text stands on its
+  own may be listed: Sun stops 2, 3 and 6 refer to their neighbors ("The next three
+  stops", "the 171 Å band that follows", "switch to HMI") and stay out. A label that
+  repeats a stop at the same place stays out too. The proposed pool, in order:
+  1. Andromeda, The bright center (stop 2)
+  2. Label Active region 13664 (Sun)
+  3. Andromeda, Dust lanes (stop 3)
+  4. Sun, 171 Å, the same view (stop 4)
+  5. Andromeda, The companion galaxy M32 (stop 4)
+  6. Sun, 211 Å, the same view (stop 5)
+  7. Andromeda, NGC 206 (stop 5)
+  8. Andromeda, Toward single stars (stop 6)
+
+  Showing an item outside its Journey is a new context for validated text, so this list
+  goes through the science gate before it ships.
+- W3. The build date is `SOLARIA_BUILD_DATE` (YYYY-MM-DD) when set, else the build
+  machine's date in UTC. The card shows pool item (isoWeek - 1) mod n, n the pool length.
+  Vectors with the pool above: 2026-11-17 (week 47) NGC 206; 2026-11-23 (week 48) Toward
+  single stars; 2026-12-07 (week 50) Active region 13664; 2026-12-28 and 2027-01-03 (week
+  53) The companion galaxy M32; 2027-01-04 (week 1) The bright center.
+- W4. The card changes only when the site is rebuilt. A weekly scheduled rebuild is
+  planned and waits on the host decision (L-03, L-04).
+
+**Placement and layout.**
+
+- W5. On Home the card is its own section, `<section aria-labelledby>` with the h2 "Detail
+  of the week", directly after the Journeys index and before Reading the instrument. Its
+  left edge equals `--gutter` (S1).
+- W6. From 48rem up: two columns, the crop at 21.25rem square (the loupe's size, 6.5) on
+  the left, the text column on the right, 2.5rem gap, the text at 42ch or less. Below
+  48rem: one column, heading, crop at the full content width (358px at 390) and square,
+  then the text. The crop box has `aspect-ratio: 1` before any tile loads (S7).
+- W7. Text column, in order: the eyebrow "Week {n}" (Label type, Geist Mono, `--text-muted`,
+  n the ISO week of W3), the item's title in Title type (stop title or label text), the
+  context line, the item's validated text in Body type (a stop's `body`, every paragraph;
+  a label's `description`), and the action. No other text: nothing is truncated, rewritten
+  or added (science gate).
+- W8. Context line: a stop shows "{Journey title} · Stop {n} of {m}"; a label shows
+  "Feature label · {image title}", the band set's title for a band set.
+
+**Crop.**
+
+- W9. The crop is drawn from the same tile pyramid as the viewer (6.5) with the lens's
+  tile placement (`lensTiles`), chosen at build time for 720 device pixels across, so the
+  HTML is identical for every visitor. A stop uses its `lensField` on its band's image
+  (`band`, else the Journey image); a label uses a field 3r across centered on it (r from
+  the data, else the side of the nearest stop's field). At most 16 tiles, each `<img>`
+  with `loading="lazy"`, `decoding="async"`, and its width and height set.
+- W10. The canvas inside the crop stays dark in both themes, like the viewer. Rulers on
+  its top and left edges label image pixels (6.5). A stop draws the amber bracket frame
+  0.375rem outside the crop's corners; a label draws its L5 ring or L6 circle at the
+  crop's center, in the dark marker values, its radius a third of the crop side for a
+  label with `r`.
+- W11. Under the crop, a readout of computed values only (6.3): "Zoom" (one decimal, "15.0×"),
+  "Center x" and "Center y" with the readout's digit grouping. Under the readout, the
+  image's credit line from its source, in Label type, fully visible with no truncation.
+- W12. The crop's `alt` is "{title}, a detail of {image title}". Tiles that fail to load
+  leave the dark canvas, never a broken-image icon (5.8 tile errors).
+
+**Action.**
+
+- W13. One link, visible text "Go to this detail", `aria-describedby` pointing at the
+  title, to the item's href (Q3: `/<slug>/?mode=story&stop=N` for a stop, the label link
+  for a label). Week 47 links to `/andromeda/?mode=story&stop=5`. The card itself is not a
+  link and the crop is not focusable.
+- W14. The link is a 44px tall target or more (56px in a kiosk, K9) with the S4 ring.
+  Hover underlines it over `--dur-fast`; nothing else depends on hover (K10).
+
+### 15.4 Copy
+
+Every new string, in one place so pt-BR can follow (13.6):
+
+- Search button and dialog: "Search"; input label (visually hidden): "Search Solaria";
+  placeholder: "Feature, stop, image, or x, y"; "Close".
+- Group labels: "Labeled features", "Results", "Go to a point".
+- Kind tags: "Feature", "Stop", "Image", "Point".
+- Point row: "Go to {x}, {y}"; its viewer context: "In this image".
+- Hint line: "Search image titles, feature labels and Journey stop titles. To go to a
+  point, type its image pixels, like {example}."
+- Overflow: "Showing 8 of {n}. Type more to narrow."
+- Keyboard hint: "↑ ↓ Move", "Enter Open", "Esc Close".
+- Live region: "1 result", "{n} results", "No results".
+- States: "No matches for “{query}”."; "No pixel at {x}, {y} in this image. Points run
+  from 0, 0 to {W − 1}, {H − 1}."; "No image has a pixel at {x}, {y}."; "Sky coordinates
+  (RA and Dec) are not supported yet. Type image pixels instead, like {example}.";
+  "Nothing to search yet."
+- Detail of the week: heading "Detail of the week"; eyebrow "Week {n}"; label context
+  "Feature label · {image title}"; action "Go to this detail"; crop alt "{title}, a detail
+  of {image title}".
+
+Reused, not new: "Stop {n} of {m}", "Zoom", "Center x", "Center y", titles, label texts,
+descriptions, stop bodies and credits, all from validated data.
+
+References relied on: WAI-ARIA Authoring Practices combobox pattern,
+https://www.w3.org/WAI/ARIA/apg/patterns/combobox/ (Q18); the modal dialog pattern,
+https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/ , and the HTML `<dialog>`
+element's `showModal()`, https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog
+(Q7, Q12); Nielsen Norman Group on search results pages and zero-results pages,
+https://www.nngroup.com/articles/search-no-results-serp/ (the no-match state keeps a way
+forward); web.dev on CLS, https://web.dev/articles/cls (S7, W6). The `/` shortcut follows
+the convention of GitHub and MDN's site search. Not re-fetched for this section.
