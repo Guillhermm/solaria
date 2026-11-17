@@ -10,6 +10,7 @@ import {
   relativeZoom,
   viewFromOsd,
   viewportToImage,
+  waitsForTiles,
 } from "./view";
 
 const ANDROMEDA = { width: 42208, height: 9870 };
@@ -87,5 +88,17 @@ describe("number formats", () => {
   it("shows zoom to one decimal with a times sign", () => {
     expect(formatZoom(1)).toBe("1.0×");
     expect(formatZoom(14.26)).toBe("14.3×");
+  });
+});
+
+describe("waitsForTiles", () => {
+  it("waits for a shown image that is not fully loaded, and ignores hidden ones", () => {
+    expect(waitsForTiles([{ opacity: 1, loaded: false }])).toBe(true);
+    expect(waitsForTiles([{ opacity: 1, loaded: true }, { opacity: 0, loaded: false }])).toBe(false);
+  });
+
+  it("waits while no image is shown yet", () => {
+    expect(waitsForTiles([])).toBe(true);
+    expect(waitsForTiles([{ opacity: 0, loaded: true }])).toBe(true);
   });
 });

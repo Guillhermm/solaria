@@ -58,3 +58,8 @@ export const formatInt = (n: number) => {
 };
 
 export const formatZoom = (z: number) => `${z.toFixed(1)}×`;
+
+// The view is loading while a shown image still waits for tiles, and also while no image is
+// shown at all: a Light band opened from the URL hides the first image before its own is added.
+export const waitsForTiles = (items: readonly { opacity: number; loaded: boolean }[]) =>
+  !items.some((it) => it.opacity > 0) || items.some((it) => it.opacity > 0 && !it.loaded);

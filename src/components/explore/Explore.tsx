@@ -49,7 +49,7 @@ import { sides } from "@/viewer/compare";
 import { dividerValueText } from "@/viewer/divider";
 import { reticleSide } from "@/viewer/route";
 import { type Bounds, flightPlan, parseStop, stepStop, stopNumber, stopOf, stopTarget, storySearch, viewBounds, zoomSpan } from "@/viewer/story";
-import { formatInt, formatZoom, homeView, osdFromView, type Size, viewFromOsd } from "@/viewer/view";
+import { formatInt, formatZoom, homeView, osdFromView, type Size, viewFromOsd, waitsForTiles } from "@/viewer/view";
 import { DWELL_MS, storySearch1 } from "@/kiosk/kiosk";
 import { useAttract, useKiosk } from "@/kiosk/useKiosk";
 import { labelView, parseLabelsParam } from "@/viewer/labels";
@@ -607,11 +607,12 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         failuresRef.current += 1;
         if (failuresRef.current === TILE_ERROR_LIMIT) setToast(TILE_ERRORS);
       });
-      // Loading means an image on screen still waits for tiles; Light and Compare add images,
-      // and a band at zero opacity loads nothing.
+      // Light and Compare add images, and a band at zero opacity loads nothing.
       const trackLoading = () => {
         const w = opened.world;
-        const busy = Array.from({ length: w.getItemCount() }, (_, i) => w.getItemAt(i)).some((it) => it.getOpacity() > 0 && !it.getFullyLoaded());
+        const busy = waitsForTiles(
+          Array.from({ length: w.getItemCount() }, (_, i) => w.getItemAt(i)).map((it) => ({ opacity: it.getOpacity(), loaded: it.getFullyLoaded() })),
+        );
         setLoading(busy);
         if (!busy) setToast((t) => (t === SLOW ? null : t));
       };
@@ -619,7 +620,10 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         item.addHandler("fully-loaded-change", trackLoading);
         item.addHandler("opacity-change", trackLoading);
       };
-      opened.world.addHandler("add-item", (e) => watchLoading(e.item));
+      opened.world.addHandler("add-item", (e) => {
+        watchLoading(e.item);
+        trackLoading();
+      });
       opened.world.addHandler("remove-item", trackLoading);
       opened.addHandler("open", () => {
         watchLoading(opened.world.getItemAt(0));
