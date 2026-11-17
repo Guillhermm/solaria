@@ -730,4 +730,186 @@ JetBrains Mono for numbers, decided earlier the same day, are replaced by Geist 
 Geist Mono with direction C.
 
 Still open (tracked in `docs/roadmap.md`): final approval of the C mockups, which
-Journeys launch after Andromeda, whether launch waits for Light, and kiosk scope.
+Journeys launch after Andromeda and whether launch waits for Light. Kiosk scope is
+proposed in 14.3, awaiting the maintainers' approval.
+
+## 14. Feature labels and kiosk: acceptance
+
+Specified on 2026-11-17 for roadmap F-03 and F-01, in direction C. Every rule below is
+written to become an end-to-end geometry assertion. Unless a rule says otherwise it holds
+at 390x844 and 1440x900, in the dark and the light theme, which makes four cells per rule.
+"Box" means `boundingBox()` in CSS pixels; "intersects" means the two boxes overlap by more
+than 1px on both axes. Tolerances are 1px.
+
+### 14.1 Standing rules (every cell, every state below)
+
+- **S1, gutter.** On Home, the left edges of the header content, every section and the
+  footer content are equal, and equal `--gutter` (16, 40 or 64px by width). In the viewer,
+  every new overlay in this section (label popover, kiosk chip, idle countdown) keeps at
+  least `--edge` (12px) plus the safe-area inset from each viewport edge.
+- **S2, credit visible.** The image credit (`sheetCredit` in the viewer, the footer credit on
+  Home) has a box fully inside the viewport and intersects no label marker, label chip,
+  popover, kiosk chip or countdown.
+- **S3, nothing covers controls.** No element added here intersects the top bar groups, the
+  view controls group, the overview card, the readout, the compare or light bar, or the
+  sheet's handle row. Every offset is computed from those elements' measured edges, never
+  from a constant.
+- **S4, focus ring.** Every control added here shows a 2px `--accent` outline with a 2px
+  offset on `:focus-visible`. At each of the ring's four corners, `elementFromPoint`
+  returns the focused control or a descendant, so no overlay or tile paints over it.
+
+### 14.2 F-03, feature labels
+
+**Data.** One labels file per image, each entry `{ id, text, x, y, r?, description }` in
+full-image pixels (origin top-left), converted to normalized u,v as stop markers are (6.4).
+The four entries and their text are exactly the validated set of 2026-11-17: Andromeda
+core, Satellite galaxy M32, NGC 206 (Andromeda, no radius) and Active region 13664 (Sun,
+r 240 in the 4096px SDO frame, shared by every band within 3.5px). No other text ships.
+
+**Where labels exist.** Explore and Light, on images that have a labels file. Never in Story
+(the stop markers own the image there) and never in Compare (two images, two frames). An
+image without labels shows no toggle at all.
+
+**Toggle.**
+
+- L1. An icon button (Lucide `tag`, 1.125rem in a 2.75rem square) in the view controls
+  group, directly above Reset view, at every width. Box 44x44 or larger.
+- L2. Default off on every visit. On: `aria-pressed="true"`, `--accent` fill with the icon in
+  `--ground` (the fill is the non-color cue: at least 3:1 luminance against the off state),
+  and `labels=1` in the URL through the existing debounced `replaceState`. A URL with
+  `labels=1` opens with labels on.
+- L3. Accessible name "Feature labels". Toggling announces "Feature labels shown" or
+  "Feature labels hidden" in the existing live region.
+- L4. Leaving Explore or Light hides the labels; returning restores the toggle state.
+
+**Marker and leader.** Drawn in the dark values in both themes (`data-theme="dark"`, as the
+stop markers are), so a light-theme assertion reads the same colors as a dark one.
+
+- L5. A point feature is a ring, 0.625rem (10px) outside diameter, 1.5px `--marker` stroke,
+  with the 3px `--halo` under-stroke. Round on purpose: stop markers are square brackets,
+  so the two never read alike.
+- L6. A feature with `r` draws a 1px `--marker` circle dashed 4 3 over the halo, at the
+  on-screen radius, when that radius is 12px or more; below 12px it draws the L5 ring.
+- L7. Leader: 1px `--marker` at 0.55 alpha over the halo, 1rem long, from the ring's edge
+  (or the circle's edge at 45 degrees up and right) to the chip.
+- L8. Chip: Geist 500, 0.8125rem, sentence case as written in the data, one line, no
+  truncation (the longest text, "Satellite galaxy M32", fits), `--glass` dark with a 1px
+  `--hairline`, padding 0.25rem 0.5rem, radius 0.125rem. Chip box height 24px or more;
+  the button around it is 44px tall or more (transparent padding), and only that box takes
+  pointer input, so pans and pinches elsewhere reach the image.
+- L9. Chip text against its own background: 4.5:1 or more (computed colors).
+
+**Placement and collision** (re-run on every viewport change, after the frame paints).
+
+- L10. The free area is the viewer box minus the rulers, minus the top bar's bottom edge,
+  minus the top edge of the lowest overlay on each side (controls, overview, readout,
+  light bar, sheet), each plus `--edge`.
+- L11. A marker whose center is outside the free area is not rendered.
+- L12. Chip placement order: right of the marker, left, above, below. The first position
+  whose chip box lies inside the free area and intersects no placed chip, marker or
+  circle wins. If none fits, the chip is hidden and its marker stays.
+- L13. Priority when chips compete: data order (core, M32, NGC 206), so the galaxy's core
+  is never the one hidden.
+- L14. Assertion at fit and at every Andromeda Journey stop viewport, both widths: no two
+  visible chips intersect, no chip intersects any element listed in S3, and every visible
+  chip is inside the free area.
+- L15. No zoom threshold: at fit on a phone the collision rule alone decides. At 1440x900
+  fit all three Andromeda chips are visible; at 390x844 fit the core chip is visible.
+- L16. Chips and markers fade in over `--dur-base`; under reduced motion they appear at once.
+
+**Description.**
+
+- L17. Activating a chip (click, tap, Enter or Space) opens a popover: the label text in
+  Title type, the description in Body type (42ch max), and a close button (44x44, "Close").
+  The chip has `aria-expanded` and `aria-controls`. One popover at a time.
+- L18. Desktop (48rem and up): the popover is anchored beside its chip using the L12 order,
+  inside the free area, intersecting no chip, marker, circle or S3 element; it never
+  covers its own marker.
+- L19. Phone (under 48rem): the popover docks with its bottom edge 0.5rem above the sheet's
+  measured top edge, spanning from the left `--edge` to the right `--edge`, and the view
+  does not move. Its own marker stays visible: if the marker would fall under the popover,
+  the image pans so the marker sits 1rem above the popover's top edge.
+- L20. Esc, the close button, a tap on the image or a second activation closes it, and
+  focus returns to the chip. Hovering opens nothing (no hover-only content, WCAG 1.4.13).
+- L21. The popover follows the theme like the other glass panels in the viewer (its
+  background equals the computed background of the view controls group).
+
+**Keyboard and text alternative.**
+
+- L22. Visible chips are buttons in the tab order after the view controls, sorted left to
+  right, then top to bottom on screen. Hidden chips are not focusable.
+- L23. About this image lists "Labeled features" with one row per label (text and
+  description). Each row has a "Show" button that turns labels on, flies to the feature
+  (centered, zoom so a radius fills a third of the shorter side, else the image's
+  existing stop zoom nearest that point) and opens its popover. This is the path to a
+  label whose chip is hidden and the text alternative for the overlay.
+
+**Copy.** Toggle name "Feature labels"; live region "Feature labels shown" / "Feature labels
+hidden"; About heading "Labeled features"; row action "Show". Label and description text
+come only from the validated data.
+
+### 14.3 F-01, kiosk mode
+
+**Entering and leaving.**
+
+- K1. `?kiosk=1` on any route turns kiosk on and stores it in `sessionStorage`, so in-app
+  navigation and reloads keep it. `?kiosk=0` turns it off. No control in the interface
+  leaves kiosk mode.
+- K2. Kiosk forces the dark theme: with a stored light preference, the computed
+  `--ground` is still `#07090D`. The theme switcher is not rendered.
+
+**No links out.**
+
+- K3. The DOM has no `a[href]` whose origin differs from the page's, no `target="_blank"`
+  and no `mailto:`/`tel:` link. Credits, sources and the NASA links render as plain text.
+- K4. Share and Fullscreen are not rendered (a kiosk runs full screen already, and a
+  copied link has nowhere to go). The `?` shortcut sheet still works for staff.
+
+**Attract loop.**
+
+- K5. With no input, the app plays Story through every published Journey in roadmap order
+  (Andromeda, then the Sun), and after the last stop of the last Journey starts again at
+  stop 1 of the first.
+- K6. Each stop dwells 8 s after its flight settles. The stop card, the credit and the
+  current stop marker are visible for the whole dwell (S2 holds on every stop).
+- K7. A chip "Touch to explore" sits bottom center above every bottom overlay (0.75rem
+  above the highest of the sheet top, the light bar and the controls), Label type at
+  1.125rem, box 56px tall or more. It pulses opacity 0.7 to 1 over 2 s; under reduced
+  motion it does not pulse, and flights become the 200 ms cut.
+- K8. Any pointerdown, touchstart, wheel or keydown stops the loop at the current stop,
+  hides the chip within `--dur-base` and leaves the visitor in Story with every control.
+  That first touch does nothing else (it does not also pan or press a button).
+
+**Large targets.**
+
+- K9. Every interactive element is 56x56px or larger (3.5rem) and has 8px or more between
+  its box and any other interactive box. Body text is 1.125rem or more.
+- K10. Nothing depends on hover: the Home loupe follows taps, and the 6.5 loupe has no
+  hover-only state in kiosk.
+- K11. Long press opens no context menu and selects no text on chrome (`contextmenu`
+  prevented, `user-select: none` outside the stop body text).
+
+**Idle reset** (testable with Playwright's `page.clock`).
+
+- K12. After 90 s with no input (outside the attract loop), the countdown sheet appears
+  with the copy in 5.8: "Still exploring? Returning to the start in 10 s." and the button
+  "Keep exploring" (56px or more tall). The seconds count down once per second.
+- K13. The countdown sits bottom center, 0.75rem above the highest bottom overlay, within
+  the S1 edges, intersects no S3 element, and takes focus on open; Keep exploring or
+  any input closes it and restarts the 90 s timer.
+- K14. At 0 s it resets: sheets and popovers close, labels off, Compare and Light state
+  cleared, the URL back to `/?kiosk=1`, and the attract loop restarts at stop 1 of the
+  first Journey. The countdown and its outcome are announced in the live region.
+
+**Viewports.** K-rules are asserted at 1440x900 and 390x844 in the dark theme, plus the K2
+check with a stored light preference; the screen in a museum is usually 1920x1080, which
+is checked once by hand at the gate.
+
+References relied on: WAI-ARIA Authoring Practices disclosure pattern,
+https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/ (chip and popover); WCAG 2.2
+target size and content on hover or focus,
+https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html and
+https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html ; the
+priority-and-collision labeling of web maps (labels drop by rank rather than overlap) as in
+MapLibre's symbol placement, https://maplibre.org/maplibre-style-spec/layers/#symbol .
+Not re-fetched for this section.
