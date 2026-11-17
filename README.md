@@ -1,39 +1,52 @@
-# NASA 2025 Solaria
+# Solaria
 
-This repository contains the solution for the 2025 NASA Space Apps Challenge, named *"Embiggen Your Eyes!"*
+Solaria is a web app for exploring very large NASA images in the browser. It began as an
+entry to the NASA Space Apps Challenge 2025 ("Embiggen Your Eyes!") and is being relaunched
+as a guided, shareable way to zoom into one giant image at a time. The plan is in
+[docs/vision.md](docs/vision.md), the design direction in [docs/design.md](docs/design.md),
+the work items in [docs/roadmap.md](docs/roadmap.md) and the checked facts about the images
+in [docs/science/](docs/science/).
 
-## Summary
+## Built today
 
-While your cell phone screen can display about three million pixels of information and your eye can receive more than ten million pixels, NASA images from space are even bigger! NASA’s space missions continue to push the boundaries of what is technologically possible, providing high-resolution images and videos of Earth, other planets, and space with billions or even trillions of pixels. Your challenge is to create a platform that allows users to zoom in and out on these massive image datasets, label known features, and discover new patterns.
+- Deep Viewer: OpenSeadragon over pre-cut tiles of the Hubble Andromeda (M31) PHAT+PHAST
+  panorama released on 2025-01-16 (42208 x 9870 px, a quarter-resolution rendition).
+- Spectral Gallery: a plain gallery of NASA images served by NASA.
+- `/api/images` and `/api/image/[id]`: image metadata, including the credit line.
+- Unit and integration tests (Vitest) and end-to-end tests (Playwright).
 
-[See full challenge description here](https://www.spaceappschallenge.org/2025/challenges/embiggen-your-eyes/)
+## Planned
 
-## Getting Started
+Journeys with story mode, a viewer page per image with shareable URLs, image manifests and
+a static export, a new visual design, and Compare and Light modes once a pair or band set
+is validated. See the roadmap for order and status.
 
-First, run the development server:
+## Run it
+
+Needs Node.js 22 or later.
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app is at [http://127.0.0.1:8434](http://127.0.0.1:8434).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Test it
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint          # ESLint
+npm run typecheck     # tsc --noEmit
+npm test              # unit and integration tests (Vitest)
+npm run test:e2e      # builds the app and runs Playwright against it
+npm run build
+```
 
-## Learn More
+The end-to-end tests install their browser once with `npx playwright install chromium`. No
+test uses the network: the end-to-end tests abort every request that is not to the local
+server. `E2E_PORT` changes the port they use (default 8434).
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+CI (`.github/workflows/ci.yml`) runs the same checks plus `npm audit --audit-level=high`.
 
 ## Authors
 

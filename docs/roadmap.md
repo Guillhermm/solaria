@@ -13,7 +13,7 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 
 | Sprint | Goal | Items | Status |
 |---|---|---|---|
-| 1 | Clean, tested base | B-01 to B-07 | doing |
+| 1 | Clean, tested base | B-01 to B-07 | done, B-02 blocked |
 | 2 | Content from manifests, static export | D-01 to D-07 | todo |
 | 3 | New visual base; R2 sync and mock data ready | V-01 to V-03, D-08, D-09 | todo |
 | 4 | Viewer as a page | X-01 to X-05 | todo |
@@ -44,7 +44,7 @@ Each item leaves the app working.
 | B-04 | Fix the Andromeda metadata (42208 x 9870 and 10552 x 2468, levels 0 to 6, released 2025-01-16) and the credit line | done | | Values match `docs/science/sources.md`, with a test |
 | B-05 | Remove the unidentified Webb pair from the slider | done | | No unlabeled pair shipped |
 | B-06 | Remove unused `react-leaflet` | done | | Not in `package.json` |
-| B-07 | Dev server on 127.0.0.1:8434 in `npm run dev`; README rewritten for the relaunch | todo | | README states what is built and links the plan |
+| B-07 | Dev server on 127.0.0.1:8434 in `npm run dev`; README rewritten for the relaunch | done | | README states what is built and links the plan |
 
 ## M2. Data pipeline
 
