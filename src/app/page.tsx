@@ -1,7 +1,6 @@
 import { Container } from "@/components/Container";
 import SectionDivider from "@/components/SectionDivider";
 import DeepViewer from "@/components/tools/DeepViewer";
-import ImageComparisonSlider from "@/components/tools/ImageComparisonSlider";
 import SpectralGallery from "@/components/tools/SpectralGallery";
 
 export default function Home() {
@@ -23,21 +22,6 @@ export default function Home() {
     },
   ];
 
-  const comparisonImages = [
-    {
-      src: "https://assets.science.nasa.gov/dynamicimage/assets/science/missions/webb/science/2025/07/STScI-01K0W69T4CK5TD4EZF8RCRRJ2Z.png",
-      alt: "Image 1",
-      title: "Before",
-      slot: "first",
-    },
-    {
-      src: "https://assets.science.nasa.gov/dynamicimage/assets/science/missions/webb/science/2025/07/STScI-01K0W7HK9320DCD8PTZQ55FKWV.png",
-      alt: "Image 2",
-      title: "After",
-      slot: "second",
-    },
-  ];
-
   return (
     <Container>
       <h1 className="mb-4">NASA 2025 Solaria</h1>
@@ -51,13 +35,7 @@ export default function Home() {
       <SectionDivider />
       <DeepViewer title="1. Deep Viewer" id="hubble-mosaic-high" />
       <SectionDivider />
-      <ImageComparisonSlider
-        title="2. Comparison Slider"
-        subtitle="Nebula Giant Cloud"
-        images={comparisonImages}
-      />
-      <SectionDivider />
-      <SpectralGallery title="3. Spectral Gallery" images={sampleImages} />
+      <SpectralGallery title="2. Spectral Gallery" images={sampleImages} />
     </Container>
   );
 }

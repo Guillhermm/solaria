@@ -11,3 +11,9 @@ test("home page renders the title", async ({ page }) => {
     "NASA 2025 Solaria"
   );
 });
+
+test("the unlabeled comparison slider is gone", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("Comparison Slider")).toHaveCount(0);
+  await expect(page.locator("img-comparison-slider")).toHaveCount(0);
+});
