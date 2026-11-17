@@ -18,7 +18,6 @@ export default function SpectralGallery({
 
   // Preload images
   useEffect(() => {
-    setLoading(true);
     const promises = images.map((img) => {
       return new Promise<void>((resolve) => {
         const i = new Image();

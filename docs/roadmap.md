@@ -13,7 +13,7 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 
 | Sprint | Goal | Items | Status |
 |---|---|---|---|
-| 1 | Clean, tested base | B-01 to B-07 | done (B-02 blocked until B-08) |
+| 1 | Clean, tested base | B-01 to B-07 | done |
 | 2 | Next 16, content from manifests, static export | B-08, B-09, D-01 to D-07 | doing |
 | 3 | New visual base; R2 sync and mock data ready | V-01 to V-03, D-08, D-09 | todo |
 | 4 | Viewer as a page | X-01 to X-05 | todo |
@@ -39,13 +39,13 @@ Each item leaves the app working.
 | ID | Item | Status | Depends | Done when |
 |---|---|---|---|---|
 | B-01 | Test setup: unit and integration runner, end-to-end runner, `npm test` | done | | One passing test of each kind; no network in the suite |
-| B-02 | CI on push: lint, type check, tests, build, `npm audit` | blocked | B-01 | Workflow green on a local run; blocked on `npm audit` (high PostCSS advisory bundled with Next 15, cleared by B-08) |
+| B-02 | CI on push: lint, type check, tests, build, `npm audit` | done | B-01 | Workflow green on a local run, including `npm audit --audit-level=high` |
 | B-03 | Remove the CSS "Infrared" and "UV" filter modes | done | | No filter mode in the app |
 | B-04 | Fix the Andromeda metadata (42208 x 9870 and 10552 x 2468, levels 0 to 6, released 2025-01-16) and the credit line | done | | Values match `docs/science/sources.md`, with a test |
 | B-05 | Remove the unidentified Webb pair from the slider | done | | No unlabeled pair shipped |
 | B-06 | Remove unused `react-leaflet` | done | | Not in `package.json` |
 | B-07 | Dev server on 127.0.0.1:8434 in `npm run dev`; README rewritten for the relaunch | done | | README states what is built and links the plan |
-| B-08 | Upgrade to Next 16 to clear the PostCSS advisory bundled with Next 15 (critical Next advisories already fixed by 15.5.29) | todo | B-02 | `npm audit --audit-level=high` clean; CI green |
+| B-08 | Upgrade to Next 16 to clear the PostCSS advisory bundled with Next 15 (critical Next advisories already fixed by 15.5.29) | done | B-02 | `npm audit --audit-level=high` clean; CI green |
 | B-09 | Remove the Spectral Gallery (its titles are not validated; Light replaces it) and the unused slider component; clear lint warnings | todo | | No unvalidated image text on the page; 0 lint warnings |
 
 ## M2. Data pipeline
