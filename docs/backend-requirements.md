@@ -1,5 +1,7 @@
 # Backend Architecture
 
+> Superseded: these are the original 2025 requirements. The current plan is in `docs/vision.md` and `docs/roadmap.md`.
+
 This repository provides the backend implementation of the **NASA 2025 Solaria** platform, a tool for exploring massive planetary and space image datasets through zoomable interfaces and basic metadata search.
 
 This `.md` file describes the **backend MVP (Minimum Viable Product)** that can be built with future-proofing considerations for advanced features like AI-powered search and temporal comparisons.
