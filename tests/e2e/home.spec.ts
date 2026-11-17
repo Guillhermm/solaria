@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page, baseURL }) => {
   // No live network: only the local server may answer.
-  await page.route(/^(?!http:\/\/127\.0\.0\.1)/, (route) => route.abort());
+  const origin = new URL(baseURL!).origin;
+  await page.route((url) => url.origin !== origin, (route) => route.abort());
 });
 
 test("home page renders the title", async ({ page }) => {

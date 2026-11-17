@@ -42,9 +42,10 @@ npm run test:e2e      # builds the app and runs Playwright against it
 npm run build
 ```
 
-The end-to-end tests install their browser once with `npx playwright install chromium`. No
-test uses the network: the end-to-end tests abort every request that is not to the local
-server. `E2E_PORT` changes the port they use (default 8434).
+Install the end-to-end browser once with `npx playwright install chromium`. No test uses
+the network: the end-to-end tests abort every browser request that is not to the local
+server, and Next.js telemetry is off during their build. `E2E_PORT` changes the port they
+use (default 8434, so set it while the dev server is running).
 
 CI (`.github/workflows/ci.yml`) runs the same checks plus `npm audit --audit-level=high`.
 

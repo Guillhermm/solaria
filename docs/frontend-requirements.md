@@ -2,7 +2,7 @@
 
 > Superseded: these are the original 2025 requirements. The current plan is in `docs/vision.md` and `docs/roadmap.md`.
 
-This document outlines the **front-end requirements** for the **Solaria** platform — a web-based application for exploring NASA’s massive image datasets.
+This document outlines the **front-end requirements** for the **Solaria** platform, a web-based application for exploring NASA’s massive image datasets.
 
 ---
 
