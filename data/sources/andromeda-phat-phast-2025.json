@@ -1,0 +1,27 @@
+{
+  "id": "andromeda-phat-phast-2025",
+  "title": "Hubble M31 PHAT+PHAST mosaic (quarter resolution)",
+  "pageUrl": "https://science.nasa.gov/asset/hubble/hubble-m31-phatphast-mosaic/",
+  "fileUrl": "https://assets.science.nasa.gov/content/dam/science/missions/hubble/releases/2025/01/STScI-01JGY8ZEDHYMGM99RF1RQ45YWY.tif",
+  "releaseId": "heic2501a",
+  "releasedAt": "2025-01-16",
+  "credit": "NASA, ESA, Benjamin Williams (UWashington), Zhuo Chen (UWashington), L. Clifton Johnson (Northwestern); Image Processing: Joseph DePasquale (STScI)",
+  "terms": {
+    "name": "NASA media guidelines (the ESA copy is CC BY 4.0)",
+    "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/"
+  },
+  "retrievedAt": "2026-11-17",
+  "file": {
+    "format": "tif",
+    "bytes": 1041048470,
+    "sha256": "2c902aca5cf2849b80e0b5ffe7aa4b0258ea2e1464c9ac9c5e3a3d877ead2cf3",
+    "width": 42208,
+    "height": 9870
+  },
+  "validation": {
+    "status": "approved",
+    "date": "2026-11-17",
+    "notes": "Science review accepted with caveats: docs/science/andromeda.md. Size, credit and terms from docs/science/sources.md section 1; sha256 and TIFF dimensions computed from the downloaded file."
+  },
+  "mock": false
+}
