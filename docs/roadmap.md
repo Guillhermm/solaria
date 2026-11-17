@@ -146,7 +146,7 @@ C-05 waits for R2: the Webb frame is about 2,566 tiles and 110 MB (estimated), t
 
 | ID | Item | Status |
 |---|---|---|
-| F-01 | Kiosk mode: attract loop, idle reset, no links out | todo |
+| F-01 | Kiosk mode: attract loop, idle reset, no links out | done |
 | F-02 | Detail of the week, rotated at build time | todo |
 | F-03 | Labeled features on images, each label validated | done |
 | F-04 | Search by feature name, then by coordinates | todo |

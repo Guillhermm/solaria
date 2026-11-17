@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   type CSSProperties,
   type KeyboardEvent,
@@ -49,6 +50,8 @@ import { dividerValueText } from "@/viewer/divider";
 import { reticleSide } from "@/viewer/route";
 import { type Bounds, flightPlan, parseStop, stepStop, stopNumber, stopOf, stopTarget, storySearch, viewBounds, zoomSpan } from "@/viewer/story";
 import { formatInt, formatZoom, homeView, osdFromView, type Size, viewFromOsd } from "@/viewer/view";
+import { DWELL_MS, storySearch1 } from "@/kiosk/kiosk";
+import { useAttract, useKiosk } from "@/kiosk/useKiosk";
 import { labelView, parseLabelsParam } from "@/viewer/labels";
 import { drawRuler } from "./drawRuler";
 import FeatureLabels, { type LabelPainter } from "./FeatureLabels";
@@ -67,6 +70,7 @@ interface ExploreProps {
   bandSets?: LightView[]; // Light band sets this image opens, the default first
   labels?: FeatureLabel[]; // validated feature labels of this image (design.md 14.2)
   labelStops?: Stop[]; // the stops of the Journeys on this image: Show takes the nearest one's zoom
+  nextJourney?: string; // kiosk attract loop: the Journey that follows this one (design.md 14.3, K5)
 }
 
 interface Camera {
@@ -180,7 +184,7 @@ const NO_LABELS: FeatureLabel[] = [];
 const NO_STOPS: Stop[] = [];
 const BLINK_MS = 800;
 
-const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets = NO_SETS, labels = NO_LABELS, labelStops = NO_STOPS }: ExploreProps) => {
+const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets = NO_SETS, labels = NO_LABELS, labelStops = NO_STOPS, nextJourney }: ExploreProps) => {
   const rootRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
@@ -282,6 +286,11 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   const [openLabel, setOpenLabel] = useState<string | null>(null);
   const [viewerReady, setViewerReady] = useState(false);
   const painterRef = useRef<LabelPainter | null>(null);
+  const kiosk = useKiosk();
+  const attract = useAttract();
+  const router = useRouter();
+  // The attract loop's dwell starts when a stop's flight settles (K6).
+  const landedRef = useRef<() => void>(() => {});
   const labelsMode = labels.length > 0 && (mode === "explore" || mode === "light");
   const labelsShown = labelsMode && labelsOn && viewerReady;
 
@@ -465,6 +474,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       let afterFlight: (() => void) | null = null;
       let fitted = false;
       let flying = false;
+      let started = false;
       const springs = () => {
         const vp = opened.viewport as unknown as Record<"centerSpringX" | "centerSpringY" | "zoomSpring", { animationTime: number }>;
         return [vp.centerSpringX, vp.centerSpringY, vp.zoomSpring];
@@ -496,13 +506,29 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           fitImageBounds(viewBounds(view, size, px), 0);
           host.animate([{ opacity: 0.2 }, { opacity: 1 }], { duration: 200, easing: "ease-out" });
           afterFlight = null;
-          if (done) requestAnimationFrame(done);
+          flying = false;
+          requestAnimationFrame(() => {
+            done?.();
+            landedRef.current();
+          });
           return;
         }
         const from = { x: b.x * width, y: b.y * width, width: b.width * width, height: b.height * width };
         const [first, second] = flightPlan(from, settledView(opened, size).z, view, size, px, span);
+        started = false;
         fitImageBounds(first.bounds, first.ms);
         if (second) nextLeg = () => fitImageBounds(second.bounds, second.ms);
+        // A stop that keeps the view (a band change only) has no flight to finish.
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            if (started || !flying) return;
+            flying = false;
+            const finish = afterFlight;
+            afterFlight = null;
+            finish?.();
+            landedRef.current();
+          }),
+        );
       };
       const syncMargins = () => {
         const next = measureMargins();
@@ -607,6 +633,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         syncMargins();
         if (journey && asked === "story") {
           fitImageBounds(viewBounds(journey.stops[parseStop(window.location.search, journey.stops.length)].viewport, size, viewerPx()), 0);
+          requestAnimationFrame(() => landedRef.current());
         } else if (view) {
           const vp = opened.viewport;
           const target = osdFromView(view, vp.getHomeZoom(), { width, height });
@@ -622,6 +649,9 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         // design.md 5.8: Compare is hidden where the drawer cannot rotate an image.
         if (pairs.length || bandSets.length) setOpened({ OSD, viewer: opened, margins: () => margins, rotates: opened.drawer.canRotate() });
       });
+      opened.addHandler("animation-start", () => {
+        started = true;
+      });
       opened.addHandler("animation-finish", () => {
         if (nextLeg) {
           const leg = nextLeg;
@@ -629,10 +659,12 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           leg();
           return;
         }
+        const wasFlying = flying;
         flying = false;
         const done = afterFlight;
         afterFlight = null;
         done?.();
+        if (wasFlying) landedRef.current();
         // design.md 7.1: in Explore the URL follows the view 400 ms after it settles; in Story
         // it holds the stop.
         clearTimeout(urlTimer);
@@ -935,6 +967,27 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     },
     [journey, stop, announce, bandForStop],
   );
+
+  // K5 and K6: in the attract loop each stop dwells once its flight lands, then the next one
+  // flies in; the last stop hands over to the next Journey.
+  useEffect(() => {
+    if (!attract || !story || !journey) {
+      landedRef.current = () => {};
+      return;
+    }
+    let timer = 0;
+    landedRef.current = () => {
+      clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (stop < journey.stops.length - 1) goTo(stop + 1);
+        else router.push(storySearch1(nextJourney ?? journey.slug));
+      }, DWELL_MS);
+    };
+    return () => {
+      clearTimeout(timer);
+      landedRef.current = () => {};
+    };
+  }, [attract, story, journey, stop, goTo, router, nextJourney]);
 
   const resume = useCallback(() => {
     if (!journey) return;
@@ -1267,9 +1320,12 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
             <LuInfo aria-hidden />
             About this image
           </button>
-          <button type="button" className={styles.iconButton} onClick={share} aria-label="Share this view">
-            <LuShare aria-hidden />
-          </button>
+          {/* K4: a kiosk runs full screen already, and a copied link has nowhere to go. */}
+          {!kiosk && (
+            <button type="button" className={styles.iconButton} onClick={share} aria-label="Share this view">
+              <LuShare aria-hidden />
+            </button>
+          )}
           <ThemeSwitcher />
         </div>
       </header>
@@ -1433,7 +1489,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           <button type="button" className={styles.iconButton} onClick={reset} aria-label="Reset view">
             <LuRotateCcw aria-hidden />
           </button>
-          {canFullscreen && (
+          {canFullscreen && !kiosk && (
             <button
               type="button"
               className={styles.iconButton}

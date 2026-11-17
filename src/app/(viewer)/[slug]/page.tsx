@@ -80,6 +80,7 @@ const ViewerPage = async ({ params }: Params) => {
       bandSets={bandSets}
       labels={labels}
       labelStops={labelStops}
+      nextJourney={journey ? content.journeys[(content.journeys.indexOf(journey) + 1) % content.journeys.length].slug : undefined}
     />
   );
 };

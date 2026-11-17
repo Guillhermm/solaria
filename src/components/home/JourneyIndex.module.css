@@ -182,3 +182,8 @@
     min-width: 12rem;
   }
 }
+
+/* Kiosk (design.md 14.3, K9). */
+:global(:root[data-kiosk]) .summary {
+  font-size: 1.125rem;
+}

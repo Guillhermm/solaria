@@ -26,7 +26,10 @@ const runBoot = () => new Function(bootScript)();
 
 beforeEach(() => {
   delete document.documentElement.dataset.theme;
+  document.documentElement.removeAttribute("data-kiosk");
   localStorage.clear();
+  sessionStorage.clear();
+  window.history.replaceState(null, "", "/");
 });
 
 afterEach(() => vi.unstubAllGlobals());
@@ -104,5 +107,38 @@ describe("theme helpers", () => {
     await Promise.resolve();
     expect(onChange).toHaveBeenCalledTimes(1);
     stop();
+  });
+});
+
+describe("theme-init.js in kiosk mode (design.md 14.3, K1 and K2)", () => {
+  it("turns kiosk on from ?kiosk=1, starts the attract loop and forces dark over a stored light", () => {
+    fakeMedia(true);
+    localStorage.setItem("theme", "light");
+    window.history.replaceState(null, "", "/?kiosk=1");
+    runBoot();
+    expect(document.documentElement.hasAttribute("data-kiosk")).toBe(true);
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(sessionStorage.getItem("solaria:kiosk")).toBe("1");
+    expect(sessionStorage.getItem("solaria:attract")).toBe("1");
+  });
+
+  it("keeps kiosk on a later page of the session, without restarting the loop", () => {
+    fakeMedia(false);
+    sessionStorage.setItem("solaria:kiosk", "1");
+    window.history.replaceState(null, "", "/about/");
+    runBoot();
+    expect(document.documentElement.hasAttribute("data-kiosk")).toBe(true);
+    expect(sessionStorage.getItem("solaria:attract")).toBeNull();
+  });
+
+  it("ends kiosk with ?kiosk=0", () => {
+    fakeMedia(true);
+    sessionStorage.setItem("solaria:kiosk", "1");
+    sessionStorage.setItem("solaria:attract", "1");
+    window.history.replaceState(null, "", "/?kiosk=0");
+    runBoot();
+    expect(document.documentElement.hasAttribute("data-kiosk")).toBe(false);
+    expect(document.documentElement.dataset.theme).toBe("light");
+    expect(sessionStorage.length).toBe(0);
   });
 });

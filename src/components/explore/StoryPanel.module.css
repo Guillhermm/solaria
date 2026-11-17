@@ -434,3 +434,27 @@
     display: none;
   }
 }
+
+/* Kiosk (design.md 14.3, K9): 3.5rem targets with 0.5rem between them, 1.125rem stop text. */
+:global(:root[data-kiosk]) .brand,
+:global(:root[data-kiosk]) .nav {
+  gap: var(--space-2);
+}
+
+:global(:root[data-kiosk]) .stops {
+  display: grid;
+  gap: var(--space-2);
+}
+
+:global(:root[data-kiosk]) .back,
+:global(:root[data-kiosk]) .next {
+  min-height: 3.5rem;
+}
+
+:global(:root[data-kiosk]) .back {
+  width: 3.5rem;
+}
+
+:global(:root[data-kiosk]) .body p {
+  font-size: 1.125rem;
+}

@@ -679,3 +679,17 @@
     border-color: CanvasText;
   }
 }
+
+/* Kiosk (design.md 14.3, K9). */
+:global(:root[data-kiosk]) .primary,
+:global(:root[data-kiosk]) .secondary {
+  min-height: 3.5rem;
+}
+
+:global(:root[data-kiosk]) .actions {
+  gap: var(--space-2);
+}
+
+:global(:root[data-kiosk]) .promise {
+  font-size: 1.125rem;
+}

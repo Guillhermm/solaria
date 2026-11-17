@@ -88,6 +88,11 @@ in [docs/science/](docs/science/).
   the validated labels of `data/labels/` on the image, as rings or measured circles with
   chips placed clear of the controls; a chip opens its description, and About this image
   lists every label with a Show button. `labels=1` in the URL keeps them on.
+- Kiosk mode, awaiting the maintainers' sign-off and not linked from the app: `?kiosk=1` on
+  any page turns it on for the browser session (`?kiosk=0` ends it). It is always dark, shows
+  no link that leaves the app, no Share, Fullscreen or theme toggle, uses 3.5rem targets,
+  plays every Journey's Story in a loop until the first touch, and after 90 s without input
+  counts down 10 s and starts over at Home.
 - Unit and integration tests (Vitest) and end-to-end tests (Playwright). The end-to-end suite
   also runs axe-core on Home and About and measures LCP, CLS and interaction latency on a
   throttled phone profile (`tests/e2e/quality.spec.ts`; results in `docs/design.md` section 9).

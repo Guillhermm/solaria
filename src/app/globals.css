@@ -44,3 +44,23 @@ a {
     outline-color: Highlight;
   }
 }
+
+/* Kiosk (design.md 14.3): 3.5rem targets, 1.125rem body text, and no text selection or
+   long-press menu on chrome; the stop text stays selectable. */
+:root[data-kiosk] {
+  --target: 3.5rem;
+  --text-body: 1.125rem;
+}
+
+:root[data-kiosk] body,
+:root[data-kiosk] body * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+:root[data-kiosk] body [data-stop-body],
+:root[data-kiosk] body [data-stop-body] * {
+  -webkit-user-select: text;
+  user-select: text;
+}

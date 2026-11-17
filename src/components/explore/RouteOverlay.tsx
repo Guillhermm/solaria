@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Stop } from "@/content/types";
+import { useKiosk } from "@/kiosk/useKiosk";
 import { bracketPath, polyline, routeMarks, splitRoute, tagPlacement } from "@/viewer/route";
 import { stopNumber } from "@/viewer/story";
 import type { Size } from "@/viewer/view";
@@ -23,6 +24,7 @@ const remPx = () => parseFloat(getComputedStyle(document.documentElement).fontSi
 // one screen size on any shape (design.md 6.4).
 const RouteOverlay = ({ stops, image, current, onGo }: RouteOverlayProps) => {
   const ref = useRef<HTMLDivElement>(null);
+  const kiosk = useKiosk();
   const [drawn, setDrawn] = useState<(Size & { rem: number }) | null>(null);
 
   useEffect(() => {
@@ -58,7 +60,9 @@ const RouteOverlay = ({ stops, image, current, onGo }: RouteOverlayProps) => {
   const lastLeg = travelled.slice(-2);
 
   return (
-    <div ref={ref} className={styles.overlay} data-testid="route">
+    // K9: in a kiosk the route marks are too close for 3.5rem targets; the stop list and Next
+    // do their job there.
+    <div ref={ref} className={styles.overlay} data-testid="route" inert={kiosk || undefined}>
       {drawn && (
         <>
           <svg className={styles.lines} width={drawn.width} height={drawn.height} aria-hidden>

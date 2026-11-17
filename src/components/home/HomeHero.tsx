@@ -3,11 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { preload } from "react-dom";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import { LuArrowRight } from "react-icons/lu";
 import { levelSize, posterLevel } from "@/content/pyramid";
 import type { Stop, TilePyramid } from "@/content/types";
 import { tileUrl } from "@/content/tiles";
+import { useKiosk } from "@/kiosk/useKiosk";
 import { aimableStops, fieldBox, lensAnnouncement, lensField, lensTicks, lensTiles, splitLeader, stepAim, wholeStopsNote } from "@/home/lens";
 import { bracketPath } from "@/viewer/route";
 import { rulerTicks } from "@/viewer/ruler";
@@ -57,6 +58,13 @@ const Bracket = () => (
   </svg>
 );
 
+const NARROW = "(max-width: 40rem)";
+const subscribeNarrow = (onChange: () => void) => {
+  const list = window.matchMedia(NARROW);
+  list.addEventListener("change", onChange);
+  return () => list.removeEventListener("change", onChange);
+};
+
 const HomeHero = ({ eyebrow, journeySlug, stops, image, tileBaseUrl, credit }: HomeHeroProps) => {
   const poster = posterFor(tileBaseUrl, image.id, image.tiles);
   preload(poster.src, { as: "image", imageSrcSet: poster.srcSet, imageSizes: POSTER_SIZES, fetchPriority: "high" });
@@ -80,6 +88,12 @@ const HomeHero = ({ eyebrow, journeySlug, stops, image, tileBaseUrl, credit }: H
   const markRefs = useRef(new Map<number, HTMLAnchorElement>());
   const returnTimer = useRef<number | undefined>(undefined);
   const announceTimer = useRef<number | undefined>(undefined);
+  // K10: in a kiosk the first tap on a stop aims the lens there; the next one opens it.
+  const kiosk = useKiosk();
+  const aimedOnPress = useRef(true);
+  // K9: on a phone-wide kiosk the stops crowd closer than 3.5rem targets allow, so the strip only
+  // shows them; the lens and Begin the journey remain.
+  const narrow = useSyncExternalStore(subscribeNarrow, () => window.matchMedia(NARROW).matches, () => false);
 
   const field = lensField(stops[aim], image);
   const box = fieldBox(field, image);
@@ -271,7 +285,12 @@ const HomeHero = ({ eyebrow, journeySlug, stops, image, tileBaseUrl, credit }: H
                 data-flip={u > 0.92 || undefined}
                 tabIndex={index === aim ? 0 : -1}
                 aria-label={`Open stop ${stopNumber(index)}`}
-                onMouseEnter={() => aimAt(index)}
+                onMouseEnter={kiosk ? undefined : () => aimAt(index)}
+                inert={(kiosk && narrow) || undefined}
+                onPointerDown={() => (aimedOnPress.current = index === aim)}
+                onClick={(e) => {
+                  if (kiosk && !aimedOnPress.current) e.preventDefault();
+                }}
                 onFocus={() => aimAt(index)}
                 onKeyDown={(e) => onMarkKey(e, index)}
               >

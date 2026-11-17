@@ -79,3 +79,8 @@
     margin-inline-start: 0;
   }
 }
+
+/* Kiosk (design.md 14.3, K9): 0.5rem between targets. */
+:global(:root[data-kiosk]) .links {
+  gap: var(--space-2);
+}

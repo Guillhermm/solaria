@@ -1,6 +1,7 @@
 import type { Ref } from "react";
 import type { FeatureLabel } from "@/content/types";
-import { LuArrowUpRight, LuX } from "react-icons/lu";
+import { LuX } from "react-icons/lu";
+import OutLink from "@/components/OutLink";
 import type { Info } from "@/viewer/info";
 import styles from "./InfoPanel.module.css";
 
@@ -78,11 +79,9 @@ const InfoPanel = ({ id, info, onClose, titleRef, labels = [], onShowLabel }: In
         </ul>
       </section>
     )}
-    <a className={styles.source} href={info.sourceUrl} target="_blank" rel="noopener noreferrer">
+    <OutLink className={styles.source} href={info.sourceUrl} hiddenClassName={styles.hidden} icon plain={info.sourceUrl}>
       Source page
-      <LuArrowUpRight aria-hidden />
-      <span className={styles.hidden}>(opens in a new tab)</span>
-    </a>
+    </OutLink>
   </div>
 );
 

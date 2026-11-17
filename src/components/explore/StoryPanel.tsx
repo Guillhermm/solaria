@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { type PointerEvent, useRef } from "react";
-import { LuArrowLeft, LuArrowRight, LuArrowUpRight } from "react-icons/lu";
+import { LuArrowLeft, LuArrowRight } from "react-icons/lu";
+import OutLink from "@/components/OutLink";
 import type { Journey } from "@/content/types";
 import { paragraphs, stopNumber } from "@/viewer/story";
 import styles from "./StoryPanel.module.css";
@@ -93,7 +94,7 @@ const StoryPanel = ({ journey, index, seen, mission, onGo, onExplore, collapsed 
                     <span className={styles.number}>{stopNumber(i)}</span>
                     {stop.title}
                   </h2>
-                  <div className={styles.body}>
+                  <div className={styles.body} data-stop-body>
                     {paragraphs(stop.body).map((p) => (
                       <p key={p}>{p}</p>
                     ))}
@@ -101,11 +102,9 @@ const StoryPanel = ({ journey, index, seen, mission, onGo, onExplore, collapsed 
                   <ul className={styles.sources} aria-label="Sources">
                     {stop.sources.map((source) => (
                       <li key={source.url}>
-                        <a href={source.url} target="_blank" rel="noopener noreferrer">
+                        <OutLink href={source.url} hiddenClassName={styles.hidden} icon>
                           {source.label}
-                          <LuArrowUpRight aria-hidden />
-                          <span className={styles.hidden}> (opens in a new tab)</span>
-                        </a>
+                        </OutLink>
                       </li>
                     ))}
                   </ul>

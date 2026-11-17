@@ -909,6 +909,17 @@ come only from the validated data.
   cleared, the URL back to `/?kiosk=1`, and the attract loop restarts at stop 1 of the
   first Journey. The countdown and its outcome are announced in the live region.
 
+**As built (Sprint 9).** The flag and the forced dark theme are set before the first paint
+by `public/theme-init.js`. Home in the loop dwells 8 s, then opens stop 1 of the first
+Journey; the reset returns to `/?kiosk=1` the same way. A passing pointer (no press) keeps
+the visitor's session alive but never ends the loop. On a phone the zoom buttons step aside while
+the countdown is open, as they do for a docked label description. The countdown announces its copy once
+when it opens, and "Returning to the start." at the reset; the sheet's own number updates
+silently. To meet K9, the overview's route marks and, below 40rem, Home's strip stops are
+inert in a kiosk (the stop list, Next and the lens remain); K10 therefore holds on wide
+screens only. There is no `?` shortcut sheet in the app yet, so K4's last sentence has
+nothing to keep.
+
 **Viewports.** K-rules are asserted at 1440x900 and 390x844 in the dark theme, plus the K2
 check with a stored light preference; the screen in a museum is usually 1920x1080, which
 is checked once by hand at the gate.

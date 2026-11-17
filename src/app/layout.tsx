@@ -2,6 +2,8 @@ import React from "react";
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
+import Kiosk from "@/components/kiosk/Kiosk";
+import { getContent } from "@/content/load";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,7 +19,11 @@ const RootLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
       {/* eslint-disable-next-line @next/next/no-sync-scripts */}
       <script src="/theme-init.js" />
     </head>
-    <body>{children}</body>
+    <body>
+      {children}
+      {/* Renders nothing unless ?kiosk=1 started kiosk mode; the attract loop follows Home's order. */}
+      <Kiosk journeys={getContent().journeys.map((j) => j.slug)} />
+    </body>
   </html>
 );
 

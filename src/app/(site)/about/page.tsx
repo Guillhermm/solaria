@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import OutLink from "@/components/OutLink";
 import { getContent } from "@/content/load";
 import { formatInt } from "@/viewer/view";
 import styles from "./page.module.css";
@@ -10,10 +11,9 @@ const REPO = "https://github.com/Guillhermm/nasa-2025-solaria";
 const TEAM = "https://www.spaceappschallenge.org/2025/find-a-team/solaria4/";
 
 const External = ({ href, children }: { href: string; children: ReactNode }) => (
-  <a href={href} target="_blank" rel="noopener noreferrer">
+  <OutLink href={href} hiddenClassName={styles.hidden}>
     {children}
-    <span className={styles.hidden}> (opens in a new tab)</span>
-  </a>
+  </OutLink>
 );
 
 // Every credit field is copied from data/sources at build time and shown as the record has it.

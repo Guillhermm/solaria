@@ -62,3 +62,8 @@
     border-color: CanvasText;
   }
 }
+
+/* Kiosk (design.md 14.3, K9): 0.5rem between targets. */
+:global(:root[data-kiosk]) .nav {
+  gap: var(--space-2);
+}

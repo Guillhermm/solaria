@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LuArrowUpRight } from "react-icons/lu";
+import OutLink from "@/components/OutLink";
 import { getContent } from "@/content/load";
 import styles from "./Footer.module.css";
 
@@ -44,11 +44,9 @@ const Footer = () => (
         </Link>
       ))}
       {external.map(({ href, label }) => (
-        <a key={href} href={href} target="_blank" rel="noopener noreferrer">
+        <OutLink key={href} href={href} hiddenClassName={styles.hidden} icon>
           {label}
-          <LuArrowUpRight aria-hidden />
-          <span className={styles.hidden}>(opens in a new tab)</span>
-        </a>
+        </OutLink>
       ))}
     </nav>
   </footer>

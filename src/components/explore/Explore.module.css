@@ -1133,3 +1133,35 @@
   font-family: var(--font-mono);
   text-transform: uppercase;
 }
+
+/* Kiosk (design.md 14.3, K9): 3.5rem targets with 0.5rem between them. */
+:global(:root[data-kiosk]) .modes {
+  gap: var(--space-2);
+}
+
+:global(:root[data-kiosk]) .modes button {
+  min-height: 3.5rem;
+  min-width: 3.5rem;
+}
+
+:global(:root[data-kiosk]) .bar,
+:global(:root[data-kiosk]) .grip {
+  gap: var(--space-2);
+}
+
+:global(:root[data-kiosk]) .controls {
+  gap: var(--space-2);
+}
+
+:global(:root[data-kiosk]) .sheetCredit {
+  min-height: 3.5rem;
+  margin-top: var(--space-2);
+}
+
+/* K13 and S3 on a phone: the countdown docks above the sheet, where the zoom buttons float;
+   they step aside for its ten seconds. */
+@media (max-width: 40rem) {
+  :global(:root[data-kiosk-countdown]) .controls {
+    display: none;
+  }
+}
