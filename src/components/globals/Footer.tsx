@@ -1,11 +1,17 @@
+import Link from "next/link";
 import { LuArrowUpRight } from "react-icons/lu";
 import { getContent } from "@/content/load";
 import styles from "./Footer.module.css";
 
-const links = [
-  { href: "https://www.spaceappschallenge.org/2025/find-a-team/solaria4/", label: "Team" },
-  { href: "https://www.spaceappschallenge.org/2025/challenges/embiggen-your-eyes/", label: "Challenge" },
+const pages = [
+  { href: "/about/", label: "About" },
+  { href: "/about/#credits", label: "Sources and credits" },
+  { href: "/about/#accessibility", label: "Accessibility" },
+];
+
+const external = [
   { href: "https://github.com/Guillhermm/nasa-2025-solaria", label: "Source code" },
+  { href: "https://www.spaceappschallenge.org/2025/find-a-team/solaria4/", label: "Space Apps entry" },
 ];
 
 // Credit lines come unaltered from the validated source records (data/sources).
@@ -25,9 +31,15 @@ const Footer = () => (
           {title}: {credit}
         </p>
       ))}
+      <p className={styles.note}>Solaria is an independent project. It is not endorsed by NASA or ESA.</p>
     </div>
     <nav aria-label="Footer" className={styles.links}>
-      {links.map(({ href, label }) => (
+      {pages.map(({ href, label }) => (
+        <Link key={href} href={href}>
+          {label}
+        </Link>
+      ))}
+      {external.map(({ href, label }) => (
         <a key={href} href={href} target="_blank" rel="noopener noreferrer">
           {label}
           <LuArrowUpRight aria-hidden />

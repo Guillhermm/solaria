@@ -96,7 +96,7 @@ S-04 decision (2026-11-17): tiling the half-resolution file gives about 34,400 t
 | ID | Item | Status | Depends | Done when |
 |---|---|---|---|---|
 | L-01 | Home: live zoom hero with a poster image, Journey cards | done | S-03 | Matches mockup; hero respects reduced motion |
-| L-02 | About: what Solaria is, credits and terms per source, accessibility statement | todo | D-02 | Credits copied unaltered |
+| L-02 | About: what Solaria is, credits and terms per source, accessibility statement | done | D-02 | Credits copied unaltered |
 | L-03 | Choose host (GitHub Pages or Vercel) and analytics | todo | | Decision recorded; GitHub Pages cannot set headers, so CSP goes in a meta tag there |
 | L-04 | Security headers, deploy workflow, domain solaria.zenus.systems | todo | L-03 | Headers checked on the live site |
 | L-05 | Performance and accessibility pass on a mid-range phone | todo | L-01 | Targets in `docs/design.md` section 9 met |

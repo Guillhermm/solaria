@@ -20,15 +20,28 @@ test("the footer prints the credit line unaltered from the source record", async
   await expect(page.getByRole("contentinfo")).toContainText(source.credit);
 });
 
-test("footer links open outside the app and say so", async ({ page }) => {
+test("the footer links About, credits and accessibility, and says which links leave the app", async ({ page }) => {
   await page.goto("/");
-  const links = page.getByRole("navigation", { name: "Footer" }).getByRole("link");
-  await expect(links).toHaveCount(3);
-  for (const link of await links.all()) {
-    await expect(link).toHaveAttribute("target", "_blank");
+  const footer = page.getByRole("navigation", { name: "Footer" });
+  await expect(footer.getByRole("link", { name: "About", exact: true })).toHaveAttribute("href", "/about/");
+  await expect(footer.getByRole("link", { name: "Sources and credits" })).toHaveAttribute("href", "/about/#credits");
+  await expect(footer.getByRole("link", { name: "Accessibility" })).toHaveAttribute("href", "/about/#accessibility");
+  const outside = footer.locator('a[target="_blank"]');
+  await expect(outside).toHaveCount(2);
+  for (const link of await outside.all()) {
     await expect(link).toHaveAttribute("rel", "noopener noreferrer");
     await expect(link).toHaveAccessibleName(/\(opens in a new tab\)$/);
   }
+  await expect(page.getByRole("contentinfo")).toContainText("Solaria is an independent project. It is not endorsed by NASA or ESA.");
+});
+
+test("the header links the Journeys index and About", async ({ page }) => {
+  await page.goto("/about/");
+  const nav = page.getByRole("navigation", { name: "Main" });
+  await expect(nav.getByRole("link", { name: "About" })).toHaveAttribute("href", "/about/");
+  await nav.getByRole("link", { name: "Journeys" }).click();
+  await expect(page).toHaveURL(/\/#journeys$/);
+  await expect(page.getByRole("heading", { name: "Journeys", level: 2 })).toBeInViewport();
 });
 
 test("header and footer controls meet the 2.75rem target and fit a phone", async ({ page }) => {

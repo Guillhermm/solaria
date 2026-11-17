@@ -10,6 +10,7 @@ const Header = () => (
     </Link>
     <nav aria-label="Main" className={styles.nav}>
       <Link href="/#journeys">Journeys</Link>
+      <Link href="/about/">About</Link>
       <ThemeSwitcher />
     </nav>
   </header>

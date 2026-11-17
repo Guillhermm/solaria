@@ -70,6 +70,11 @@ in [docs/science/](docs/science/).
   lens (arrow keys move between stops), and a click, tap or Enter opens the Journey there.
   Below it, the Journeys index lists each published Journey from `data/journeys`. The poster
   is the `preview.jpg` that `generate-tiles` writes.
+- About at `/about/`: what Solaria is, who made it, how images are prepared, each source's
+  credit and terms copied from `data/sources` at build time, an accessibility statement
+  limited to what is built and tested, and contact links. The header links Journeys and
+  About; the footer links About, its credits and accessibility sections, and states that
+  Solaria is not endorsed by NASA or ESA.
 - Unit and integration tests (Vitest) and end-to-end tests (Playwright).
 
 ## Planned

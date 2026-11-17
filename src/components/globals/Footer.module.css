@@ -21,6 +21,10 @@
   color: var(--text-muted);
 }
 
+.credits .note {
+  margin-top: var(--space-3);
+}
+
 .links {
   display: flex;
   flex-wrap: wrap;

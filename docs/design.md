@@ -8,7 +8,8 @@ viewer (X-01 to X-05), Story mode with the Andromeda Journey (S-01, 5.3, 5.4, 7.
 (L-01: 5.1, 5.2, 6.5). Home follows the content where the mockup differs: one published
 Journey with seven stops, no filter chips or planned rows, and the lens aimed at stop 02 with
 the stop's own zoom. The Home drift on phones is not built: the phone hero is the poster strip.
-Until the About page exists, the footer links to the team, the challenge and the code.
+About (L-02) is built at `/about/`; the header links Journeys and About, and the footer links
+About, Sources and credits, Accessibility, the code and the Space Apps entry.
 Date: 2026-11-17. Target: solaria.zenus.systems.
 
 ## 1. Where we start (read from the repo)
