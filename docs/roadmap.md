@@ -20,7 +20,11 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 | 5 | Story mode and the Andromeda Journey | S-01 to S-04 | done |
 | 6 | Home and About, launch-ready | L-01, L-02, L-05 | done |
 | 7 | Compare | C-01 to C-04 (C-05 waits for R2) | done |
-| 8 | Light | G-01 to G-04 | doing |
+| 8 | Light | G-01 to G-04 | done |
+| 9 | Labeled features, kiosk, test hardening | F-03, F-01, T-01 | doing |
+| 10 | Search and detail of the week | F-04, F-02 | todo |
+| 11 | Mars Journey | F-05 | todo |
+| 12 | Brazilian Portuguese | F-06 | todo |
 
 Waiting on the maintainer: host and analytics (L-03), deploy and domain (L-04, L-06), and
 the R2 bucket and its credentials (R-01, R-02).
@@ -148,3 +152,4 @@ C-05 waits for R2: the Webb frame is about 2,566 tiles and 110 MB (estimated), t
 | F-04 | Search by feature name, then by coordinates | todo |
 | F-05 | Mars Journey from HiRISE orthorectified pairs only | todo |
 | F-06 | Brazilian Portuguese | todo |
+| T-01 | Fix the two intermittent e2e failures (tile-outage retry toast, story cut) | todo |
