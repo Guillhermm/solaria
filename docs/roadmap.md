@@ -26,7 +26,7 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 | 11 | Mars Journey, installable app, smooth zoom | F-05, F-07, T-02, T-03 | done |
 | 12 | Tiles out of git, weekly rebuild, Pillars Journey with Webb | R-03, W-01, C-05 (H-01 blocked) | done, R-03 awaits its first CI run |
 
-Deferred on 2026-11-17, not needed for now: analytics (L-08), sky coordinates in search (F-09)
+Deferred on 2026-11-17, not needed for now: sky coordinates in search (F-09)
 and offline support (F-08).
 
 Still open: the first CI run of the tile build (R-03), which also puts the Webb tiles of the
@@ -109,7 +109,7 @@ S-04 decision (2026-11-17): tiling the half-resolution file gives about 34,400 t
 | L-04 | Security headers, deploy, domain solaria.zenus.systems | done | L-03 | Headers in `vercel.json` (`docs/architecture.md`); site live on the domain |
 | L-05 | Performance and accessibility pass on a mid-range phone | done | L-01 | Targets in `docs/design.md` section 9 met |
 | L-06 | Launch | done | L-01 to L-05 | Site live at https://solaria.zenus.systems |
-| L-08 | Analytics: choose a tool and add it without breaking the CSP or the kiosk's no-links rule | deferred | L-04 | Decision recorded; counts visible; CSP still passes |
+| L-08 | Analytics: choose a tool and add it without breaking the CSP or the kiosk's no-links rule | done | L-04 | Vercel Web Analytics, decided 2026-11-18; see `docs/architecture.md` Security headers |
 | L-07 | SEO: robots.txt, sitemap, canonical URLs, Open Graph and Twitter cards, Search Console verification | done | L-01, L-02 | Files and head tags present in the static export |
 
 L-07 (2026-11-17, owner Guilherme): `docs/architecture.md` section 16 describes what is built.

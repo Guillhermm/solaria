@@ -2,7 +2,9 @@ import React from "react";
 import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
+import { analyticsEnabled } from "@/analytics/analytics";
 import Kiosk from "@/components/kiosk/Kiosk";
+import SiteAnalytics from "@/components/SiteAnalytics";
 import { getContent } from "@/content/load";
 import { journeyOrder } from "@/kiosk/kiosk";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/seo/seo";
@@ -33,6 +35,8 @@ const RootLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
       {children}
       {/* Renders nothing unless ?kiosk=1 started kiosk mode; the attract loop follows Home's order. */}
       <Kiosk journeys={journeyOrder(getContent().journeys)} />
+      {/* Evaluated at build time; renders nothing visible and no link, so kiosk mode is unaffected. */}
+      {analyticsEnabled(process.env) && <SiteAnalytics />}
     </body>
   </html>
 );

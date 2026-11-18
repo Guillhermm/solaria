@@ -20,6 +20,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@vercel/analytics": "2.0.1",
     "geist": "1.8.2",
     "next": "16.4.6",
     "openseadragon": "^5.0.1",

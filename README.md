@@ -101,7 +101,7 @@ ignored except the mock trees). It reads four repository secrets: `R2_ACCOUNT_ID
 `R2_BUCKET`. To run the sync from your machine, copy `.env.example` to `.env`, fill it in, and
 run `npm run sync-r2` (add `--apply` to upload).
 
-Deferred: analytics and offline support.
+Deferred: offline support.
 
 ## Authors
 

@@ -906,6 +906,14 @@ disables camera, microphone, geolocation, payment and USB. `/manifest.webmanifes
   the inline `style` attributes. No `unsafe-eval`.
 - **R2 CORS.** The tile bucket must send `Access-Control-Allow-Origin` for the site origin, or
   `fetch` of tile metadata is blocked.
+- **Analytics (L-08).** Vercel Web Analytics through `@vercel/analytics/next` (pinned), chosen
+  over the plain script because only the Next component follows client-side navigation. The root
+  layout renders `SiteAnalytics` only when `VERCEL=1` at build time (`src/analytics/analytics.ts`),
+  so local builds, e2e and `npm start` load nothing. The script and its endpoints are same-origin
+  `/_vercel/insights` paths, so the CSP is unchanged. Nothing is visible and there is no link, so
+  kiosk mode is unaffected. The viewer rewrites the query on every pan and zoom, so `beforeSend`
+  strips query and hash and drops a repeated page view: a view is a path. Hobby allows 50,000
+  events a month and collection pauses at the limit. The component is cookie-free.
 - **Test.** `scripts/vercel-config.test.ts` parses `vercel.json` and asserts these.
 
 ## 16. Search engines (L-07)

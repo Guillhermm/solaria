@@ -157,5 +157,5 @@ first month, no targets claimed up front.
 | Host: GitHub Pages or Vercel, static export works on both | open, decided at launch |
 | Which Journeys follow Andromeda | proposed: Pillars of Creation, the Sun |
 | Launch without Light if no band set is validated | open |
-| Analytics | open |
+| Analytics | Vercel Web Analytics, decided 2026-11-18 |
 | Kiosk scope | proposed: later |
