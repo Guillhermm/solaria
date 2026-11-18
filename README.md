@@ -83,7 +83,8 @@ server. `E2E_PORT` changes the port they use (default 8434, so set it while the 
 is running). The end-to-end suite also runs axe-core on Home and About and measures LCP, CLS
 and interaction latency on a throttled phone profile.
 
-CI (`.github/workflows/ci.yml`) runs the same checks plus `npm audit --audit-level=high`.
+CI (`.github/workflows/ci.yml`) runs the same checks plus `npm audit --omit=dev --audit-level=high`,
+which audits the dependencies that ship.
 
 ## Deploy
 
@@ -98,8 +99,8 @@ reads four repository secrets: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_A
 `R2_BUCKET`. To run the sync from your machine, copy `.env.example` to `.env`, fill it in, and
 run `npm run sync-r2` (add `--apply` to upload).
 
-Not built yet: analytics, a weekly scheduled rebuild for the detail of the week, and offline
-support.
+Not built yet: analytics, a weekly scheduled rebuild for the detail of the week, offline
+support, and keeping new tiles out of git (the sync workflow reads them from the checkout).
 
 ## Authors
 

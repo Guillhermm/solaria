@@ -25,7 +25,7 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 | 10 | Search and detail of the week | F-04, F-02 | done |
 | 11 | Mars Journey, installable app, smooth zoom | F-05, F-07, T-02, T-03 | done |
 
-Still open: half-resolution Andromeda (H-01), the Pillars Journey (C-05), analytics (L-08),
+Still open: keeping new tiles out of git (R-03), half-resolution Andromeda (H-01), the Pillars Journey (C-05), analytics (L-08),
 the weekly scheduled rebuild, sky coordinates in search, and offline support (F-08).
 
 ## M0. Plan
@@ -143,7 +143,8 @@ C-05 waited for R2, which now exists: the Webb frame is about 2,566 tiles and 11
 | ID | Item | Status | Depends | Done when |
 |---|---|---|---|---|
 | R-01 | Create the R2 bucket, public domain for tiles, CORS for the site | done | D-08 | Tiles load from R2 in a preview build |
-| R-02 | Switch production to R2; stop committing new tiles (ignore rule) | done | R-01 | New images never enter git |
+| R-02 | Switch production to R2 | done | R-01 | The live site loads its tiles from tiles.solariadata.com |
+| R-03 | Stop committing new tiles (owner: Guilherme): the sync workflow uploads from the git checkout today, so it needs another source (tiling in the workflow, or an upload from the machine that tiles) before `public/tiles/` can be ignored | todo | R-02 | New images never enter git |
 | H-01 | Half-resolution Andromeda on R2 (owner: Guilherme): `generate-tiles` gets `--max-level` and a level and column range, is tested on a PNG, then the set is tiled in pieces and synced (architecture.md section 15) | todo | R-01, S-04 | Half set loads from R2 in a preview build and its stops are validated |
 
 ## Later

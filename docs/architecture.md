@@ -44,7 +44,7 @@ src/viewer/               no React: view math (zoom relative to fit, image pixel
 src/app/                  server components: call getContent(), pass plain objects down
 src/components/           client components: receive a manifest and a tile base as props
   explore/                the Explore viewer page (OpenSeadragon, rulers, overview, readout)
-public/tiles/<id>/        generated tile tree (moves to R2 later, R-02)
+public/tiles/<id>/        generated tile tree, synced to R2 (R-02)
 ```
 
 Rules:
@@ -94,7 +94,7 @@ const nextConfig: NextConfig = {
 
 `trailingSlash: true` emits `about/index.html` instead of `about.html`, so every route is a
 directory with an index file. That works unchanged on GitHub Pages, Vercel, an R2 bucket
-or any plain static server, which keeps the host decision (L-03) open.
+or any plain static server. Production is on Vercel (L-03).
 
 `scripts/serve-static.ts`: Node `http` and `fs` only, about 40 lines. Serves `out/` on
 127.0.0.1, resolves `/x/` to `/x/index.html`, sets content types for the handful of
@@ -808,20 +808,9 @@ margin, or run on another machine.
    (19739 is one pixel short of 2 x 9870, under 0.01%), and get them validated.
 7. Build with `TILE_BASE_URL=https://<tiles domain>` (section 7) and check a preview.
 
-**Ready now:** `sync-r2` (built, unit-tested, never run on a real bucket), `TILE_BASE_URL`,
-immutable caching, new-id convention, staging skip.
-
-**The maintainer must:**
-
-- Create the R2 bucket and an API token scoped to it with Object Read and Write; put
-  `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` and `R2_BUCKET` in the shell
-  environment only (R-01).
-- Give the bucket a custom domain. `r2.dev` URLs are rate-limited and for development only,
-  and a custom domain must be a Cloudflare zone in the same account; partial (CNAME) setup
-  needs a Business plan (developers.cloudflare.com/dns/zone-setups/partial-setup).
-  `zenus.systems` is on GoDaddy name servers today, so either move it to Cloudflare (free plan)
-  or use another domain that is. This choice is the maintainer's.
-- Add a CORS rule allowing `GET` from the site's origin (R-01).
+**In place:** the `solaria-data` bucket, its custom domain `tiles.solariadata.com`, a CORS
+rule for the site's origin (R-01), and `sync-r2` running in the "Sync tiles to R2" workflow
+(section 12). The tiles still reach the workflow through git (R-03).
 
 ### Script change (H-01, follow-up)
 
