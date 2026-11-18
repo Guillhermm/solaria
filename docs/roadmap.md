@@ -19,14 +19,14 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 | 4 | Viewer as a page | X-01 to X-05 | done |
 | 5 | Story mode and the Andromeda Journey | S-01 to S-04 | done |
 | 6 | Home and About, launch-ready | L-01, L-02, L-05 | done |
-| 7 | Compare | C-01 to C-04 (C-05 waits for R2) | done |
+| 7 | Compare | C-01 to C-04 | done |
 | 8 | Light | G-01 to G-04 | done |
 | 9 | Labeled features, kiosk, test hardening | F-03, F-01, T-01 | done |
 | 10 | Search and detail of the week | F-04, F-02 | done |
 | 11 | Mars Journey, installable app, smooth zoom | F-05, F-07, T-02, T-03 | done |
 
-Waiting on the maintainer: host and analytics (L-03), deploy and domain (L-04, L-06), and
-the R2 bucket and its credentials (R-01, R-02), then half-resolution Andromeda (H-01).
+Still open: half-resolution Andromeda (H-01), the Pillars Journey (C-05), analytics (L-08),
+the weekly scheduled rebuild, sky coordinates in search, and offline support (F-08).
 
 ## M0. Plan
 
@@ -100,10 +100,11 @@ S-04 decision (2026-11-17): tiling the half-resolution file gives about 34,400 t
 |---|---|---|---|---|
 | L-01 | Home: live zoom hero with a poster image, Journey cards | done | S-03 | Matches mockup; hero respects reduced motion |
 | L-02 | About: what Solaria is, credits and terms per source, accessibility statement | done | D-02 | Credits copied unaltered |
-| L-03 | Choose host (GitHub Pages or Vercel) and analytics | todo | | Decision recorded; GitHub Pages cannot set headers, so CSP goes in a meta tag there |
-| L-04 | Security headers, deploy workflow, domain solaria.zenus.systems | todo | L-03 | Headers checked on the live site |
+| L-03 | Choose the host | done | | Vercel, deployed from its Git integration |
+| L-04 | Security headers, deploy, domain solaria.zenus.systems | done | L-03 | Headers in `vercel.json` (`docs/architecture.md`); site live on the domain |
 | L-05 | Performance and accessibility pass on a mid-range phone | done | L-01 | Targets in `docs/design.md` section 9 met |
-| L-06 | Launch | todo | L-01 to L-05 | Site live |
+| L-06 | Launch | done | L-01 to L-05 | Site live at https://solaria.zenus.systems |
+| L-08 | Analytics: choose a tool and add it without breaking the CSP or the kiosk's no-links rule | todo | L-04 | Decision recorded; counts visible; CSP still passes |
 | L-07 | SEO: robots.txt, sitemap, canonical URLs, Open Graph and Twitter cards, Search Console verification | done | L-01, L-02 | Files and head tags present in the static export |
 
 L-07 (2026-11-17, owner Guilherme): `docs/architecture.md` section 16 describes what is built.
@@ -120,13 +121,13 @@ measures 0.016.
 | C-02 | Pillars of Creation, Hubble 1995 (WFPC2) vs 2014 (WFC3): source, fetch, tile | done | D-08 | Sources and credits recorded |
 | C-03 | Register the pair from star control points; record transform and residual | done | C-02 | Residual recomputed independently |
 | C-04 | "What differs?" note for the pair | done | C-03 | Validated |
-| C-05 | Pillars Journey (adds Webb 2022 as a band comparison, labeled "different light, not different time") | blocked | C-04 | Every stop validated |
+| C-05 | Pillars Journey (adds Webb 2022 as a band comparison, labeled "different light, not different time") | todo | C-04 | Every stop validated |
 
 C-04: the note opens from the compare bar and renders the pair's `whatDiffers`, `differs` flags, the pair's caveats and both images' caveats. The Hubble pair was accepted with caveats on 2026-11-17 (`docs/science/pillars.md`, Validation) and ships in production.
 
 Draft content waits in `data/staging/` (read by `next dev` and the end-to-end build only, its tiles stripped from the production output); the Hubble pair moved from there to `data/` once approved.
 
-C-05 waits for R2: the Webb frame is about 2,566 tiles and 110 MB (estimated), too large for git, and a capped level would show Webb blurrier than Hubble. Compare design: `docs/architecture-compare.md`.
+C-05 waited for R2, which now exists: the Webb frame is about 2,566 tiles and 110 MB (estimated), too large for git, and a capped level would show Webb blurrier than Hubble. Compare design: `docs/architecture-compare.md`.
 
 ## M8. Light
 
@@ -141,8 +142,8 @@ C-05 waits for R2: the Webb frame is about 2,566 tiles and 110 MB (estimated), t
 
 | ID | Item | Status | Depends | Done when |
 |---|---|---|---|---|
-| R-01 | Create the R2 bucket, public domain for tiles, CORS for the site | todo | D-08 | Tiles load from R2 in a preview build |
-| R-02 | Switch production to R2; stop committing new tiles (ignore rule) | todo | R-01 | New images never enter git |
+| R-01 | Create the R2 bucket, public domain for tiles, CORS for the site | done | D-08 | Tiles load from R2 in a preview build |
+| R-02 | Switch production to R2; stop committing new tiles (ignore rule) | done | R-01 | New images never enter git |
 | H-01 | Half-resolution Andromeda on R2 (owner: Guilherme): `generate-tiles` gets `--max-level` and a level and column range, is tested on a PNG, then the set is tiled in pieces and synced (architecture.md section 15) | todo | R-01, S-04 | Half set loads from R2 in a preview build and its stops are validated |
 
 ## Later
@@ -150,12 +151,14 @@ C-05 waits for R2: the Webb frame is about 2,566 tiles and 110 MB (estimated), t
 | ID | Item | Status |
 |---|---|---|
 | F-01 | Kiosk mode: attract loop, idle reset, no links out | done |
-| F-02 | Detail of the week, rotated at build time (the weekly scheduled rebuild is planned, waiting on the host decision) | done |
+| F-02 | Detail of the week, rotated at build time (the weekly scheduled rebuild is planned) | done |
 | F-03 | Labeled features on images, each label validated | done |
 | F-04 | Search by feature name, then by coordinates (image pixels; sky coordinates planned) | done |
 | F-05 | Mars Journey from HiRISE orthorectified pairs only | done |
 | F-07 | Installable app: web app manifest, favicon and icon set from the header mark (`scripts/generate-icons.ts`) | done |
 | F-08 | Offline support with a service worker that never serves stale tiles or pages | planned |
+| W-01 | Weekly scheduled rebuild so the detail of the week changes | planned |
+| F-09 | Sky coordinates (RA and Dec) in search | planned |
 | T-01 | Fix the two intermittent e2e failures (tile-outage retry toast, story cut) | done |
 | T-02 | Keep desktop Light views clear of the Light bar (design.md §15.5 D11) | done |
 | T-03 | Smooth deep zoom: the canvas drawer on every viewer and a 500-tile cache (architecture.md §8) | done |
