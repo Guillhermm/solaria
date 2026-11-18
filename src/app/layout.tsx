@@ -8,8 +8,8 @@ import { GROUND } from "./theme-color";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "NASA 2025 Solaria",
-  description: "Embiggen Your Eyes App",
+  title: "Solaria",
+  description: "Explore very large NASA images in the browser, one guided zoom at a time.",
 };
 
 export const viewport: Viewport = {

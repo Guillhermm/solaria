@@ -642,7 +642,7 @@ Light reuses the Compare layer pattern (`docs/architecture-compare.md`, sections
   page image's own credit shows.
 - While a stop's fade runs, the credits of both bands in it show.
 
-## 14. Installable app and icons (F-06)
+## 14. Installable app and icons (F-07)
 
 Next's metadata files carry it, and all of them export as static files under
 `output: 'export'` (checked in the build: `/manifest.webmanifest`, `/icon.svg` and
@@ -678,7 +678,7 @@ the browser menu in Chrome 108 on Android and 112 on desktop (developer.chrome.c
 lists the Chromium requirements as `name` or `short_name`, 192px and 512px icons,
 `start_url`, `display`, and no `prefer_related_applications`, plus HTTPS, and says a
 service worker is not required. A service worker would only add the risk of serving stale
-tiles or pages, so none ships; offline support is F-07, planned.
+tiles or pages, so none ships; offline support is F-08, planned.
 
 The local static server (`scripts/serve-static.ts`) serves `.webmanifest` as
 `application/octet-stream`; Chrome reads the manifest either way, and the production host
