@@ -23,10 +23,10 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 | 8 | Light | G-01 to G-04 | done |
 | 9 | Labeled features, kiosk, test hardening | F-03, F-01, T-01 | done |
 | 10 | Search and detail of the week | F-04, F-02 | done |
-| 11 | Mars Journey | F-05, T-02, T-03 | doing |
+| 11 | Mars Journey, installable app, smooth zoom | F-05, F-07, T-02, T-03 | done |
 
 Waiting on the maintainer: host and analytics (L-03), deploy and domain (L-04, L-06), and
-the R2 bucket and its credentials (R-01, R-02).
+the R2 bucket and its credentials (R-01, R-02), then half-resolution Andromeda (H-01).
 
 ## M0. Plan
 
