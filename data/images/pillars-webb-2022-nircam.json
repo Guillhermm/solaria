@@ -1,0 +1,147 @@
+{
+  "id": "pillars-webb-2022-nircam",
+  "sourceId": "pillars-webb-2022-nircam",
+  "title": "Pillars of Creation, Webb 2022 (NIRCam)",
+  "target": {
+    "value": {
+      "name": "Pillars of Creation, Eagle Nebula (M16)",
+      "type": "star-forming region"
+    },
+    "source": "https://esawebb.org/images/weic2216b/",
+    "status": "supported"
+  },
+  "observatory": {
+    "value": "Webb",
+    "source": "https://esawebb.org/images/weic2216b/",
+    "status": "verified"
+  },
+  "instruments": {
+    "value": [
+      "Near-Infrared Camera (NIRCam)"
+    ],
+    "source": "https://science.nasa.gov/asset/webb/pillars-of-creation-nircam-image/",
+    "status": "verified"
+  },
+  "bands": {
+    "value": [
+      {
+        "id": "F090W"
+      },
+      {
+        "id": "F187N"
+      },
+      {
+        "id": "F200W"
+      },
+      {
+        "id": "F335M"
+      },
+      {
+        "id": "F444W"
+      },
+      {
+        "id": "F470N"
+      }
+    ],
+    "source": "https://science.nasa.gov/asset/webb/pillars-of-creation-nircam-image/",
+    "status": "verified"
+  },
+  "colorMapping": {
+    "value": {
+      "kind": "per-band",
+      "entries": [
+        {
+          "bandId": "F090W",
+          "color": "purple"
+        },
+        {
+          "bandId": "F187N",
+          "color": "blue"
+        },
+        {
+          "bandId": "F200W",
+          "color": "cyan"
+        },
+        {
+          "bandId": "F335M",
+          "color": "yellow"
+        },
+        {
+          "bandId": "F444W",
+          "color": "orange"
+        },
+        {
+          "bandId": "F470N",
+          "color": "red"
+        }
+      ]
+    },
+    "source": "https://science.nasa.gov/asset/webb/pillars-of-creation-nircam-image/",
+    "status": "verified"
+  },
+  "releasedAt": {
+    "value": "2022-10-19",
+    "source": "https://esawebb.org/images/weic2216b/",
+    "status": "verified"
+  },
+  "productType": {
+    "value": "mosaic",
+    "source": "docs/science/pillars.md",
+    "status": "supported"
+  },
+  "observedAt": {
+    "value": {
+      "start": "2022-08-14",
+      "end": "2022-08-14"
+    },
+    "source": "https://science.nasa.gov/asset/webb/pillars-of-creation-nircam-image/",
+    "status": "supported"
+  },
+  "pixelScale": {
+    "value": {
+      "value": 0.03,
+      "unit": "arcsec/px"
+    },
+    "source": "docs/science/pillars.md",
+    "status": "supported"
+  },
+  "fieldOfView": {
+    "value": "4.21 x 7.30 arcmin",
+    "source": "https://esawebb.org/images/weic2216b/",
+    "status": "verified"
+  },
+  "orientation": {
+    "value": "North is 2.6 degrees right of vertical",
+    "source": "https://esawebb.org/images/weic2216b/",
+    "status": "verified"
+  },
+  "caveats": [
+    "Colors are assigned, not seen by eye. The six filters are mostly near-infrared; the shortest, at 0.9 micrometers, sits just past the red end of what our eyes see. They are shown from purple for the shortest wavelength to red for the longest (4.7 micrometers).",
+    "In this published version the cores of bright stars are saturated, so their brightness is not comparable with Hubble's.",
+    "The spikes around bright stars come from Webb's mirror and the struts that hold its secondary mirror, not from the stars.",
+    "There are no galaxies in this view: gas and dust in our own galaxy block the view of the more distant universe."
+  ],
+  "tiles": {
+    "format": "jpg",
+    "tileSize": 256,
+    "overlap": 0,
+    "width": 8423,
+    "height": 14589,
+    "minLevel": 0,
+    "maxLevel": 6,
+    "thumbnail": {
+      "width": 296,
+      "height": 512
+    },
+    "preview": {
+      "width": 1182,
+      "height": 2048
+    }
+  },
+  "validation": {
+    "status": "approved",
+    "date": "2026-11-18",
+    "notes": "Accepted with caveats by science review (reviewer, mathematician, physicist); fixes applied. docs/science/pillars.md, Validation of C-05."
+  },
+  "mock": false
+}

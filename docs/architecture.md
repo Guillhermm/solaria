@@ -1023,6 +1023,11 @@ the ones in the repository today.
   alignment limit and a "what differs" note. Both images are cut to the part they share; an
   image record's `crop` gives the offset of its pixels in the source product, and the
   science record is `docs/science/mars-nili-patera.md`.
+- The Pillars Journey at `/pillars/`: eight stops on Hubble's 2014 WFC3 image, one of them over
+  the 1995 pair and five with Webb's 2022 NIRCam image in a wipe (pair
+  `pillars-hubble-2014-webb-2022`, registered on 15 stars, about 0.02 arcsecond). Webb's tiles
+  are cut by the sync workflow, not committed. Science record: `docs/science/pillars.md`,
+  Parts 3 to 5 and "Validation of C-05".
 - A Journey stop can show a Compare pair: a stop's `compare: { pairId, split }` names a pair
   whose reference is the Journey's image, and arriving there shows the moving image in Wipe at
   that split, with the side labels and the compare bar (headline, "What differs?", both

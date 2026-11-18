@@ -53,15 +53,20 @@ describe("search vectors on Home (Q16)", () => {
 
   it("the: 14 matches, 8 shown, with the overflow line", () => {
     expect(names("the")).toEqual(["The bright center", "The companion galaxy M32", "The ripples moved", "The dunes stayed", ...SUN.slice(0, 4).map(sunTitle)]);
-    expect(lines("the")).toEqual(["Showing 8 of 14. Type more to narrow."]);
-    expect(search(index, "the").live).toBe("14 results");
+    expect(lines("the")).toEqual(["Showing 8 of 16. Type more to narrow."]);
+    expect(search(index, "the").live).toBe("16 results");
   });
 
-  it("pillars", () => expect(names("pillars")).toEqual(["Pillars of Creation, Hubble 1995 (WFPC2)", "Pillars of Creation, Hubble 2014 (WFC3)"]));
+  it("pillars", () =>
+    expect(names("pillars")).toEqual(["Pillars of Creation, Hubble 1995 (WFPC2)", "Pillars of Creation, Hubble 2014 (WFC3)", "Pillars of Creation, Webb 2022 (NIRCam)"]));
 
   it("Å folds to a", () => expect(names("171 a")[0]).toBe("171 Å, active region 13664"));
 
-  it("one result says so in the singular", () => expect(search(index, "dust").live).toBe("1 result"));
+  // A rule, not a content vector: an index cut to one matching entry.
+  it("one result says so in the singular", () => {
+    const one = { ...index, entries: index.entries.filter((e) => e.text === "Dust lanes") };
+    expect(search(one, "dust").live).toBe("1 result");
+  });
 
   it("rows carry their kind, context and marks", () => {
     const [row] = search(index, "dust").rows;
@@ -136,15 +141,16 @@ describe("isSky (Q25)", () => {
 });
 
 describe("points on Home (Q24)", () => {
-  it("2048, 2048 gives Andromeda, Mars, the Sun band set, Mars again, then Pillars 2014", () => {
+  it("2048, 2048 gives Andromeda, Mars, Pillars 2014, the Sun band set, Mars again, then Webb", () => {
     const r = search(index, "2048, 2048");
     expect(groups("2048, 2048")).toEqual(["Go to a point"]);
     expect(r.rows.map((x) => [x.kind, x.text, x.context, x.href])).toEqual([
       ["point", "Go to 2048, 2048", "Andromeda Galaxy (M31), Hubble PHAT+PHAST panorama", "/andromeda-phat-phast-2025/?mode=explore&x=2048&y=2048&z=4"],
       ["point", "Go to 2048, 2048", "Nili Patera dunes, HiRISE, 2007-06-30", "/nili-patera-hirise-2007-06-30/?mode=explore&x=2048&y=2048&z=4"],
+      ["point", "Go to 2048, 2048", "Pillars of Creation, Hubble 2014 (WFC3)", "/pillars-hubble-2014/?mode=explore&x=2048&y=2048&z=4"],
       ["point", "Go to 2048, 2048", "The Sun in seven SDO channels, 2024-05-10 12:00 UTC", "/sun-sdo-2024-05-10-aia-94/?mode=light&x=2048&y=2048&z=4"],
       ["point", "Go to 2048, 2048", "Nili Patera dunes, HiRISE, 2007-10-13", "/nili-patera-hirise-2007-10-13/?mode=explore&x=2048&y=2048&z=4"],
-      ["point", "Go to 2048, 2048", "Pillars of Creation, Hubble 2014 (WFC3)", "/pillars-hubble-2014/?mode=explore&x=2048&y=2048&z=4"],
+      ["point", "Go to 2048, 2048", "Pillars of Creation, Webb 2022 (NIRCam)", "/pillars-webb-2022-nircam/?mode=explore&x=2048&y=2048&z=4"],
     ]);
   });
 

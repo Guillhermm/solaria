@@ -15,7 +15,8 @@ is where development continues.
 ## What you can do
 
 - Journeys: guided tours with a short validated text per stop and a camera that flies
-  there. Published: Andromeda, the Sun, and Mars (Nili Patera).
+  there. Published: Andromeda, the Sun, Mars (Nili Patera), and the Pillars of Creation (Hubble
+  with Webb).
 - Explore: pan and zoom a full-window image with rulers in image pixels, an overview, and a
   share button. The URL holds the view, so a shared link reopens it.
 - Compare: the same place at two moments, as a wipe or side by side, with a note on what

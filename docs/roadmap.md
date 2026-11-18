@@ -24,11 +24,13 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 | 9 | Labeled features, kiosk, test hardening | F-03, F-01, T-01 | done |
 | 10 | Search and detail of the week | F-04, F-02 | done |
 | 11 | Mars Journey, installable app, smooth zoom | F-05, F-07, T-02, T-03 | done |
+| 12 | Tiles out of git, weekly rebuild, Pillars Journey with Webb | R-03, W-01, C-05 (H-01 blocked) | done, R-03 awaits its first CI run |
 
 Deferred on 2026-11-17, not needed for now: analytics (L-08), sky coordinates in search (F-09)
 and offline support (F-08).
 
-Still open: the first CI run of the tile build (R-03) and the Pillars Journey (C-05).
+Still open: the first CI run of the tile build (R-03), which also puts the Webb tiles of the
+Pillars Journey (C-05) on R2.
 Blocked: half-resolution Andromeda (H-01), by the science review of the half file.
 
 ## M0. Plan
@@ -124,7 +126,7 @@ measures 0.016.
 | C-02 | Pillars of Creation, Hubble 1995 (WFPC2) vs 2014 (WFC3): source, fetch, tile | done | D-08 | Sources and credits recorded |
 | C-03 | Register the pair from star control points; record transform and residual | done | C-02 | Residual recomputed independently |
 | C-04 | "What differs?" note for the pair | done | C-03 | Validated |
-| C-05 | Pillars Journey (adds Webb 2022 as a band comparison, labeled "different light, not different time") | todo | C-04 | Every stop validated |
+| C-05 | Pillars Journey (adds Webb 2022 as a band comparison, headline "Different light, not a change in the pillars": the images are 7.9 years apart, so "not different time" was false) | done | C-04 | Every stop validated |
 
 C-04: the note opens from the compare bar and renders the pair's `whatDiffers`, `differs` flags, the pair's caveats and both images' caveats. The Hubble pair was accepted with caveats on 2026-11-17 (`docs/science/pillars.md`, Validation) and ships in production.
 

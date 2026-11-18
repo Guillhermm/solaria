@@ -390,3 +390,465 @@ Fixes applied:
 
 Open: where the jet is; WFPC2 filter bandpasses beyond the three compared; whether the Hester
 and Scowen credit needs more than the credit line.
+
+## Part 3. Pillars of Creation: Webb 2022 NIRCam source (checked 2026-11-17)
+
+Closes the open items of Part 1 section 4 for the band comparison with Hubble 2014 ("different
+light, not different time"). Staged as `data/staging/sources/pillars-webb-2022-nircam.json`,
+validation pending.
+
+Original chosen: ESA/Webb weic2216b TIF. Reason: the ESA copyright page states the license and
+the credit rule; the NASA asset page states no usage terms of its own and only links to the
+NASA Brand and Usage Guidelines. The NASA PNG (152.33 MB, same 8423 x 14589) is the fallback.
+
+| Claim | Value | Status | Source |
+|---|---|---|---|
+| File | `.cache/sources/pillars-webb-2022-nircam.tif`, 171,385,582 bytes, sha256 `3a0b5a62fa7f27d292d7e87c483a9faea0e7aa70829e6de28b61229a12b509d8`, 8423 x 14589 px | verified (downloaded; `sips` read the pixel size) | https://esawebb.org/media/archives/images/original/weic2216b.tif |
+| Instrument | NIRCam on Webb | verified | ESA page; NASA page "JWST>NIRCam" |
+| Filters | F090W, F187N, F200W, F335M, F444W, F470N | verified | NASA page "Filters"; https://science.nasa.gov/asset/webb/pillars-of-creation-nircam-image/ |
+| Colors | "Purple: F090W, Blue: F187N, Cyan: F200W, Yellow: F335M, Orange: F444W, Red: F470N." | verified | NASA page "Color Info" |
+| Wavelengths (ESA labels) | z 900 nm purple, P-alpha 1.87 um blue, 2.0 um cyan, PAH 3.35 um yellow, 4.44 um orange, molecular hydrogen 4.7 um red | verified (ESA page) | https://esawebb.org/images/weic2216b/ |
+| Observation date | "14 Aug 2022" (NASA "Exposure Dates"); ESA page gives none; program 2739 (Pontoppidan), a Cycle 1 outreach campaign | verified (NASA); proposal record seen in a search result, not opened | NASA page |
+| Release date | 19 October 2022, 16:00 (ESA); "October 19, 2022" (NASA) | verified | both pages |
+| Credit | "NASA, ESA, CSA, STScI; J. DePasquale, A. Koekemoer, A. Pagan (STScI)." | verified | ESA page |
+| Terms | CC BY 4.0; "The full image or footage credit must be presented in a clear and readable manner to all users, with the wording unaltered" | verified | https://esawebb.org/copyright/ |
+
+Open:
+- The NASA page credit differs in wording ("Image Processing: Joseph DePasquale (STScI), ..."). The
+  app uses the ESA wording because the ESA terms govern the file used.
+- The 14 Aug 2022 date is one date from a NASA field; per-filter exposure dates were not checked
+  in MAST. The STScI program 2739 PDF was not opened.
+- The Hubble 2014 and Webb frames are different footprints (Webb 4.21 x 7.30 arcmin); registration
+  between them is not done here.
+
+## Part 4. Pillars of Creation: Webb 2022 NIRCam registered onto Hubble 2014 WFC3 (2026-11-17)
+
+Registration check for C-05. Status: **verified** (measured on the downloaded originals, refit
+with `scripts/register-pair.ts`).
+
+### Inputs
+
+| Role | File | Size | SHA-256 |
+|---|---|---|---|
+| reference (2014) | `.cache/sources/pillars-hubble-2014.tif` (heic1501a) | 6780 x 7071 RGB 8-bit | eaaae93a1d671808add79216c5c12a229218fb5d8a7c8e8931ba01b3d8a46b2a |
+| moving (2022) | `.cache/sources/pillars-webb-2022-nircam.tif` (weic2216b) | 8423 x 14589 RGB 8-bit | 3a0b5a62fa7f27d292d7e87c483a9faea0e7aa70829e6de28b61229a12b509d8 |
+
+Neither image record has a `crop`, so file pixels are product pixels. Conventions as in Part 2
+(OpenSeadragon edge coordinates, y down, `q = s * R(theta) * p + (tx, ty)`, theta > 0
+clockwise), with p in Webb pixels and q in 2014 pixels. Measured with NumPy, SciPy and Pillow
+outside the repository.
+
+### Method
+
+1. Star candidates in both images: luminance minus a Gaussian background (sigma 10 px),
+   smoothed, local maxima in a 21 px box above 8 sigma: 2008 in Hubble, 101,418 in Webb (most
+   are nebula texture and the far denser near-infrared star field).
+2. Coarse transform from the published orientations (theta = -2.6 - 35.0 = -37.6 deg, scale
+   about 0.748) and one star pair picked by eye (2014 about (707, 1885), Webb about (3985,
+   2090)); it predicted a second bright star within 20 px, which fixes translation and parity.
+3. Matching starts from the Hubble candidates only, so every point is a star visible in both:
+   a star bright in the near-infrared but faint in visible light never enters. Each Hubble
+   candidate is predicted into Webb, the brightest Webb pixel within 40 px is taken, and both
+   positions are fit with a 2D Gaussian plus a tilted plane (25 x 25 px boxes), excluding
+   saturated pixels, cross-checked against a flux-weighted centroid.
+4. Saturation differs from Part 2: Webb star cores plateau at 247 to 254 in the release
+   stretch and never reach 255, so a 255 test censors nothing there. The fit excludes pixels
+   with any channel >= 245 in Webb and >= 250 in Hubble.
+5. Robust iterative similarity (3 x 1.4826 x median) on the 465 good-quality matches: 232
+   inliers, RMS 0.715 px (2014).
+6. The 18 reported points were picked from the inliers by image quality only, not by
+   residual: one per cell of a 4 x 4 grid over the 2014 frame (14 cells hold a usable star),
+   plus four more at least 900 px from the others; few clipped pixels, centroid and Gaussian
+   agreeing within 0.8 px, no brighter neighbor within 16 Webb px, low local gradient. Each
+   pair was inspected in a cutout sheet. Holdouts W16 to W18 were chosen by position before
+   the fit.
+
+### Control points (Webb to 2014)
+
+```json
+[
+  {
+    "id": "W01",
+    "xWebb": 3884.47,
+    "yWebb": 740.24,
+    "x2014": 32.44,
+    "y2014": 1134.72
+  },
+  {
+    "id": "W02",
+    "xWebb": 3064.46,
+    "yWebb": 2716.66,
+    "x2014": 448.06,
+    "y2014": 2684.85
+  },
+  {
+    "id": "W03",
+    "xWebb": 2263.96,
+    "yWebb": 3575.75,
+    "x2014": 364.76,
+    "y2014": 3561.82
+  },
+  {
+    "id": "W04",
+    "xWebb": 7444.35,
+    "yWebb": 3306.16,
+    "x2014": 3322.56,
+    "y2014": 1033.69
+  },
+  {
+    "id": "W05",
+    "xWebb": 5322.33,
+    "yWebb": 3712.49,
+    "x2014": 2246.28,
+    "y2014": 2245.54
+  },
+  {
+    "id": "W06",
+    "xWebb": 4130.22,
+    "yWebb": 6489.73,
+    "x2014": 2805.12,
+    "y2014": 4441.64
+  },
+  {
+    "id": "W07",
+    "xWebb": 3458.7,
+    "yWebb": 8591.47,
+    "x2014": 3368.95,
+    "y2014": 5999.52
+  },
+  {
+    "id": "W08",
+    "xWebb": 8115.51,
+    "yWebb": 3952.68,
+    "x2014": 4016.98,
+    "y2014": 1111.48
+  },
+  {
+    "id": "W09",
+    "xWebb": 7221.69,
+    "yWebb": 5137.85,
+    "x2014": 4027.27,
+    "y2014": 2224.89
+  },
+  {
+    "id": "W10",
+    "xWebb": 4038.54,
+    "yWebb": 9360.93,
+    "x2014": 4064.83,
+    "y2014": 6191.39
+  },
+  {
+    "id": "W11",
+    "xWebb": 8343.52,
+    "yWebb": 7096.96,
+    "x2014": 5589.81,
+    "y2014": 2877.11
+  },
+  {
+    "id": "W12",
+    "xWebb": 8325.33,
+    "yWebb": 8807.81,
+    "x2014": 6360.45,
+    "y2014": 3902.64
+  },
+  {
+    "id": "W13",
+    "xWebb": 7072.32,
+    "yWebb": 10649.75,
+    "x2014": 6457.67,
+    "y2014": 5570.98
+  },
+  {
+    "id": "W14",
+    "xWebb": 6183.32,
+    "yWebb": 1545.66,
+    "x2014": 1767.81,
+    "y2014": 563.27
+  },
+  {
+    "id": "W15",
+    "xWebb": 7798.77,
+    "yWebb": 2049.53,
+    "x2014": 2958.18,
+    "y2014": 124.31
+  },
+  {
+    "id": "W16",
+    "xWebb": 4826.81,
+    "yWebb": 7592.26,
+    "x2014": 3724.84,
+    "y2014": 4779.69,
+    "holdout": true
+  },
+  {
+    "id": "W17",
+    "xWebb": 5091.63,
+    "yWebb": 2130.9,
+    "x2014": 1385.85,
+    "y2014": 1410.28,
+    "holdout": true
+  },
+  {
+    "id": "W18",
+    "xWebb": 6211.58,
+    "yWebb": 8536.51,
+    "x2014": 4980.14,
+    "y2014": 4708.21,
+    "holdout": true
+  }
+]
+```
+
+### Fit (15 points, W01 to W15)
+
+| Quantity | Value |
+|---|---|
+| scale | 0.750077 (2014 px per Webb px) |
+| rotationDeg | -37.5464 (Webb turned counterclockwise onto 2014) |
+| tx, ty | -2616.17, 2470.32 (2014 px; where Webb corner (0, 0) lands) |
+| RMS residual | 0.58 px (2014) = 0.77 px (Webb) = 0.023 arcsec |
+| worst residual | 1.45 px (W06) |
+| leave-one-out RMS | 0.66 px, worst 1.59 px |
+| holdouts W16, W17, W18 | 0.54, 0.09, 0.53 px (RMS 0.44 px) |
+| all 232 inliers under this fit | RMS 0.75 px, 95th percentile 1.51 px, worst 1.91 px (0.077 arcsec) |
+
+Independent recomputation: linear least squares on (a, b, tx, ty) in a scratch script and
+`scripts/register-pair.ts` (closed form in `src/content/registration.ts`) agree to 6e-9 px.
+
+| id | use | dx | dy | r |
+|---|---|---|---|---|
+| W01 | fit | -0.13 | 0.24 | 0.27 |
+| W02 | fit | 0.01 | 0.32 | 0.32 |
+| W03 | fit | -0.07 | 0.17 | 0.18 |
+| W04 | fit | -0.28 | 0.02 | 0.29 |
+| W05 | fit | -0.25 | -0.21 | 0.33 |
+| W06 | fit | 1.43 | 0.24 | 1.45 |
+| W07 | fit | -1.05 | -0.77 | 1.30 |
+| W08 | fit | -0.04 | -0.07 | 0.08 |
+| W09 | fit | -0.15 | -0.09 | 0.17 |
+| W10 | fit | -0.38 | -0.08 | 0.39 |
+| W11 | fit | -0.02 | -0.00 | 0.02 |
+| W12 | fit | 0.55 | 0.24 | 0.60 |
+| W13 | fit | 0.11 | 0.06 | 0.13 |
+| W14 | fit | -0.20 | -0.13 | 0.24 |
+| W15 | fit | 0.47 | 0.06 | 0.47 |
+| W16 | holdout | -0.06 | -0.54 | 0.54 |
+| W17 | holdout | 0.04 | -0.08 | 0.09 |
+| W18 | holdout | -0.21 | -0.48 | 0.53 |
+
+Higher-order models on the 232 inliers: affine RMS 0.713, quadratic 0.675, cubic 0.670 px. The
+mean residual per quadrant of the 2014 frame is at most 0.21 px. No shear, distortion or
+per-detector offset is left to model, unlike the 1995 mosaic: one similarity is enough.
+
+### Plausibility against the published orientation and pixel scale
+
+- Rotation: page values give -2.6 - 35.0 = -37.6 deg; measured -37.546. North in the Webb frame
+  (2.6 deg right of up) lands at 34.95 deg left of up in 2014. Matches within 0.06 deg.
+- Scale: page fields give 4.21' / 8423 = 0.029989"/px for Webb and 4.53' / 6780 = 0.040088"/px
+  for 2014, ratio 0.7481; from the heights 7.30' / 14589 and 4.72' / 7071, 0.7496. Measured
+  0.75008: +0.27 % and +0.06 %. Rounding the fields to 0.01' allows about +-0.23 % on the
+  width ratio, so the width figure sits just outside it and the height figure inside. Within
+  the 0.5 deg / 2 % gate.
+- Measured Webb pixel scale with the 2014 scale: 0.04009 x 0.75008 = 0.0301"/px (0.0300 with
+  the height). The staged image record states 0.03 arcsec/px from this.
+- No reflection: 232 stars at 0.75 px RMS rule out a parity flip.
+
+### Overlap
+
+Webb corners in 2014 pixels: (0, 0) to (-2616.2, 2470.3); (8423, 0) to (2393.0, -1379.8);
+(8423, 14589) to (9061.7, 7296.3); (0, 14589) to (4052.5, 11146.5). Webb is larger than the
+2014 frame but turned 37.5 deg against it, so it covers 83.6 % of the 2014 frame, not all of
+it. Overlap in 2014 pixels:
+
+```json
+[[0, 459.5], [597.8, 0], [3453.6, 0], [6780, 4327.8], [6780, 7071], [920, 7071], [0, 5874.1]]
+```
+
+Three corners of the 2014 frame have no Webb data: a large triangle at the top right (x >
+3453.6 on the top edge down to y = 4327.8 on the right edge) and two small ones at the top
+left and bottom left. On the Webb side of the divider those show the viewer background. The
+overlap is 58 % of the Webb frame; the rest is unreachable in Compare because the home bounds
+stay the reference's (architecture-compare.md, section 9).
+
+No footprint and no crop on the Webb image: it holds data to every edge (no black blocks;
+0.05 % of pixels have every channel <= 3, scattered, not traced). The 2014 frame's bounding
+box in Webb pixels spans every column and rows 0 to 12497, so a crop would save at most 14 %
+of the tiles and would change the moving pixel origin; not needed for the registration.
+
+### Verdict on a single similarity
+
+Correct. RMS 0.58 px (2014) = 0.77 Webb px = 0.023", holdouts 0.44 px, 95 % of 232 stars within
+1.51 px (0.06"): under the 1 moving pixel bar. The remaining scatter is consistent with
+centroid noise on saturated cores plus 7.9 years of stellar proper motion (Sep 2014 to Aug
+2022; a field star at 5 mas/yr moves 0.04", 1 px of 2014). W06 and W07 (1.3 to 1.45 px) may be
+such stars.
+
+### Not checked
+
+- Stellar proper motions (no catalog cross-match).
+- Saturation thresholds 245 and 250 are read from the core plateaus, not from the processing
+  notes; a centroid of a flat-topped core still depends on the PSF being symmetric.
+- Whether any Webb control star is an unresolved blend in Hubble (the cutouts show none).
+- The near-black pixels in Webb (0.05 %) were not mapped; they are assumed to be dark sky or
+  dense dust, not missing data.
+- Pair caveats, labels, headline, `alignment`, `whatDiffers` and `differs` are left for the
+  physicist; the image record's `productType` (mosaic) is unverified.
+
+## Part 5. Pillars of Creation: Hubble 2014 and Webb 2022 pair, and the Pillars Journey (2026-11-17)
+
+Physics review for C-05 and the Journey draft. Status: **draft**, awaiting the validate ritual.
+Pages fetched on 2026-11-17 (raw HTML read for the ESA releases); pixels inspected on the two
+cached originals with the Part 4 similarity applied (Webb resampled into the 2014 frame).
+
+### Records written
+
+- `data/staging/pairs/pillars-hubble-2014-webb-2022.json`: headline, labels, caveats,
+  alignment, whatDiffers.
+- `data/staging/images/pillars-webb-2022-nircam.json`: caveats; productType status.
+- `data/staging/journeys/pillars.json`: eight stops on the 2014 image; stops `webb` to
+  `your-turn` carry `compare` with the Webb pair, `hubble-1995` with the 1995 pair.
+
+### Headline
+
+"Different light, not a change in the pillars" replaces "Different light, not different time".
+Reason: `differs.date` is true (September 2014 to 14 August 2022, 7.9 years), so "not different
+time" is literally false. What the wipe shows is dominated by band: the upper bound on real motion
+over 8 years is about 0.16 arcsec (compare-and-light.md, Compare B, `supported`), and in a wipe it
+cannot be separated from features that look different in each band. The headline states which
+difference dominates, as architecture-compare.md section 5 asks.
+
+### `differs` flags
+
+| Flag | Value | Reasoning | Status |
+|---|---|---|---|
+| instrument | true | WFC3/UVIS against NIRCam | verified (Part 1, Part 3) |
+| band | true | 502, 657, 673 nm against 0.9 to 4.7 µm | verified |
+| date | true | Sep 2014 against 14 Aug 2022 | verified (NASA pages) |
+| illumination | false | The nebula is lit by the same nearby stars in both; nothing like a Sun angle changes | supported |
+| geometry | false | Low Earth orbit against L2, a baseline of about 1.5 million km, about 0.01 au: parallax at 6,500 light-years is microarcseconds. Rotation and scale are removed by the registration | supported (computed) |
+| processing | true | Two teams, separate stretches, stars clipped in both (Part 2, Part 4) | verified |
+
+Confirmed as staged; no flag changed.
+
+### Claims
+
+| Claim (where used) | Status | Source or check |
+|---|---|---|
+| Webb covers about 84% of the 2014 frame; no data in a large top-right and two small top-left, bottom-left corners (pair caveat, stop `webb`) | verified | Part 4 overlap 83.6 %; seen on the warped Webb image |
+| Aligned to about 0.02", all 232 stars within 0.08" (pair caveat, alignment) | verified | Part 4: RMS 0.58 px x 0.0401"/px = 0.023"; worst 1.91 px = 0.077" |
+| Gas moves too little in 8 years to tell apart from band in a wipe | supported | compare-and-light.md Compare B (0.16" upper bound, from a secondary speed) |
+| Near-infrared passes dust more easily; visible light bounces off and is absorbed by dust | verified | NASA Infrared astronomy explainer: "Visible light's short, tight wavelengths are prone to bouncing off dust particles"; "Longer wavelengths of infrared light slip past dust more easily"; "Dust absorbs ultraviolet and visible light". ESA/Webb wordbank says the same |
+| Grain size comparable to visible wavelengths as the reason | not used | No primary source fetched; the stop text keeps to the NASA wording |
+| Webb's mirror collects more than six times Hubble's light | verified | NASA "Hubble vs. Webb": "more than six times the light collecting area" |
+| Extra stars are not new | supported | Stars do not form and brighten in 8 years at this rate; the Webb release attributes the view to near-infrared and the star population, not to change |
+| No galaxies in the view; the Milky Way's gas and dust block it | verified | weic2216: "there are no galaxies in this view. Instead, a mix of translucent gas and dust known as the interstellar medium stands in the way" |
+| Pillars partly see-through in near-infrared | verified | weic2216: "appear – at times – semi-transparent in near-infrared light" |
+| Webb filters invisible to the eye | verified | NASA Visible light: the eye detects "380 to 700 nanometers"; shortest Webb filter is 900 nm |
+| Webb colors in wavelength order, purple to red | verified | NASA asset "Color Info"; ESA wavelengths (Part 3) |
+| Hubble colors: oxygen blue, hydrogen (with nitrogen) green, sulfur red | verified | NASA 2014 asset page; F657N passes [N II] (Validation) |
+| Diffraction spikes come from each telescope's structure | verified | NASA "Webb's Diffraction Spikes" (primary mirror and struts); NASA "Hubble Spies a Star-Studded Cluster" (Hubble's secondary-mirror supports) |
+| Star cores saturated in both releases | verified (2014), supported (Webb) | Part 2: every 2014 core reaches 255; Part 4: Webb cores plateau at 247 to 254 |
+| Webb productType mosaic | supported | Field 4.21 x 7.30' = 30.7 arcmin² (ESA weic2216b) against 9.7 arcmin² per NIRCam pointing (JDox, NIRCam Imaging); NASA "a composite of separate exposures". Pointing count not read from the program |
+| Eagle Nebula, Messier 16, 6,500 light-years (stop `where`) | verified | heic1501 and weic2216 both say 6,500 light-years |
+| New stars forming inside the pillars | verified | heic1501: "newborn stars ... can be seen forming within the pillars themselves" |
+| View about 8.5 light-years across | supported | Computed: 4.53' x 6,500 ly = 8.6 ly; depends on the distance. NASA gives "approximately 8 light-years across" for the narrower Webb image (4.21') |
+| UV from massive young stars makes the gas glow and is why Hubble sees the pillars (stop `edges`) | verified | heic1501: "they are also the reason Hubble sees the structures at all. They radiate enough ultraviolet light to illuminate the area and make the clouds of oxygen, hydrogen and sulphur glow" |
+| Haze at the edges is material heated and evaporating; "pillars of destruction" | verified | heic1501 (the release says "bluish haze"; in this rendering the rim is green-yellow, so the stop says "glowing haze") |
+| 1995 vs 2014: sharper and wider; colors, filters, processing differ; alignment 0.1 to 0.3" (stop `hubble-1995`) | verified | heic1501 "even sharper and wider view"; approved 1995 pair record |
+| Four bright Webb stars at 2014 px (4365, 4774), (4421, 4648), (4527, 4808), (4599, 4683); Hubble shows two as faint red dots, the other two not at all (stop `hidden-stars`) | verified | Measured: Hubble 9 x 9 max 201 and 188 against local medians 69 and 74 at the first two; 116 and 117 against 99 and 91 at the others (noise level); inspected 1:1 |
+| Dust dims blue more than red more than near-infrared, so the light reaching Hubble looks red | supported | Follows from the NASA explainer wording on wavelength; the dots are red in the composite (more F673N than F502N) |
+| Inside or behind the dust is not decidable from these images | assumption | No distance or spectral data used |
+| Red glow at the middle pillar tip, centered near 2014 px (3965, 2075) (stop `red-glow`) | verified | Red-excess mask on the warped Webb image: centroid (3960, 2029), box x 3913 to 4026, y 1968 to 2181 |
+| Webb red is F470N, molecular hydrogen | verified | NASA "Red: F470N"; ESA "molecular hydrogen 4.7 um red" |
+| The glow is from energetic hydrogen molecules from jets and shocks of forming stars | supported | weic2216 states it for "the crimson glow" in general and names "the second and third pillars from the top"; applying it to this particular patch is ours |
+| Hubble red at the same place is sulfur | verified | Red excess in the 2014 image around (3994, 2060); red is F673N [S II] |
+
+### Webb image caveats
+
+Assigned colors, invisible filters; saturated cores; spikes from mirror and struts; no
+galaxies. `productType` stays `mosaic`, status raised from `unverified` to `supported`.
+
+### Viewports
+
+Chosen from the pixels (2014 frame, full resolution, x and y the view center): `where` and
+`webb` and `your-turn` at the fit view; `edges` (2550, 1150, z 5) on the left pillar's top;
+`hubble-1995` (3550, 2370, z 1.6) on the 1995 footprint (corners from Part 2); `more-stars`
+(1300, 1600, z 5) on open sky left of the left pillar, inside the Webb overlap;
+`hidden-stars` (4478, 4729, z 8) on the mean of the four stars, marker r 170 covering them;
+`red-glow` (4000, 2100, z 6), marker on the red-excess centroid.
+
+### Not used
+
+- The heated fragment at the top of the left pillar (heic1501): its exact position is not
+  given, so no stop points at it.
+- Webb's "bright red orbs" (protostars): not located in the pixels, so not pointed at.
+- Any statement that Webb is sharper: NIRCam's long-wavelength filters are coarser than WFC3 in
+  visible light, and the per-filter resolution was not checked.
+
+### Open
+
+- Which pillars weic2216 means by "the second and third pillars from the top".
+- Per-filter Webb exposure dates and the number of pointings (MAST, program 2739).
+- Whether the compare `split` reads as intended on a phone, where the divider covers less.
+
+### Revision after validation (2026-11-18)
+
+Verdict: accepted with caveats. Fixes applied to the three staged records:
+
+1. Stop `where`: "about 8.5 light-years wide", derived (4.53' at 6,500 ly = 8.6 ly), `supported`.
+2. Stop `edges`: "the reason Hubble sees the pillars at all" dropped.
+3. Webb filters: "mostly near-infrared; the shortest, at 0.9 µm, sits just past the red end of
+   what our eyes see" (stop `webb`, image caveat, pair caveat, whatDiffers). Disagreement kept on
+   record: the review asked for "at the edge of visible light". F090W spans 788 to 1024 nm (SVO
+   Filter Profile Service, fetched 2026-11-18) and NASA puts the eye's range at 380 to 700 nm, so
+   the filter lies wholly outside the visible band; "just past the red end" is the physically
+   correct form of the same point. `verified`
+4. More stars: the biggest cause added. Hubble's filters are narrowband, effective widths
+   F502N 6.5 nm, F657N 12.1 nm, F673N 11.8 nm; Webb's broad ones are F090W 177 nm, F200W 419 nm,
+   F444W 1068 nm (SVO, `verified`). A narrowband filter passes a correspondingly small share of
+   a star's continuum, while the line emission of the nebula stays bright (`supported`, from the
+   widths). "Not new" became "they were already there in 2014"; "far more" became "more" (no star
+   count was made).
+5. Stop `hidden-stars`: pixel claims cite the two images (heic1501a, weic2216b); measured by the
+   physicist, checked by the mathematician, `verified`. The reddening sentence was reworded to
+   what the NASA explainer says (longer wavelengths slip past dust more easily). The "red dots"
+   description stays an observation, with no cause stated.
+6. Stop `red-glow`: viewport (3930, 2120, z 6) from the review, marker kept. Placement softened to
+   the ESA wording ("especially in the second and third pillars from the top"); that this patch is
+   one of them stays `supported`. Note: on a full-width 16:9 view at z 6 the top-right corner
+   would still fall outside Webb data; the review measured the desktop layout with the story
+   column, so the value is taken from it.
+7. Stop `your-turn` and the colors caveat: "a red glow"; small red dots in Webb are mostly young
+   stars still in dust (weic2216: "bright red orbs" are newly formed protostars; "mostly" is
+   `supported`).
+8. Pair caveat 3: the fastest jets may move a few Hubble pixels in 8 years (about 0.16", 4 px, at
+   a typical literature jet speed: `assumption`), but the pictures record different light, so a
+   wipe cannot show it.
+9. Alignment: "95% of 232 well-measured stars within 0.06 arcsecond" (Part 4); "all" and "at
+   most" dropped.
+10. Saturation caveat: Part 2 (every 2014 core reaches 255 in a channel) and Part 4 (Webb cores
+    plateau at 247 to 254), measured on the files. Spike caveat: NASA "Webb's Diffraction Spikes"
+    (primary mirror and struts) and NASA "Hubble Spies a Star-Studded Cluster" (Hubble's
+    secondary-mirror supports), fetched 2026-11-17.
+
+`tsx scripts/validate-content.ts development`: Content OK.
+
+## Validation of C-05 (2026-11-18)
+
+Verdict: accepted with caveats. Reviewed independently by the reviewer (sources and quotes),
+the mathematician (registration, viewports, coverage, distances) and the physicist (physical
+meaning, pixel checks), against Parts 3 to 5 and the sources they cite.
+
+- The reviewer rejected the hidden-stars stop as first drafted, for want of a source; the
+  physicist and the mathematician confirmed its four stars in the pixels of both originals, so
+  the stop now cites the images themselves.
+- Ten fixes were applied before approval (Part 5, "Revision after validation"), among them: the
+  width marked as derived, Webb's shortest filter placed just past visible red, Hubble's
+  narrowband filters named as the main reason it shows fewer stars, "already there in 2014"
+  instead of "not new", the red-glow viewport moved to (3930, 2120, z 6) so the view stays
+  inside Webb's data, the jet-motion caveat rewritten, and the alignment stated for the 232
+  well-measured stars.
+- Caveats users see: Webb covers about 84% of the Hubble frame; the wipe compares different
+  light 7.9 years apart and cannot show motion; colors are assigned differently in each image;
+  star cores are saturated in both.
+
