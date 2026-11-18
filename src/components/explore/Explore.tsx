@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { type CSSProperties, useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
-import { LuArrowLeft, LuMaximize, LuMinimize, LuMinus, LuPlus, LuRotateCcw } from "react-icons/lu";
+import { LuArrowLeft, LuMaximize, LuMinimize, LuMinus, LuPlus, LuRotateCcw, LuShare } from "react-icons/lu";
 import type OpenSeadragon from "openseadragon";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { tileSource } from "@/content/tiles";
 import type { ImageManifest, Source } from "@/content/types";
 import { overviewHeightRem, shapeOf } from "@/viewer/overview";
-import { formatInt, formatZoom, homeView, viewFromOsd } from "@/viewer/view";
+import { parseViewerParams, serializeViewerParams } from "@/viewer/url";
+import { formatInt, formatZoom, homeView, osdFromView, type Size, viewFromOsd } from "@/viewer/view";
 import { drawRuler } from "./drawRuler";
 import styles from "./Explore.module.css";
 
@@ -19,6 +20,18 @@ interface ExploreProps {
 }
 
 const noSubscribe = () => () => {};
+
+// The settled view (OpenSeadragon's target, not the frame in flight).
+const settledView = (viewer: OpenSeadragon.Viewer, size: Size) => {
+  const vp = viewer.viewport;
+  return viewFromOsd(vp.getCenter(), vp.getZoom(), vp.getHomeZoom(), size);
+};
+
+const viewUrl = (viewer: OpenSeadragon.Viewer, size: Size) =>
+  `${window.location.pathname}${serializeViewerParams({ mode: "explore", view: settledView(viewer, size) })}`;
+
+// Next.js keeps its router state in history.state, so it is passed back unchanged.
+const replaceUrl = (url: string) => window.history.replaceState(window.history.state, "", url);
 
 const Explore = ({ image, source, tileBaseUrl }: ExploreProps) => {
   const rootRef = useRef<HTMLElement>(null);
@@ -31,6 +44,7 @@ const Explore = ({ image, source, tileBaseUrl }: ExploreProps) => {
   const zRef = useRef<HTMLSpanElement>(null);
   const viewerRef = useRef<OpenSeadragon.Viewer | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   // iPhone Safari has no element fullscreen; the button goes rather than doing nothing.
   const canFullscreen = useSyncExternalStore(noSubscribe, () => document.fullscreenEnabled, () => true);
   const navId = useId();
@@ -49,6 +63,7 @@ const Explore = ({ image, source, tileBaseUrl }: ExploreProps) => {
     if (!host || !navHost) return;
     let cancelled = false;
     let frame = 0;
+    let urlTimer = 0;
     let viewer: OpenSeadragon.Viewer | undefined;
     const { width, height } = image.tiles;
 
@@ -103,7 +118,25 @@ const Explore = ({ image, source, tileBaseUrl }: ExploreProps) => {
         gestureSettingsMouse: { clickToZoom: false, dblClickToZoom: true },
       });
       viewerRef.current = viewer;
-      viewer.addHandler("open", schedule);
+      const opened = viewer;
+      opened.addHandler("open", () => {
+        // A shared link restores its view; anything invalid in it was already clamped or dropped.
+        const { view } = parseViewerParams(window.location.search, { width, height });
+        if (view) {
+          const vp = opened.viewport;
+          const target = osdFromView(view, vp.getHomeZoom(), { width, height });
+          vp.zoomTo(target.zoom, undefined, true);
+          vp.panTo(new OSD.Point(target.center.x, target.center.y), true);
+          vp.applyConstraints(true);
+        }
+        host.dataset.open = "";
+        schedule();
+      });
+      // design.md 7.1: the URL follows the view 400 ms after it settles.
+      opened.addHandler("animation-finish", () => {
+        clearTimeout(urlTimer);
+        urlTimer = window.setTimeout(() => replaceUrl(viewUrl(opened, { width, height })), 400);
+      });
       viewer.addHandler("viewport-change", schedule);
       viewer.addHandler("resize", schedule);
       document.fonts.ready.then(schedule);
@@ -112,6 +145,7 @@ const Explore = ({ image, source, tileBaseUrl }: ExploreProps) => {
     return () => {
       cancelled = true;
       cancelAnimationFrame(frame);
+      clearTimeout(urlTimer);
       viewer?.destroy();
       viewerRef.current = null;
       navHost.replaceChildren();
@@ -123,6 +157,31 @@ const Explore = ({ image, source, tileBaseUrl }: ExploreProps) => {
     document.addEventListener("fullscreenchange", onChange);
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  const share = useCallback(async () => {
+    const viewer = viewerRef.current;
+    if (!viewer) return;
+    const url = new URL(viewUrl(viewer, { width: image.tiles.width, height: image.tiles.height }), window.location.href).href;
+    replaceUrl(url);
+    try {
+      // Phones get the system share sheet; elsewhere the link goes to the clipboard.
+      if (navigator.share && window.matchMedia("(pointer: coarse)").matches) {
+        await navigator.share({ title: image.title, url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      setToast("Link to this view copied.");
+    } catch (err) {
+      if ((err as Error).name === "AbortError") return;
+      setToast("Could not copy the link. Copy it from the address bar.");
+    }
+  }, [image]);
 
   const zoomBy = useCallback((factor: number) => {
     const vp = viewerRef.current?.viewport;
@@ -165,6 +224,9 @@ const Explore = ({ image, source, tileBaseUrl }: ExploreProps) => {
           <span className={styles.mode}>Explore</span>
         </div>
         <div className={`${styles.bar} ${styles.glass}`}>
+          <button type="button" className={styles.iconButton} onClick={share} aria-label="Share this view">
+            <LuShare aria-hidden />
+          </button>
           <ThemeSwitcher />
         </div>
       </header>
@@ -212,6 +274,10 @@ const Explore = ({ image, source, tileBaseUrl }: ExploreProps) => {
           <span className={styles.key}>Zoom</span>
           <span ref={zRef} className={styles.zoom}>{formatZoom(home.z)}</span>
         </p>
+      </div>
+
+      <div className={styles.toasts} role="status">
+        {toast && <p className={`${styles.toast} ${styles.glass}`}>{toast}</p>}
       </div>
     </main>
   );

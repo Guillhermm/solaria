@@ -11,7 +11,7 @@ const readout = (page: Page) => page.getByTestId("readout");
 
 // The viewer is ready once OpenSeadragon has drawn and the readout came from it.
 const ready = async (page: Page) => {
-  await page.getByTestId("viewer").locator(".openseadragon-canvas").waitFor();
+  await page.locator('[data-testid="viewer"][data-open]').waitFor();
   await page.waitForFunction(() => document.querySelector('[data-testid="viewer"] .openseadragon-canvas canvas'));
 };
 
@@ -59,4 +59,40 @@ test("the overview keeps the image's aspect ratio", async ({ page }) => {
 test("an unknown slug answers 404", async ({ page }) => {
   const response = await page.goto("/no-such-image/");
   expect(response?.status()).toBe(404);
+});
+
+test("a shared link restores its view, and so does a reload", async ({ page }) => {
+  await page.goto(`${PATH}?mode=explore&x=10000&y=5000&z=8`);
+  await ready(page);
+  await expect(readout(page)).toHaveText(/Center x\s*10 000\s*y\s*5 000\s*Zoom\s*8\.0×/);
+  await page.reload();
+  await ready(page);
+  await expect(readout(page)).toHaveText(/Center x\s*10 000\s*y\s*5 000\s*Zoom\s*8\.0×/);
+});
+
+test("invalid view parameters fall back to the fit view", async ({ page }) => {
+  await page.goto(`${PATH}?mode=nope&x=abc&y=1&z=Infinity`);
+  await ready(page);
+  await expect(readout(page)).toHaveText(/Center x\s*21 104\s*y\s*4 935\s*Zoom\s*1\.0×/);
+});
+
+test("the URL follows the view once it settles", async ({ page }) => {
+  await page.goto(PATH);
+  await ready(page);
+  await page.getByRole("button", { name: "Zoom in" }).click();
+  await expect(page).toHaveURL(/\?mode=explore&x=21104&y=4935&z=2$/);
+});
+
+test("the share button copies a link that reopens the same view", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto(`${PATH}?mode=explore&x=30000&y=6000&z=4`);
+  await ready(page);
+  await page.getByRole("button", { name: "Share this view" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "copied" })).toBeVisible();
+  const link = await page.evaluate(() => navigator.clipboard.readText());
+  expect(link).toMatch(/\/andromeda-phat-phast-2025\/\?mode=explore&x=30000&y=6000&z=4$/);
+  const other = await context.newPage();
+  await other.goto(link);
+  await ready(other);
+  await expect(readout(other)).toHaveText(/Center x\s*30 000\s*y\s*6 000\s*Zoom\s*4\.0×/);
 });

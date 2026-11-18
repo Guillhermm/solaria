@@ -307,8 +307,45 @@
   margin-inline-end: 0 !important;
 }
 
+.toasts {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--bottom) + var(--space-7));
+  translate: -50% 0;
+  width: max-content;
+  max-width: calc(100% - 2 * var(--edge));
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--target);
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  pointer-events: auto;
+}
+
+@starting-style {
+  .toast {
+    opacity: 0;
+    translate: 0 0.5rem;
+  }
+}
+
+.toast {
+  transition: opacity var(--dur-base) var(--ease-standard), translate var(--dur-base) var(--ease-standard);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .iconButton {
+    transition: none;
+  }
+
+  .toast {
     transition: none;
   }
 }

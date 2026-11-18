@@ -14,6 +14,8 @@ in [docs/science/](docs/science/).
   panorama released on 2025-01-16 (42208 x 9870 px, a quarter-resolution rendition), full
   window, with rulers in image pixels, an overview sized to the image's shape, a readout
   of the center and the zoom relative to fit, and zoom, reset and fullscreen controls.
+  The URL carries the view (`?mode=explore&x=&y=&z=`, center in image pixels, zoom relative
+  to fit) and the share button copies it, so a shared link reopens the same view.
 - Content from JSON files in `data/` (sources, image manifests), checked by a validator at
   build time. The site is a static export (`out/`).
 - Scripts: `npm run fetch-source -- <sourceId>` downloads an original into `.cache/` and
@@ -44,7 +46,7 @@ in [docs/science/](docs/science/).
 
 ## Planned
 
-Journeys with story mode, shareable view URLs, tiles served from
+Journeys with story mode, tiles served from
 R2, the rest of the new design (Home, Journeys), and Compare and Light modes once a pair or band set
 is validated. See the roadmap for order and status.
 

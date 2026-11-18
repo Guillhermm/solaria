@@ -31,7 +31,8 @@ src/content/              no React, no browser
   tiles.ts                tile base URL resolution, tile URL, OpenSeadragon tile source
   load.ts                 the only module that touches the file system
 src/viewer/               no React: view math (zoom relative to fit, image pixels), overview
-                          sizing by aspect ratio, ruler ticks
+                          sizing by aspect ratio, ruler ticks, the `?mode=&x=&y=&z=` URL
+                          (parsed and clamped at the boundary, url.ts)
 src/app/                  server components: call getContent(), pass plain objects down
 src/components/           client components: receive a manifest and a tile base as props
   explore/                the Explore viewer page (OpenSeadragon, rulers, overview, readout)
