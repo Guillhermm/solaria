@@ -88,6 +88,7 @@
     "width": 4350,
     "height": 4350
   },
+  "maxPixelRatio": 2,
   "tiles": {
     "format": "jpg",
     "tileSize": 256,

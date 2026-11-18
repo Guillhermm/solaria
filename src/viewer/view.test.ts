@@ -11,6 +11,8 @@ import {
   viewFromOsd,
   viewportToImage,
   waitsForTiles,
+  ZOOM_CAP,
+  zoomCaps,
 } from "./view";
 
 const ANDROMEDA = { width: 42208, height: 9870 };
@@ -100,5 +102,15 @@ describe("waitsForTiles", () => {
   it("waits while no image is shown yet", () => {
     expect(waitsForTiles([])).toBe(true);
     expect(waitsForTiles([{ opacity: 0, loaded: true }])).toBe(true);
+  });
+});
+
+describe("zoomCaps (design.md 15.5, D10 and D19)", () => {
+  it("stops a Journey at native zoom and the hand at 1.1 by default", () => {
+    expect(zoomCaps()).toEqual({ stop: 1, hand: ZOOM_CAP });
+  });
+  it("lets both go to an image's maxPixelRatio", () => {
+    expect(zoomCaps(2)).toEqual({ stop: 2, hand: 2 });
+    expect(zoomCaps(1.05)).toEqual({ stop: 1.05, hand: ZOOM_CAP });
   });
 });

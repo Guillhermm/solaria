@@ -1019,7 +1019,8 @@ the ones in the repository today.
   stops, and on wider screens a lens that magnifies one stop from the same tiles, with its
   zoom, field and center computed from the Journey file. Hovering or focusing a stop aims the
   lens (arrow keys move between stops), and a click, tap or Enter opens the Journey there.
-  Below it, the Journeys index lists each published Journey from `data/journeys`. The poster
+  Below it, the Journeys index lists each published Journey from `data/journeys`, largest
+  image first (pixel count of its tiles; `journeyOrder`, which the kiosk loop and search follow). The poster
   is pyramid level 1 stitched into `poster.jpg` on phones (`generate-tiles` writes it; `npm run
   generate-tiles -- <imageId> --poster-only` stitches it from tiles already on disk) and the
   2048 px `preview.jpg` on wider screens.
@@ -1050,7 +1051,12 @@ the ones in the repository today.
   Camera mosaic of 5 November 2011 (0.40 m/px), cropped to 1.74 km around the lander (the
   original is a 510 Mpx strip, cut through its crop). Three stops open the pair
   `moon-apollo-11-2011` with the 22 January 2011 orthophoto (0.50 m/px), sun from the opposite
-  side. Science record: `docs/science/moon-apollo-11.md`.
+  side. Science record: `docs/science/moon-apollo-11.md`. Its image sets `maxPixelRatio: 2`, so
+  the deep stops and the hand zoom go to 2 screen pixels per image pixel (design.md 15.5, D19);
+  that magnifies, it adds no detail.
+- Image manifests may set `maxPixelRatio` (1 or more, validated): how far past native zoom
+  Journey stops and the hand zoom may go on that image. Without it stops stop at native zoom
+  and the hand at 1.1 (`zoomCaps` in `src/viewer/view.ts`).
 - A Journey stop can show a Compare pair: a stop's `compare: { pairId, split }` names a pair
   whose reference is the Journey's image, and arriving there shows the moving image in Wipe at
   that split, with the side labels and the compare bar (headline, "What differs?", both

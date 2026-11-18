@@ -5,6 +5,7 @@ import JourneyIndex, { type JourneyEntry } from "@/components/home/JourneyIndex"
 import WeeklyDetail from "@/components/home/WeeklyDetail";
 import { getContent } from "@/content/load";
 import { resolveTileBase } from "@/content/tiles";
+import { orderJourneys } from "@/kiosk/kiosk";
 import { aimableStops, lensField } from "@/home/lens";
 import { homeCard } from "@/seo/home-card";
 import { pageMetadata, SITE_DESCRIPTION, SITE_NAME } from "@/seo/seo";
@@ -16,8 +17,7 @@ export const metadata: Metadata = pageMetadata({ path: "/", title: SITE_NAME, de
 
 const entries = (): JourneyEntry[] => {
   const { journeys, images, sources } = getContent();
-  // Mock Journeys exist for the end-to-end tests only (data/mock/, never in production).
-  return journeys.filter((j) => !j.mock).flatMap((journey) => {
+  return orderJourneys(journeys, images).flatMap((journey) => {
     // A Journey through a band set shows the band it opens on.
     const image = images.find((i) => i.id === (journey.stops[0]?.band ?? journey.imageId));
     const source = image && sources.find((s) => s.id === image.sourceId);

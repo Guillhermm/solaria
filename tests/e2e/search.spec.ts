@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, type Locator, type Page, test } from "@playwright/test";
+import { homeJourneys, readContent } from "./content";
 import { contrastRatio, over, parseColor as parseCss } from "../../src/styles/contrast";
 
 // Search (F-04), design.md 15.1 and 15.2, as geometry and behavior in the four cells.
@@ -507,16 +508,18 @@ test.describe("behavior at 1440x900", () => {
     await page.goto("/");
     await open(page);
     await input(page).fill("2048, 2048");
-    await expect(options(page).getByTestId("search-context")).toHaveText([
-      "Andromeda Galaxy (M31), Hubble PHAT+PHAST panorama",
-      "Apollo 11 landing site, LROC NAC, 2011-11-05",
-      "Nili Patera dunes, HiRISE, 2007-06-30",
-      "Pillars of Creation, Hubble 2014 (WFC3)",
-      "The Sun in seven SDO channels, 2024-05-10 12:00 UTC",
-      "Apollo 11 landing site, LROC NAC orthophoto, 2011-01-22",
-      "Nili Patera dunes, HiRISE, 2007-10-13",
-      "Pillars of Creation, Webb 2022 (NIRCam)",
-    ]);
+    // Journey images in Home's order, a band set as one row under its title, then the rest by id.
+    // Search lists validated images only; a staged draft stays out.
+    const images = readContent("images").filter((i) => i.validation.status === "approved");
+    const sets = readContent("band-sets");
+    const holds = (id: string) => {
+      const t = images.find((i) => i.id === id).tiles;
+      return t.width > 2048 && t.height > 2048;
+    };
+    const lead = homeJourneys().map((j) => j.imageId);
+    const rest = images.map((i) => i.id).filter((id) => !lead.includes(id) && !sets.some((s: { imageIds: string[] }) => s.imageIds.includes(id))).sort();
+    const title = (id: string) => sets.find((s: { imageIds: string[] }) => s.imageIds[0] === id)?.title ?? images.find((i) => i.id === id).title;
+    await expect(options(page).getByTestId("search-context")).toHaveText([...lead, ...rest].filter(holds).map(title));
   });
 
   test("S5: Search fades with Share when idle, and never while the dialog is open", async ({ page }) => {

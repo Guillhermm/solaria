@@ -53,7 +53,7 @@ import { pairCaveats, sides } from "@/viewer/compare";
 import { dividerValueText } from "@/viewer/divider";
 import { chipText, flipTags, mergeMarks, reticleSide, type Tag } from "@/viewer/route";
 import { type Bounds, clearStop, type DraggedSplit, flightPlan, parseStop, stepStop, stopCompare, stopNumber, stopOf, stopTarget, storySearch, viewBounds, zoomSpan } from "@/viewer/story";
-import { fitScale, formatInt, formatZoom, homeView, osdFromView, type Size, viewFromOsd, waitsForTiles } from "@/viewer/view";
+import { fitScale, formatInt, zoomCaps, formatZoom, homeView, osdFromView, type Size, viewFromOsd, waitsForTiles } from "@/viewer/view";
 import { DWELL_MS, storySearch1 } from "@/kiosk/kiosk";
 import { useAttract, useKiosk } from "@/kiosk/useKiosk";
 import { labelView, parseLabelsParam } from "@/viewer/labels";
@@ -108,11 +108,6 @@ const TILE_ERRORS: Toast = { text: "Some detail could not load.", retry: true, s
 // design.md 5.8: missing tiles stay at the lower level; only after this many does the user hear of it.
 const TILE_ERROR_LIMIT = 10;
 const IDLE_MS = 5000;
-// design.md 15.5, D10: by hand the camera stops at 1.1 screen pixels per image pixel (OpenSeadragon's
-// default). A held link view that needs more raises the cap to exactly its own ratio until the
-// user zooms out below 1.1.
-const ZOOM_CAP = 1.1;
-
 // The settled view (OpenSeadragon's target, not the frame in flight).
 const settledView = (viewer: OpenSeadragon.Viewer, size: Size) => {
   const vp = viewer.viewport;
@@ -540,6 +535,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       navHost.replaceChildren(nav);
       const token = (el: Element, name: string) => getComputedStyle(el).getPropertyValue(name).trim();
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const { stop: stopCap, hand: handCap } = zoomCaps(image.maxPixelRatio);
       viewer = OSD({
         element: host,
         tileSources: tileSource(image, tileBaseUrl),
@@ -569,7 +565,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         // refetched none but added about 35 MB of renderer memory over 500 (T-03).
         maxImageCacheCount: 500,
         gestureSettingsMouse: { clickToZoom: false, dblClickToZoom: true },
-        maxZoomPixelRatio: ZOOM_CAP,
+        maxZoomPixelRatio: handCap,
       });
       viewerRef.current = viewer;
       const opened = viewer;
@@ -606,7 +602,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         const mark = stopTarget(s);
         if (!mark) return s.viewport;
         const px = viewerPx();
-        const scale = Math.min(fitScale(px, size) * s.viewport.z, 1);
+        const scale = Math.min(fitScale(px, size) * s.viewport.z, stopCap);
         const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
         const half = reticleSide(RETICLE_REM * rem, scale, s.marker?.r) / 2;
         // The ticks reach 1.5rem past the bracket; the chip sits above it on the right.
@@ -639,10 +635,10 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       // A link's view past the cap raises it to exactly what that view needs.
       const allow = (view: Viewport) => {
         const vp = opened.viewport as unknown as { maxZoomPixelRatio: number };
-        vp.maxZoomPixelRatio = Math.max(ZOOM_CAP, fitScale(viewerPx(), size) * view.z * 1.0001);
+        vp.maxZoomPixelRatio = Math.max(handCap, fitScale(viewerPx(), size) * view.z * 1.0001);
       };
       const fly = (view: Viewport, done?: () => void, exact = false) => {
-        const cap = exact ? Infinity : 1;
+        const cap = exact ? Infinity : stopCap;
         if (exact) allow(view);
         // A flight retargeted mid-air (a bar arriving with the stop) gets no new animation-start.
         const midAir = flying && started;
@@ -693,7 +689,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           const { story: inStory, paused: held, journey: j, stop: at } = pageRef.current;
           if (inStory && !held && j) {
             if (flying) fly(stopView(j.stops[at]));
-            else fitImageBounds(viewBounds(stopView(j.stops[at]), size, viewerPx()), 0);
+            else fitImageBounds(viewBounds(stopView(j.stops[at]), size, viewerPx(), stopCap), 0);
           } else if (heldViewRef.current) {
             const held = heldViewRef.current;
             allow(held);
@@ -795,7 +791,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         fitted = !(journey && asked === "story") && !fitOverlapRef.current && (!view || view.z === 1);
         syncMargins();
         if (journey && asked === "story") {
-          fitImageBounds(viewBounds(stopView(journey.stops[parseStop(window.location.search, journey.stops.length)]), size, viewerPx()), 0);
+          fitImageBounds(viewBounds(stopView(journey.stops[parseStop(window.location.search, journey.stops.length)]), size, viewerPx(), stopCap), 0);
           requestAnimationFrame(() => land());
         } else if (view) {
           heldViewRef.current = view;
@@ -817,10 +813,10 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         // design.md 5.8: Compare is hidden where the drawer cannot rotate an image.
         if (pairs.length || bandSets.length || stopPairs.length) setOpened({ OSD, viewer: opened, margins: () => margins, rotates: opened.drawer.canRotate() });
       });
-      // Zooming out below 1.1 by hand puts the cap back.
+      // Zooming out below the hand cap puts it back.
       opened.addHandler("zoom", () => {
         const vp = opened.viewport as unknown as { maxZoomPixelRatio: number };
-        if (!heldViewRef.current && !flying && vp.maxZoomPixelRatio > ZOOM_CAP && ratioNow() <= ZOOM_CAP) vp.maxZoomPixelRatio = ZOOM_CAP;
+        if (!heldViewRef.current && !flying && vp.maxZoomPixelRatio > handCap && ratioNow() <= handCap) vp.maxZoomPixelRatio = handCap;
         if (!flying) markMax();
       });
       opened.addHandler("animation-start", () => {

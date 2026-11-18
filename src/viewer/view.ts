@@ -63,3 +63,9 @@ export const formatZoom = (z: number) => `${z.toFixed(1)}×`;
 // shown at all: a Light band opened from the URL hides the first image before its own is added.
 export const waitsForTiles = (items: readonly { opacity: number; loaded: boolean }[]) =>
   !items.some((it) => it.opacity > 0) || items.some((it) => it.opacity > 0 && !it.loaded);
+
+// design.md 15.5, D10: a Journey stop stops at native zoom (one screen pixel per image pixel)
+// and the hand at 1.1, OpenSeadragon's default, unless the image's manifest lets it magnify
+// further (maxPixelRatio); then both stop there.
+export const ZOOM_CAP = 1.1;
+export const zoomCaps = (maxPixelRatio = 1) => ({ stop: maxPixelRatio, hand: Math.max(ZOOM_CAP, maxPixelRatio) });

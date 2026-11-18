@@ -101,6 +101,10 @@ export interface ImageManifest {
   // The box of the source file that was tiled, in source pixels (origin top-left, size in pixels).
   // Absent: the whole file. Adding (x, y) to a point of this image gives its pixel in the product.
   crop?: { x: number; y: number; width: number; height: number };
+  // How far past one screen pixel per image pixel the viewer may magnify this image, for Journey
+  // stops and by hand: 2 shows each image pixel as 2 x 2 screen pixels. Absent: 1 (stops stop at
+  // native zoom, the hand cap stays 1.1). It magnifies; it adds no detail.
+  maxPixelRatio?: number;
   tiles: TilePyramid;
   validation: Validation;
   mock: boolean;

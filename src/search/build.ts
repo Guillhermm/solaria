@@ -1,5 +1,6 @@
 import type { Content, FeatureLabel, ImageManifest, LabelSet, Stop } from "@/content/types";
 import { aimableStops } from "@/home/lens";
+import { orderJourneys } from "@/kiosk/kiosk";
 import { serializeViewerParams } from "@/viewer/url";
 import { stopOf, stopTarget, storySearch } from "@/viewer/story";
 
@@ -67,7 +68,7 @@ export const setTitle = (content: Content, imageIds: string[]) => {
 export const buildSearchIndex = (content: Content): SearchIndex => {
   const images = content.images.filter(published).sort((a, b) => (a.id < b.id ? -1 : 1));
   const shown = new Set(images.map((i) => i.id));
-  const journeys = content.journeys.filter((j) => published(j) && shown.has(j.imageId));
+  const journeys = orderJourneys(content.journeys, content.images).filter((j) => published(j) && shown.has(j.imageId));
   const labels: SearchEntry[] = content.labels
     .filter((set) => published(set) && set.imageIds.every((id) => shown.has(id)))
     .flatMap((set) =>

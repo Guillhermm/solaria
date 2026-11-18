@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
-import { readContent } from "./content";
+import { homeJourneys } from "./content";
 
 const read = (path: string) => JSON.parse(readFileSync(path, "utf8"));
 const source = read("data/sources/andromeda-phat-phast-2025.json");
@@ -169,7 +169,7 @@ test.describe("desktop", () => {
     await page.goto("/");
     const index = page.getByRole("region", { name: "Journeys" });
     const rows = index.getByRole("listitem");
-    await expect(rows.getByRole("heading", { level: 3 })).toHaveText(readContent("journeys").map((j) => j.title));
+    await expect(rows.getByRole("heading", { level: 3 })).toHaveText(homeJourneys().map((j) => j.title));
     const mars = JSON.parse(readFileSync("data/journeys/nili-patera.json", "utf8"));
     const rowOf = (title: string) => rows.filter({ has: page.getByRole("heading", { level: 3, name: title, exact: true }) });
     const marsRow = rowOf(mars.title);

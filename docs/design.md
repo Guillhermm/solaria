@@ -925,9 +925,12 @@ come only from the validated data.
 
 **Attract loop.**
 
-- K5. With no input, the app plays Story through every published Journey in Home's order
-  (Andromeda, Nili Patera, the Pillars, then the Sun), and after the last stop of the last
-  Journey starts again at stop 1 of the first.
+- K5. With no input, the app plays Story through every published Journey in Home's order,
+  and after the last stop of the last Journey starts again at stop 1 of the first. Home's
+  order (decided 2026-11-18): by the pixel count (tiles width x height) of each Journey's
+  image, largest first, ties by slug. Today: Andromeda, the Pillars, Nili Patera, the Moon,
+  the Sun. The Journeys index, the kiosk loop and search all follow it (`journeyOrder` in
+  `src/kiosk/kiosk.ts`).
 - K6. Each stop dwells 8 s after its flight settles. The stop card, the credit and the
   current stop marker are visible for the whole dwell (S2 holds on every stop).
 - K7. A chip "Touch to explore" sits bottom center, 0.75rem above the highest top edge of
@@ -1090,15 +1093,15 @@ S1 to S4 (14.1) hold for every element added here. Three more apply to every rul
 - Q15. An entry matches when every query word is a prefix of some word of its text. Rank,
   in order: tier (0 the normalized words equal the query's, 1 the text's first words are the
   query's with the last one as a prefix, 2 any other match), then entries on the current page's image first (viewer only), then kind
-  (label, stop, image), then data order (Journeys in roadmap order and stops in order,
+  (label, stop, image), then data order (Journeys in Home's order, K5, and stops in order,
   labels in file order, images by id). At most 8 rows show.
 - Q16. Test vectors on Home: "m32" gives Satellite galaxy M32, then The companion galaxy
   M32. "andromeda" gives Andromeda core, then Andromeda Galaxy (M31), Hubble PHAT+PHAST
   panorama. "171" gives 171 Å, active region 13664, then The Sun, SDO AIA 171 Å,
   2024-05-10 12:00 UTC. "your turn" gives the no-match state. "sun" gives the seven SDO
   images, 7 rows and no overflow line. "the" matches 20 entries: The bright center, The
-  companion galaxy M32, The descent stage, The shadow flips, The ripples moved, The dunes
-  stayed, then two SDO images, with "Showing 8 of 20. Type more to narrow." under them (the line shows only past 8).
+  companion galaxy M32, The ripples moved, The dunes stayed, The descent stage, The shadow
+  flips (stops in Home's order, K5), then two SDO images, with "Showing 8 of 20. Type more to narrow." under them (the line shows only past 8).
   "pillars" gives the 1995 image, then 2014, then Webb 2022.
   (Vectors as of D1 and the Sun stop titles of D3.)
 - Q17. Results update on every input event with no debounce and no animation. The live
@@ -1141,8 +1144,8 @@ S1 to S4 (14.1) hold for every element added here. Three more apply to every rul
 - Q24. On Home a point gives one row per image that contains it, "Go to {x}, {y}" with the
   image title as context, to `/<id>/?mode=explore&x=&y=&z=4`. The images of one band set
   are one row, to its first image in Light (`?mode=light&x=&y=&z=4`) with the band set's
-  title as context. Order: Journey images in Home's order, then the rest by id. "2048,
-  2048" gives Andromeda, Moon 2011-11-05, Mars 2007-06-30, Pillars of Creation, Hubble 2014,
+  title as context. Order: Journey images in Home's order (K5), then the rest by id. "2048,
+  2048" gives Andromeda, Pillars of Creation, Hubble 2014, Mars 2007-06-30, Moon 2011-11-05,
   the Sun band set, Moon orthophoto 2011-01-22, Mars 2007-10-13, then Webb 2022 (the 1995 frame is 1518 by 1497).
 - Q25. Sky coordinates are detected, not converted: a query with a digit followed by `h`,
   `m`, `s`, `°`, `′`, `″`, `'` or `"`, or with the word `ra` or `dec`, shows the sky note
@@ -1318,7 +1321,7 @@ descriptions, stop bodies and credits, all from validated data.
   screen pixels per image pixel, OpenSeadragon's default. A held link view that needs more
   raises the cap to exactly its own ratio (the Sun label at 1440x900 is about 1.25), where
   Zoom in is disabled and + does nothing; zooming out below 1.1 puts the cap back. Journey
-  stops still stop at native zoom.
+  stops still stop at native zoom, unless the image allows more (D19).
 - **D11, the Light bar is a margin of the view on desktop.** At 1440x900 the Sun label link's
   z 5.69 (Q3: the radius fills a third of the shorter side) used to draw its circle under the
   Light bar, which floats over the foot of the image on desktop. The bar's measured top edge
@@ -1354,6 +1357,12 @@ descriptions, stop bodies and credits, all from validated data.
   where none does, the clear view that leaves it least is taken and the viewer is marked
   `data-framing="leaves-data"`. The phone sheet is a margin of the view, so it is cleared by
   the frame itself. Mars stop 2 at 1440x900 and 390x844 clears inside the footprint.
+- **D19, an image may magnify past native zoom (as built, 2026-11-18).** An image manifest
+  may set `maxPixelRatio` (a number of 1 or more, validated). Its Journey stops then stop at
+  that many screen pixels per image pixel instead of 1, and by hand the cap is that ratio
+  instead of 1.1. The Moon's LROC image has 2, so stops 03 to 05 (z 20 to 24) show the
+  3.7 m lander deck at about 18 screen pixels instead of 9. Magnifying adds no detail: each
+  image pixel is drawn larger. A link's own view still goes past the cap, as D10 says.
 - **D17, the wipe handle sits in a free stretch of the divider.** The handle stays at the
   middle of the divider unless an overlay (the top bar, the overview card, the compare bar, the
   zoom controls, a toast) crossing the divider comes within 1rem of it; then it moves to the

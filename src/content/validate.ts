@@ -287,7 +287,7 @@ export const validateImage = (raw: unknown, file: string): Result<ImageManifest>
       "id", "sourceId", "title", "target", "observatory", "instruments", "bands", "colorMapping",
       "productType", "tiles", "validation", "mock",
     ],
-    ["releasedAt", "observedAt", "processing", "pixelScale", "fieldOfView", "orientation", "caveats", "footprint", "crop"],
+    ["releasedAt", "observedAt", "processing", "pixelScale", "fieldOfView", "orientation", "caveats", "footprint", "crop", "maxPixelRatio"],
   );
   if (!o) return bad(c);
   const n = c.errors.length;
@@ -328,12 +328,18 @@ export const validateImage = (raw: unknown, file: string): Result<ImageManifest>
           }, true)
         : undefined,
     crop: optionalCrop(c, o),
+    maxPixelRatio:
+      "maxPixelRatio" in o
+        ? typeof o.maxPixelRatio === "number" && Number.isFinite(o.maxPixelRatio) && o.maxPixelRatio >= 1
+          ? o.maxPixelRatio
+          : fail(c, "maxPixelRatio", "a number of 1 or more", o.maxPixelRatio)
+        : undefined,
     tiles: tiles(c, o.tiles, "tiles"),
     validation: validation(c, o.validation, "validation"),
     mock: bool(c, o.mock, "mock"),
   });
   if (value) {
-    for (const k of ["releasedAt", "observedAt", "processing", "pixelScale", "fieldOfView", "orientation", "caveats", "footprint", "crop"] as const) {
+    for (const k of ["releasedAt", "observedAt", "processing", "pixelScale", "fieldOfView", "orientation", "caveats", "footprint", "crop", "maxPixelRatio"] as const) {
       if (value[k] === undefined) delete value[k];
     }
   }

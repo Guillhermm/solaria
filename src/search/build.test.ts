@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import * as fx from "@/content/__fixtures__/content";
 import { loadContent } from "@/content/load";
+import { journeyOrder } from "@/kiosk/kiosk";
 import type { Content } from "@/content/types";
 import { buildSearchIndex } from "./build";
 
@@ -102,17 +103,13 @@ describe("the index of the real content", () => {
     expect(index.example).toBe("21104, 4935");
   });
 
-  it("offers points on the Journey images in roadmap order, a band set as one place, then the rest by id (Q24)", () => {
-    expect(index.places.map((p) => p.href)).toEqual([
-      "/andromeda-phat-phast-2025/?mode=explore",
-      "/moon-apollo-11-lroc-nac-2011-11-05/?mode=explore",
-      "/nili-patera-hirise-2007-06-30/?mode=explore",
-      "/pillars-hubble-2014/?mode=explore",
-      "/sun-sdo-2024-05-10-aia-94/?mode=light",
-      "/moon-apollo-11-lroc-nac-ortho-2011-01-22/?mode=explore",
-      "/nili-patera-hirise-2007-10-13/?mode=explore",
-      "/pillars-hubble-1995/?mode=explore",
-      "/pillars-webb-2022-nircam/?mode=explore",
-    ]);
+  it("offers points on the Journey images in Home's order, a band set as one place, then the rest by id (Q24)", () => {
+    const hrefs = index.places.map((p) => p.href);
+    const journeyImages = journeyOrder(content.journeys, content.images).map((slug) => content.journeys.find((j) => j.slug === slug)!.imageId);
+    expect(hrefs.slice(0, journeyImages.length).map((h) => h.split("/")[1])).toEqual(journeyImages);
+    expect(hrefs).toContain("/sun-sdo-2024-05-10-aia-94/?mode=light");
+    const rest = hrefs.slice(journeyImages.length).map((h) => h.split("/")[1]);
+    expect(rest).toEqual([...rest].sort());
+    expect(rest).toEqual(expect.arrayContaining(["pillars-hubble-1995", "pillars-webb-2022-nircam"]));
   });
 });

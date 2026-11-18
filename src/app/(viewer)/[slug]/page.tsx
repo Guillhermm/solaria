@@ -98,7 +98,7 @@ const ViewerPage = async ({ params }: Params) => {
       bandSets={bandSets}
       labels={labels}
       labelStops={labelStops}
-      nextJourney={journey ? nextJourney(journeyOrder(content.journeys), journey.slug) : undefined}
+      nextJourney={journey ? nextJourney(journeyOrder(content.journeys, content.images), journey.slug) : undefined}
       search={buildSearchIndex(content)}
       compareFrom={journeyPair ? { pair: journeyPair.id, headline: journeyPair.headline } : undefined}
       stopPairs={stopPairs}

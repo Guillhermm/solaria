@@ -1,14 +1,14 @@
 import { readFileSync } from "node:fs";
 import { expect, type Page, test } from "@playwright/test";
-import { readContent } from "./content";
+import { homeJourneys } from "./content";
 
 // Kiosk mode (F-01), design.md 14.1 and 14.3. K-rules hold at 1440x900 and 390x844 in the
 // dark theme; time runs on Playwright's clock.
 const read = (path: string) => JSON.parse(readFileSync(path, "utf8"));
 const andromeda = read("data/journeys/andromeda.json");
 const sun = read("data/journeys/sun.json");
-// K5's loop order: Home's, so a staged Journey joins it after the published ones.
-const order = readContent("journeys");
+// K5's loop order: Home's, largest image first, staged Journeys included in this build.
+const order = homeJourneys();
 const COPY = "Still exploring? Returning to the start in 10 s.";
 
 test.beforeEach(async ({ page, baseURL }) => {

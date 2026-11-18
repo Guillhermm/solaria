@@ -34,7 +34,7 @@ const RootLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
     <body>
       {children}
       {/* Renders nothing unless ?kiosk=1 started kiosk mode; the attract loop follows Home's order. */}
-      <Kiosk journeys={journeyOrder(getContent().journeys)} />
+      <Kiosk journeys={journeyOrder(getContent().journeys, getContent().images)} />
       {/* Evaluated at build time; renders nothing visible and no link, so kiosk mode is unaffected. */}
       {analyticsEnabled(process.env) && <SiteAnalytics />}
     </body>

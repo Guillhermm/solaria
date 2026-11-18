@@ -41,8 +41,9 @@ export interface Bounds {
 }
 
 // The part of the image (in image pixels) a view shows in a viewer of the given size in screen
-// pixels. A Journey's camera never goes past one screen pixel per image pixel (`maxScale` 1), so on
-// a large screen a deep stop shows more around it rather than magnified pixels. A link's own view
+// pixels. A Journey's camera never goes past one screen pixel per image pixel (`maxScale` 1, or the
+// image's maxPixelRatio, design.md D19), so on a large screen a deep stop shows more around it
+// rather than magnified pixels. A link's own view
 // (a URL, a search row) is kept exactly: maxScale Infinity.
 export const viewBounds = (view: Viewport, image: Size, viewer: Size, maxScale = 1): Bounds => {
   const scale = Math.min(fitScale(viewer, image) * view.z, maxScale);

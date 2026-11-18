@@ -12,9 +12,21 @@ export const RESET_TEXT = "Returning to the start.";
 
 export const storySearch1 = (slug: string) => `/${slug}/?mode=story&stop=1`;
 
-// K5: the loop's order is Home's: the Journeys as loaded (published, then staged in an
-// end-to-end build), without the mock ones the tests use.
-export const journeyOrder = (journeys: readonly { slug: string; mock: boolean }[]) => journeys.filter((j) => !j.mock).map((j) => j.slug);
+// K5: Home's order, which the loop and search follow: by the pixel count of each Journey's
+// image (tiles width x height), largest first, then by slug; the mock Journeys the tests use
+// are left out.
+export const orderJourneys = <J extends { slug: string; mock: boolean; imageId: string }>(
+  journeys: readonly J[],
+  images: readonly { id: string; tiles: { width: number; height: number } }[],
+): J[] => {
+  const pixels = (j: J) => {
+    const t = images.find((i) => i.id === j.imageId)?.tiles;
+    return t ? t.width * t.height : 0;
+  };
+  return journeys.filter((j) => !j.mock).sort((a, b) => pixels(b) - pixels(a) || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0));
+};
+
+export const journeyOrder = (...args: Parameters<typeof orderJourneys>) => orderJourneys(...args).map((j) => j.slug);
 
 // K5: the Journey after `slug` in Home's order, the first after the last.
 export const nextJourney = (order: readonly string[], slug: string) => order[(order.indexOf(slug) + 1) % order.length];

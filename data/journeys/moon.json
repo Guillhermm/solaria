@@ -66,7 +66,7 @@
     {
       "id": "lander",
       "title": "The descent stage",
-      "body": "The bright square is the descent stage of Eagle, the lower half of the lunar module, which stayed on the Moon when the astronauts left. Its deck is 3.7 meters on a side, about 9 pixels here, and its top stands 3 meters above the ground.\n\nThe deck is so bright that it shows as plain white, with no detail. Its shadow falls just to the west, on the left. With the sun about 49 degrees above the horizon, we calculate it should reach only about 2.6 meters past the stage, under 10 pixels.",
+      "body": "The bright square is the descent stage of Eagle, the lower half of the lunar module, which stayed on the Moon when the astronauts left. Its deck is 3.7 meters on a side, about 9 of the picture's pixels, and its top stands 3 meters above the ground. Each pixel covers 40 centimeters, the smallest detail this picture holds: zooming in further makes the pixels bigger but adds no detail.\n\nThe deck is so bright that it shows as plain white, with no detail. Its shadow falls just to the west, on the left. With the sun about 49 degrees above the horizon, we calculate it should reach only about 2.6 meters past the stage, under 10 of the picture's pixels.",
       "viewport": {
         "x": 1598,
         "y": 2060,
@@ -146,7 +146,7 @@
     {
       "id": "experiments",
       "title": "Experiments left behind",
-      "body": "About 20 to 30 meters south of the lander are two experiments the astronauts set up, part of the Early Apollo Scientific Experiments Package. Each is only a few pixels here.\n\nThe northern one is the Laser Ranging RetroReflector, an array of small reflectors: laser pulses fired from Earth bounce off it, and their travel time measures the distance between Earth and the Moon. It still works, though dust has dimmed it. The southern one is the Passive Seismic Experiment Package. The dark ground around it comes from the astronauts' repeated footsteps.",
+      "body": "About 20 to 30 meters south of the lander are two experiments the astronauts set up, part of the Early Apollo Scientific Experiments Package. Each spans only a few of the picture's 40-centimeter pixels, so zooming in shows blocks of gray, not the shape of the instruments.\n\nThe northern one is the Laser Ranging RetroReflector, an array of small reflectors: laser pulses fired from Earth bounce off it, and their travel time measures the distance between Earth and the Moon. It still works, though dust has dimmed it. The southern one is the Passive Seismic Experiment Package. The dark ground around it comes from the astronauts' repeated footsteps.",
       "viewport": {
         "x": 1598,
         "y": 2085,

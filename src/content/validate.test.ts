@@ -102,6 +102,16 @@ describe("image rules", () => {
     return errorsOf(validateImage(s, "data/images/demo.json"));
   };
 
+  it("keeps a maxPixelRatio of 1 or more and rejects anything else", () => {
+    const s = { ...clone(fx.image()), maxPixelRatio: 2 };
+    const r = validateImage(s, "data/images/demo.json");
+    expect(r.ok && r.value.maxPixelRatio).toBe(2);
+    const plain = validateImage(clone(fx.image()), "data/images/demo.json");
+    expect(plain.ok && "maxPixelRatio" in plain.value).toBe(false);
+    for (const bad of [0.5, 0, -2, "2", null, Infinity]) {
+      expect(run((x) => (x.maxPixelRatio = bad))).toEqual([`data/images/demo.json: maxPixelRatio: expected a number of 1 or more, got ${JSON.stringify(bad) ?? String(bad)}`]);
+    }
+  });
   it("rejects an empty color mapping", () => {
     expect(run((s) => (s.colorMapping.value = { kind: "per-band", entries: [] }))[0]).toContain(
       "colorMapping.value.entries: expected a non-empty array",

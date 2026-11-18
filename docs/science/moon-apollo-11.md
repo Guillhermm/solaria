@@ -410,3 +410,8 @@ section above where they differ.
 10. Emission angles, from the PDS Geosciences Orbital Data Explorer (ODE), as given by the
     review: M175124932 (November) 1.1 deg; M150361817 (January) 9.4 to 12.2 deg. Not read by the
     physicist. The geometry flag row above is now `verified` on that basis.
+11. After approval, with the Moon image allowed to zoom to 2:1 (`maxPixelRatio: 2`), stops 03 and
+    05 count the picture's own pixels ("about 9 of the picture's pixels", "a few of the picture's
+    40-centimeter pixels"), say the 0.40 m pixel is the smallest detail, and that zooming in adds
+    no detail. Stop 03's shadow reads "under 10 of the picture's pixels". Numbers unchanged;
+    validation stays approved.
