@@ -25,23 +25,13 @@ test("the unvalidated gallery is gone", async ({ page }) => {
   await expect(page.getByText("PIA")).toHaveCount(0);
 });
 
-test("the viewer requests its tiles under /tiles/", async ({ page }) => {
-  const tile = page.waitForRequest((r) => r.url().includes("/tiles/andromeda-phat-phast-2025/"));
+test("home links to the Andromeda viewer page", async ({ page }) => {
   await page.goto("/");
-  expect((await tile).url()).toMatch(/\/tiles\/andromeda-phat-phast-2025\/\d+\/\d+\/\d+\.jpg$/);
-  expect((await (await tile).response())?.status()).toBe(200);
-  await expect(page.getByRole("heading", { level: 3 })).toHaveText(
+  const link = page.getByRole("link", { name: /Andromeda Galaxy \(M31\), Hubble PHAT\+PHAST panorama/ });
+  await expect(link).toHaveAttribute("href", "/andromeda-phat-phast-2025/");
+  await link.click();
+  await expect(page).toHaveURL(/\/andromeda-phat-phast-2025\/$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Andromeda Galaxy (M31), Hubble PHAT+PHAST panorama"
   );
-});
-
-test("the zoom box, reset and fullscreen controls still drive the viewer", async ({ page }) => {
-  await page.goto("/");
-  const status = page.getByText(/^Zoom \d/);
-  await expect(status).toContainText("Zoom 1.00");
-  await page.getByRole("spinbutton", { name: "Zoom percentage" }).fill("300");
-  await expect(status).toContainText("Zoom 3.00");
-  await page.getByRole("button", { name: "Reset view" }).click();
-  await expect(status).toContainText("Zoom 1.00");
-  await expect(page.getByRole("button", { name: "Fullscreen" })).toBeEnabled();
 });

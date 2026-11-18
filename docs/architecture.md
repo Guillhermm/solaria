@@ -30,8 +30,11 @@ src/content/              no React, no browser
   pyramid.ts              level sizes and tile counts (shared with generate-tiles)
   tiles.ts                tile base URL resolution, tile URL, OpenSeadragon tile source
   load.ts                 the only module that touches the file system
+src/viewer/               no React: view math (zoom relative to fit, image pixels), overview
+                          sizing by aspect ratio, ruler ticks
 src/app/                  server components: call getContent(), pass plain objects down
 src/components/           client components: receive a manifest and a tile base as props
+  explore/                the Explore viewer page (OpenSeadragon, rulers, overview, readout)
 public/tiles/<id>/        generated tile tree (moves to R2 later, R-02)
 ```
 
@@ -111,8 +114,12 @@ export const getContent = (): Content; // root = process.cwd(), mode from NODE_E
   `loadContent` with an explicit `root` pointing at fixtures and an explicit `mode`.
 - Pages are server components. They call `getContent()`, pick what they need and pass
   plain objects to client components as props. The browser never fetches a manifest.
-- `/[slug]` (X-01, Sprint 4) will use `generateStaticParams` over `journeys` with
-  `dynamicParams = false`, as static export requires.
+- `/[slug]` (X-01, built) uses `generateStaticParams` over the image manifests, so the slug is
+  the image `id`, with `dynamicParams = false`, as static export requires; any other slug is
+  the 404 page. Journey slugs join the same route in Sprint 5 and must not collide with an
+  image id.
+- Route groups: `src/app/(site)/` holds Home with the site header and footer;
+  `src/app/(viewer)/[slug]/` is the full-bleed viewer page with neither.
 
 ## 4. Types (D-01)
 

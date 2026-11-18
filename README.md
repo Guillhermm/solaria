@@ -9,8 +9,11 @@ in [docs/science/](docs/science/).
 
 ## Built today
 
-- Deep Viewer: OpenSeadragon over pre-cut tiles of the Hubble Andromeda (M31) PHAT+PHAST
-  panorama released on 2025-01-16 (42208 x 9870 px, a quarter-resolution rendition).
+- A viewer page per image at `/<image id>/` (for now `/andromeda-phat-phast-2025/`), linked
+  from Home: OpenSeadragon over pre-cut tiles of the Hubble Andromeda (M31) PHAT+PHAST
+  panorama released on 2025-01-16 (42208 x 9870 px, a quarter-resolution rendition), full
+  window, with rulers in image pixels, an overview sized to the image's shape, a readout
+  of the center and the zoom relative to fit, and zoom, reset and fullscreen controls.
 - Content from JSON files in `data/` (sources, image manifests), checked by a validator at
   build time. The site is a static export (`out/`).
 - Scripts: `npm run fetch-source -- <sourceId>` downloads an original into `.cache/` and
@@ -41,8 +44,8 @@ in [docs/science/](docs/science/).
 
 ## Planned
 
-Journeys with story mode, a viewer page per image with shareable URLs, tiles served from
-R2, the rest of the new design (viewer page, Home, Journeys), and Compare and Light modes once a pair or band set
+Journeys with story mode, shareable view URLs, tiles served from
+R2, the rest of the new design (Home, Journeys), and Compare and Light modes once a pair or band set
 is validated. See the roadmap for order and status.
 
 ## Run it

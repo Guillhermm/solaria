@@ -1,0 +1,343 @@
+/* Explore mode (docs/design.md 5.5): the image fills the window; everything else floats on
+   glass. The canvas, rulers, overview and readout keep the dark values in either theme. */
+
+.root {
+  --ruler: 1.375rem;
+  --ruler-left: 2.75rem;
+  --edge: 0.75rem;
+  --readout-h: 2.25rem;
+  --inset-top: env(safe-area-inset-top, 0rem);
+  --inset-bottom: env(safe-area-inset-bottom, 0rem);
+  --top: calc(var(--inset-top) + var(--ruler) + var(--edge));
+  --below-bar: calc(var(--top) + var(--target) + var(--space-2));
+  --left: calc(var(--ruler-left) + var(--edge));
+  --bottom: calc(var(--inset-bottom) + var(--edge));
+
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--viewer-canvas);
+  color: var(--text);
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  background: var(--viewer-canvas);
+}
+
+.canvas :global(.openseadragon-canvas):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -4px;
+}
+
+.glass {
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(1.25rem) saturate(1.3);
+  backdrop-filter: blur(1.25rem) saturate(1.3);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-panel);
+}
+
+/* Rulers */
+
+.rulers {
+  pointer-events: none;
+}
+
+.rulerTop,
+.rulerLeft {
+  position: absolute;
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-label-sm);
+  background: var(--ruler-bar);
+}
+
+.rulerTop {
+  top: var(--inset-top);
+  left: var(--ruler-left);
+  /* A canvas is a replaced element: left and right alone do not stretch it. */
+  width: calc(100% - var(--ruler-left));
+  height: var(--ruler);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.rulerLeft {
+  top: var(--inset-top);
+  left: 0;
+  width: var(--ruler-left);
+  height: calc(100% - var(--inset-top));
+  border-right: 1px solid var(--hairline);
+}
+
+/* Top bar */
+
+.topbar {
+  position: absolute;
+  top: var(--top);
+  left: var(--left);
+  right: var(--edge);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  pointer-events: none;
+}
+
+.topbar > * {
+  pointer-events: auto;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: var(--target);
+  padding-inline: var(--space-1);
+}
+
+.iconButton {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--target);
+  height: var(--target);
+  padding: 0;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-standard);
+}
+
+.iconButton svg {
+  width: var(--icon);
+  height: var(--icon);
+}
+
+.iconButton:hover {
+  color: var(--accent);
+}
+
+.iconButton:active {
+  color: var(--accent-press);
+}
+
+.wordmark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: var(--target);
+  padding-inline: var(--space-2) var(--space-3);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wordmark);
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.mark {
+  width: 0.625rem;
+  height: 0.625rem;
+  border: 1.5px solid currentColor;
+  border-radius: 1px;
+  transform: rotate(45deg);
+}
+
+.wordmark:hover .mark {
+  border-color: var(--accent);
+}
+
+.divider {
+  flex: none;
+  align-self: stretch;
+  width: 1px;
+  margin-block: var(--space-2);
+  background: var(--hairline);
+}
+
+.title {
+  min-width: 0;
+  margin: 0;
+  padding-inline: var(--space-3) var(--space-2);
+  overflow: hidden;
+  font-size: var(--text-body);
+  font-weight: 600;
+  letter-spacing: var(--tracking-title);
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.mode {
+  flex: none;
+  padding-inline: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.credit {
+  position: absolute;
+  top: var(--below-bar);
+  left: var(--left);
+  max-width: min(34rem, calc(100% - var(--left) - var(--edge)));
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-2);
+}
+
+/* Details: on desktop each part floats on its own against the root (the wrapper is not
+   positioned); the phone turns the wrapper into a bottom sheet. */
+
+.controls {
+  position: absolute;
+  right: var(--edge);
+  bottom: var(--bottom);
+  display: flex;
+  flex-direction: column;
+}
+
+.controls > * + * {
+  border-top: 1px solid var(--hairline);
+  border-radius: 0;
+}
+
+.overview {
+  position: absolute;
+  left: var(--left);
+  bottom: calc(var(--bottom) + var(--readout-h) + var(--space-2));
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+
+.root[data-shape="tall"] .overview {
+  top: var(--below-bar);
+  right: var(--edge);
+  bottom: auto;
+  left: auto;
+}
+
+.overviewHead {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-label-sm);
+  line-height: 1.2;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.size {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sized to the image's own aspect (design.md 6.4), under a hairline frame. */
+.nav {
+  height: min(var(--ov-h), 60dvh, 100dvh - 22rem);
+  aspect-ratio: var(--ov-ar);
+  max-width: 100%;
+  background: var(--viewer-canvas);
+  outline: 1px solid var(--hairline);
+}
+
+.navigator,
+.nav > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* OpenSeadragon draws a 2px view box inline; the instrument uses a 1px amber one with a halo. */
+.nav :global(.displayregion) {
+  border-width: 1px !important;
+  box-shadow: 0 0 0 1px var(--halo);
+}
+
+.readout {
+  position: absolute;
+  left: var(--left);
+  bottom: var(--bottom);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  height: var(--readout-h);
+  margin: 0;
+  padding: 0.625rem var(--space-3) 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-numeric);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+  white-space: nowrap;
+  /* Inherited color is computed in the page theme, so the dark subtree sets its own. */
+  color: var(--text);
+}
+
+.key {
+  font-size: var(--text-label-sm);
+  letter-spacing: var(--tracking-label);
+  color: var(--text-muted);
+}
+
+.key + .value,
+.key + .zoom {
+  margin-inline-end: var(--space-2);
+}
+
+/* Fixed widths keep the labels from shifting as the numbers change. */
+.value {
+  min-width: 6ch;
+}
+
+.zoom {
+  min-width: 5ch;
+  margin-inline-end: 0 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iconButton {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .glass {
+    border-color: CanvasText;
+  }
+
+  .mark {
+    border-color: CanvasText;
+  }
+}
+
+/* Phone: no rulers, the top bar keeps only what fits. */
+@media (max-width: 40rem) {
+  .root {
+    --ruler: 0rem;
+    --ruler-left: 0rem;
+  }
+
+  .rulers,
+  .wordmark,
+  .divider,
+  .credit {
+    display: none;
+  }
+
+  .title {
+    padding-inline-start: var(--space-1);
+  }
+}

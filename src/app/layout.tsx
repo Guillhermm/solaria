@@ -2,8 +2,6 @@ import React from "react";
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
-import Header from "@/components/globals/Header";
-import Footer from "@/components/globals/Footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,11 +17,7 @@ const RootLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
       {/* eslint-disable-next-line @next/next/no-sync-scripts */}
       <script src="/theme-init.js" />
     </head>
-    <body>
-      <Header />
-      <main>{children}</main>
-      <Footer />
-    </body>
+    <body>{children}</body>
   </html>
 );
 
