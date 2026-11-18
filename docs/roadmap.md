@@ -66,7 +66,7 @@ Each item leaves the app working.
 
 | ID | Item | Status | Depends | Done when |
 |---|---|---|---|---|
-| V-01 | Design tokens, fonts, dark-first theme with light chrome | todo | P-02 | Contrast meets WCAG 2.2 AA |
+| V-01 | Design tokens, fonts, dark-first theme with light chrome | done | P-02 | Contrast meets WCAG 2.2 AA |
 | V-02 | Remove react-bootstrap and Bootstrap; CSS Modules | todo | V-01 | Not in `package.json`; same features work |
 | V-03 | New header and footer | todo | V-01 | Matches the approved mockup |
 

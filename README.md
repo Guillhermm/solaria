@@ -21,6 +21,11 @@ in [docs/science/](docs/science/).
   `TILE_BASE_URL` (a root-relative path or an https URL, default `/tiles`) is read at build
   time and sets where the viewer loads tiles from; a build serves one base.
   Architecture: [docs/architecture.md](docs/architecture.md).
+- Look: design tokens in `src/styles/tokens.css` (direction C of the design), Geist and
+  Geist Mono self-hosted through the `geist` package, so no font request leaves the site.
+  Dark by default; the light theme follows the system setting until the header toggle
+  stores a choice. `public/theme-init.js` applies it before the first paint. A unit test
+  checks the token pairs against WCAG 2.2 AA contrast.
 - Unit and integration tests (Vitest) and end-to-end tests (Playwright).
 
 ## Planned

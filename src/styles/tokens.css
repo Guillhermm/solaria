@@ -1,0 +1,91 @@
+/* Design tokens of direction C "Instrument" (docs/design.md, section 6.1).
+   Dark is the default. The light theme only applies to the chrome: any subtree marked
+   data-theme="dark" (the viewer) gets the dark values back in either theme.
+   src/styles/tokens.test.ts parses the two color blocks below to check contrast. */
+
+:root,
+[data-theme="dark"] {
+  --ground: #07090d;
+  --surface: #0c0f16;
+  --surface-2: #1a1f2a;
+  --glass: rgb(10 13 19 / 0.78);
+  --ruler-bar: rgb(7 9 13 / 0.72);
+  --hairline: rgb(255 255 255 / 0.18);
+  --hairline-soft: rgb(255 255 255 / 0.1);
+  --tick-major: rgb(255 255 255 / 0.55);
+  --text: #e9ecf2;
+  --text-2: #c9ced8;
+  --text-muted: #9ba3b4;
+  --accent: #ffb547;
+  --accent-press: #e89a22;
+  --on-accent: #07090d;
+  --marker: #ffffff;
+  --halo: rgb(0 0 0 / 0.55);
+  --danger: #ff7a6b;
+  --viewer-canvas: #07090d;
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --ground: #f7f6f2;
+  --surface: #ffffff;
+  --surface-2: #eceae4;
+  --glass: rgb(247 246 242 / 0.86);
+  --hairline: rgb(17 20 26 / 0.18);
+  --hairline-soft: rgb(17 20 26 / 0.1);
+  --tick-major: rgb(17 20 26 / 0.55);
+  --text: #11141a;
+  --text-2: #2e3440;
+  --text-muted: #5a6272;
+  --accent: #8f5200;
+  --accent-press: #6f3f00;
+  --on-accent: #f7f6f2;
+  color-scheme: light;
+}
+
+:root {
+  --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, Menlo, monospace;
+
+  --text-display-xl: 3.75rem;
+  --text-display: 2.375rem;
+  --text-section: 2.5rem;
+  --text-title: 1.375rem;
+  --text-body: 1rem;
+  --text-label: 0.6875rem;
+  --text-label-sm: 0.625rem;
+  --text-numeric: 0.8125rem;
+  --tracking-display: -0.035em;
+  --tracking-title: -0.02em;
+  --tracking-label: 0.08em;
+  --tracking-wordmark: 0.3em;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+
+  --radius-control: 0.125rem;
+  --radius-panel: 0.25rem;
+  --target: 2.75rem;
+  --icon: 1.125rem;
+
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-panel: 320ms;
+  --dur-route: 600ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.3, 0, 1, 1);
+}
+
+@media (max-width: 40rem) {
+  :root {
+    --text-display-xl: 2.5rem;
+    --text-display: 1.75rem;
+  }
+}

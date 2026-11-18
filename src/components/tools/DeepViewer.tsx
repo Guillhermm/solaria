@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "react-bootstrap";
 import { BsAlexa, BsFullscreen, BsFullscreenExit } from "react-icons/bs";
-import OpenSeadragon from "openseadragon";
+import type OpenSeadragon from "openseadragon";
 import { tileSource } from "@/content/tiles";
 import { DeepViewerProps } from "@/types";
 
@@ -18,45 +18,47 @@ export default function DeepViewer({ title, image, tileBaseUrl }: DeepViewerProp
   });
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
-  // Initialize viewer
+  // OpenSeadragon touches `document` when its module loads, so it cannot run during the
+  // static export; it is imported in the browser only.
   useEffect(() => {
-    // only run on client
-    if (typeof window === "undefined") return;
-    if (!containerRef.current) return;
+    const element = containerRef.current;
+    if (!element) return;
+    let cancelled = false;
+    let viewer: OpenSeadragon.Viewer | undefined;
 
-    const viewer = OpenSeadragon({
-      element: containerRef.current,
-      tileSources: tileSource(image, tileBaseUrl),
-      crossOriginPolicy: "Anonymous",
-      showZoomControl: false,
-      showHomeControl: false,
-      showRotationControl: false,
-      showNavigationControl: false,
-      autoHideControls: false,
-      showNavigator: true,
-      navigatorPosition: "BOTTOM_RIGHT",
-      navigatorSizeRatio: 0.2,
-      navigatorMaintainSizeRatio: false,
-      navigatorBackground: "#000",
-      navigatorOpacity: 0.8,
-    });
-
-    viewerRef.current = viewer;
-
-    const handler = () => {
+    const sync = () => {
+      if (!viewer) return;
       const vp = viewer.viewport;
-      const z = vp.getZoom();
-      setScale(z);
+      setScale(vp.getZoom());
       const c = vp.getCenter();
       setCenter({ x: c.x, y: c.y });
     };
 
-    // Listen to viewport-change to sync UI
-    viewer.addHandler("viewport-change", handler);
+    import("openseadragon").then(({ default: OSD }) => {
+      if (cancelled) return;
+      viewer = OSD({
+        element,
+        tileSources: tileSource(image, tileBaseUrl),
+        crossOriginPolicy: "Anonymous",
+        showZoomControl: false,
+        showHomeControl: false,
+        showRotationControl: false,
+        showNavigationControl: false,
+        autoHideControls: false,
+        showNavigator: true,
+        navigatorPosition: "BOTTOM_RIGHT",
+        navigatorSizeRatio: 0.2,
+        navigatorMaintainSizeRatio: false,
+        navigatorBackground: "#000",
+        navigatorOpacity: 0.8,
+      });
+      viewerRef.current = viewer;
+      viewer.addHandler("viewport-change", sync);
+    });
 
     return () => {
-      viewer.removeHandler("viewport-change", handler);
-      viewer.destroy();
+      cancelled = true;
+      viewer?.destroy();
       viewerRef.current = null;
     };
   }, [image, tileBaseUrl]);

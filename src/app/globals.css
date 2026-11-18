@@ -1,94 +1,55 @@
-html, body, #root {
+@import "../styles/tokens.css";
+
+html, body {
   height: 100%;
   margin: 0;
 }
 
+/* Bootstrap reads its own variables; point them at the design tokens until it is removed. */
+:root, [data-theme] {
+  --bs-body-bg: var(--ground);
+  --bs-body-color: var(--text);
+  --bs-body-font-family: var(--font-sans);
+  --bs-emphasis-color: var(--text);
+  --bs-link-color: var(--text);
+  --bs-link-hover-color: var(--accent);
+  --bs-border-color: var(--hairline);
+  --bs-dark-rgb: 12, 15, 22;
+}
+
 body {
-  background-color: var(--bg-color);
-  color: var(--text-color);
+  background-color: var(--ground);
+  color: var(--text);
+  font-family: var(--font-sans);
 }
 
-body.theme-loaded {
-  transition: background-color 0.3s ease, color 0.3s ease;
+.theme-switcher {
+  display: grid;
+  place-items: center;
+  width: var(--target);
+  height: var(--target);
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: var(--icon);
 }
 
-#root {
-  display: flex;
-  flex-direction: column;
-  --bg-color: #fff;
-  --bs-danger-rgb: 218, 37, 29;
-  --bs-link-color: #000;
-  --bs-link-color-rgb: 218, 37, 29;
-  --bs-link-active-color-rgb: 179, 30, 23;
-  --bs-link-focus-color-rgb: 179, 30, 23;
-  --bs-link-hover-color-rgb: 179, 30, 23;
-  --text-color: #000;
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
-[data-theme='dark'] #root {
-  --bs-link-color: #e0e0e0;
-}
-
-[data-theme='dark'] {
-  --bs-body-bg: #242424;
-  --bs-body-color: #e0e0e0;
-  --bg-color: #1e1e1e;
-  --bs-dark-rgb: 40, 40, 40;
-  --bs-danger-rgb: 207, 102, 121;
-  --bs-link-color-rgb: 207, 102, 121;
-  --bs-link-active-color-rgb: 230, 70, 83;
-  --bs-link-focus-color-rgb: 230, 70, 83;
-  --bs-link-hover-color-rgb: 230, 70, 83;
-  --bs-emphasis-color: #e0e0e0;
-  --text-color: #e0e0e0;
-}
-
-.bg-danger {
-  background-color: #da251d !important;
-}
-
-[data-theme='dark'] .bg-danger {
-  background-color: #cf6679 !important;
-}
-
-.btn-danger {
-  --bs-btn-bg: #da251d;
-  --bs-btn-border-color: #da251d;
-  --bs-btn-active-bg: #b31e17;
-  --bs-btn-active-border-color: #b31e17;
-  --bs-btn-focus-bg: #b31e17;
-  --bs-btn-focus-border-color: #b31e17;
-  --bs-btn-hover-bg: #b31e17;
-  --bs-btn-hover-border-color: #b31e17;
-}
-
-[data-theme='dark'] .btn-danger {
-  --bs-btn-bg: #cf6679;
-  --bs-btn-border-color: #cf6679;
-  --bs-btn-active-bg: #e65346;
-  --bs-btn-active-border-color: #e65346;
-  --bs-btn-focus-bg: #e65346;
-  --bs-btn-focus-border-color: #e65346;
-  --bs-btn-hover-bg: #e65346;
-  --bs-btn-hover-border-color: #e65346;
-}
-
-.btn-group .btn:hover {
-  background-color: #b31e17;
-  border-color: #b31e17;
-}
-
-[data-theme='dark'] .btn-group .btn:hover {
-  background-color: #e65346;
-  border-color: #e65346;
-}
-
-.btn-group .btn-outline-danger {
-  --bs-btn-border-color: #dc3545;
-}
-
-[data-theme='dark'] .btn-group .btn--outline-danger {
-  --bs-btn-border-color: #cf6679;
+.btn-danger, .btn-info {
+  --bs-btn-color: var(--on-accent);
+  --bs-btn-bg: var(--accent);
+  --bs-btn-border-color: var(--accent);
+  --bs-btn-hover-color: var(--on-accent);
+  --bs-btn-hover-bg: var(--accent-press);
+  --bs-btn-hover-border-color: var(--accent-press);
+  --bs-btn-active-color: var(--on-accent);
+  --bs-btn-active-bg: var(--accent-press);
+  --bs-btn-active-border-color: var(--accent-press);
 }
 
 .controls {
@@ -131,23 +92,23 @@ body.theme-loaded {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #dc3545;
+  background: var(--accent);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 [data-theme='dark'] .zoom-slider::-webkit-slider-thumb {
-  background: #cf6679;
+  background: var(--accent);
 }
 
 .zoom-slider::-webkit-slider-thumb:hover {
-  background: #b31e17;
+  background: var(--accent-press);
   transform: scale(1.1);
 }
 
 
 [data-theme='dark'] .zoom-slider::-webkit-slider-thumb:hover {
-  background: #e65346;
+  background: var(--accent-press);
 }
 
 .zoom-input-container {
@@ -173,16 +134,16 @@ body.theme-loaded {
 
 .zoom-input:focus {
   outline: none;
-  border-color: #4facfe;
+  border-color: var(--accent);
 }
 
 /* Highlight selected thumbnail */
 .thumbnail-selected {
-  border: 0.25rem solid #da251d;
+  border: 0.25rem solid var(--accent);
 }
 
 [data-theme='dark'] .thumbnail-selected {
-  border-color: #cf6679;
+  border-color: var(--accent);
 }
 
 .thumbnail-img {
