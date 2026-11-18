@@ -93,8 +93,8 @@ The site is on Vercel, deployed from its Git integration, at
 headers.
 
 Tiles are built and uploaded to R2 by the "Sync tiles to R2" workflow
-(`.github/workflows/sync-tiles.yml`), which runs on demand only: an `images` input (ids, or
-`all`) and an "apply" checkbox (unchecked is a dry run). It downloads the NASA originals, cuts
+(`.github/workflows/sync-tiles.yml`), which runs on demand only: an `images` dropdown (`all`, or
+one image) and an "apply" checkbox (unchecked is a dry run). It downloads the NASA originals, cuts
 the tiles (`npm run build-tiles`) and syncs them. New tiles are not committed (`public/tiles/` is
 ignored except the mock trees). It reads four repository secrets: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` and
 `R2_BUCKET`. To run the sync from your machine, copy `.env.example` to `.env`, fill it in, and

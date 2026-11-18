@@ -574,7 +574,8 @@ npm run sync-r2 -- [--dir public/tiles] [--apply]
   names of missing variables. A dry run without them makes no request and treats every
   file as new; `--apply` without them stops.
 - `.github/workflows/sync-tiles.yml` runs by hand only (`workflow_dispatch`), with an `images`
-  input (ids separated by spaces, default `all`) and an "apply" checkbox (unchecked is a dry
+  dropdown (`all` or one rebuildable id; a test keeps its options equal to `data/images` minus
+  `NOT_REBUILT`, so a new image must be added there) and an "apply" checkbox (unchecked is a dry
   run). It first runs `npm run build-tiles -- "$IMAGES"`, then the sync. Credentials are the
   `R2_*` repository secrets. One sync runs at a time. There is no push trigger: tiles no longer
   change in git, and a push to `data/` would otherwise download and cut every original again.

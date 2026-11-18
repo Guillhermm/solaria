@@ -3,9 +3,22 @@ on:
   workflow_dispatch:
     inputs:
       images:
-        description: Image ids separated by spaces, or all
-        type: string
+        description: Image to cut and upload (scripts/build-tiles.test.ts keeps this list in step with data/images)
+        type: choice
         default: all
+        options:
+          - all
+          - nili-patera-hirise-2007-06-30
+          - nili-patera-hirise-2007-10-13
+          - pillars-hubble-1995
+          - pillars-hubble-2014
+          - sun-sdo-2024-05-10-aia-1700
+          - sun-sdo-2024-05-10-aia-171
+          - sun-sdo-2024-05-10-aia-193
+          - sun-sdo-2024-05-10-aia-211
+          - sun-sdo-2024-05-10-aia-304
+          - sun-sdo-2024-05-10-aia-94
+          - sun-sdo-2024-05-10-hmi-6173
       apply:
         description: Upload (unchecked lists what would be uploaded)
         type: boolean
