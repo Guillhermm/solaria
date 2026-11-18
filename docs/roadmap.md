@@ -57,7 +57,7 @@ Each item leaves the app working.
 | D-03 | Fetch script into an ignored cache with checksum check | done | D-02 | Cache ignored; tests use a local fixture |
 | D-04 | `generate-tiles` writes thumbnail, preview and the manifest's dimensions and levels | done | D-01 | Manifest generated for a small test image |
 | D-05 | Manifests replace `/api/images`; app reads them at build time; static export | done | D-04 | `next build` produces a static site; API routes gone |
-| D-06 | Validation gate: production build fails on any unapproved or mock content | todo | D-05 | Test proves both outcomes |
+| D-06 | Validation gate: production build fails on any unapproved or mock content | done | D-05 | Test proves both outcomes |
 | D-07 | `TILE_BASE_URL` with local default | todo | D-05 | Same build works against a local or remote base |
 | D-08 | R2 sync script (dry run by default, credentials from env only) | todo | D-07 | Dry run lists the files it would upload |
 | D-09 | Mock manifests for Compare and Light development, flagged `mock: true` | todo | D-06 | Visible in dev, blocked in production |

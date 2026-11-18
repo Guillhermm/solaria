@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { publishProblems } from "./gate";
 import type { Content } from "./types";
 import { validateContent } from "./validate";
 
@@ -39,6 +40,10 @@ export const loadContent = (opts: { root: string; mode: Mode }): Content => {
   const files = dirs.flatMap((d) => readDir(opts.root, d));
   const result = validateContent(files);
   if (!result.ok) throw new ContentError(result.errors);
+  if (opts.mode === "production") {
+    const problems = publishProblems(result.value);
+    if (problems.length > 0) throw new ContentError(problems);
+  }
   return result.value;
 };
 

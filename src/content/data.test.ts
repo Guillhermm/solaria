@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 import { describe, expect, it } from "vitest";
+import { loadContent } from "./load";
 import { validateContent } from "./validate";
 
 const DATA = join(process.cwd(), "data");
@@ -33,5 +34,9 @@ describe("the real data directory", () => {
         "NASA, ESA, Benjamin Williams (UWashington), Zhuo Chen (UWashington), L. Clifton Johnson (Northwestern); Image Processing: Joseph DePasquale (STScI)",
       file: { width: 42208, height: 9870 },
     });
+  });
+
+  it("passes the production gate", () => {
+    expect(() => loadContent({ root: process.cwd(), mode: "production" })).not.toThrow();
   });
 });

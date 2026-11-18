@@ -73,4 +73,33 @@ describe("loadContent", () => {
       ]);
     }
   });
+
+  describe("production gate", () => {
+    it("passes an approved root", () => {
+      expect(() => loadContent({ root: root(fx.files()), mode: "production" })).not.toThrow();
+    });
+
+    it("throws on a draft image, and development still loads it", () => {
+      const files = fx.files();
+      (files[1].raw as ReturnType<typeof fx.image>).validation.status = "draft";
+      (files[1].raw as ReturnType<typeof fx.image>).validation.date = null;
+      const dir = root(files);
+      expect(() => loadContent({ root: dir, mode: "production" })).toThrow(
+        'image demo: validation.status is "draft", expected "approved"',
+      );
+      expect(loadContent({ root: dir, mode: "development" }).images).toHaveLength(1);
+    });
+
+    it("throws on an unverified claim", () => {
+      const files = fx.files();
+      (files[1].raw as ReturnType<typeof fx.image>).observatory.status = "unverified";
+      expect(() => loadContent({ root: root(files), mode: "production" })).toThrow("image demo: observatory is unverified");
+    });
+
+    it("throws on a mock leaked into data/images", () => {
+      const files = fx.files();
+      (files[1].raw as ReturnType<typeof fx.image>).mock = true;
+      expect(() => loadContent({ root: root(files), mode: "production" })).toThrow(/data\/images\/demo\.json: mock/);
+    });
+  });
 });
