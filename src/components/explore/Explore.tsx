@@ -125,7 +125,8 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
     // never re-renders React (design.md 9, INP).
     const paint = () => {
       frame = 0;
-      if (!viewer) return;
+      // document.fonts.ready can resolve after cleanup; a destroyed viewer still answers.
+      if (!viewer || cancelled) return;
       const vp = viewer.viewport;
       const view = viewFromOsd(vp.getCenter(true), vp.getZoom(true), vp.getHomeZoom(), { width, height });
       if (xRef.current) xRef.current.textContent = formatInt(view.x);
