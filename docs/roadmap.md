@@ -114,7 +114,9 @@ measures 0.016.
 | C-02 | Pillars of Creation, Hubble 1995 (WFPC2) vs 2014 (WFC3): source, fetch, tile | todo | D-08 | Sources and credits recorded |
 | C-03 | Register the pair from star control points; record transform and residual | todo | C-02 | Residual recomputed independently |
 | C-04 | "What differs?" note for the pair | todo | C-03 | Validated |
-| C-05 | Pillars Journey (adds Webb 2022 as a band comparison, labeled "different light, not different time") | todo | C-04 | Every stop validated |
+| C-05 | Pillars Journey (adds Webb 2022 as a band comparison, labeled "different light, not different time") | blocked | C-04 | Every stop validated |
+
+C-05 waits for R2: the Webb frame is about 2,566 tiles and 110 MB (estimated), too large for git, and a capped level would show Webb blurrier than Hubble. Compare design: `docs/architecture-compare.md`.
 
 ## M8. Light
 
