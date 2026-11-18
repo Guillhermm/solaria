@@ -582,6 +582,23 @@ r = width / height of the image file:
   crossfades in over 700 ms with the flight (a cut under reduced motion). In Story on a phone
   the bar keeps only the rail, and the view frames the stop below it.
 
+### 7.5 Site header and in-page anchors
+
+- The header of Home and About is sticky (`--header-h`, 3.5rem, on `--ground`), so the way
+  back stays on screen.
+- Journeys (`/#journeys`) and the footer's About anchors (`#credits`, `#accessibility`) land
+  their heading `--anchor-gap` (1.5rem) below the header: `scroll-margin-top` is built from
+  `--anchor-offset`, less the section's top padding where the target is a section.
+- The scroll is smooth, and instant under `prefers-reduced-motion: reduce`, both on the same
+  page and arriving from another one. Focus then moves to the target heading (`tabindex="-1"`,
+  focused with `preventScroll`), so keyboard and screen reader users start there.
+- As built: the links (`AnchorLink`) take the scroll over from Next (`scroll={false}`) and call
+  `scrollIntoView` with the behavior chosen from the media query. There is no global
+  `scroll-behavior: smooth`: in Next 16 it would also animate the jump to the top on every page
+  change, and the `data-scroll-behavior="smooth"` opt out makes hash links arriving from another
+  page instant (Next.js 16 upgrade guide, "Scroll Behavior Override",
+  https://nextjs.org/docs/app/guides/upgrading/version-16#scroll-behavior-override).
+
 ## 8. Accessibility (WCAG 2.2 AA)
 
 - Every image has a text alternative written as a description of what is visible, plus

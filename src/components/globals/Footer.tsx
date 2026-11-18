@@ -1,6 +1,7 @@
 import Link from "next/link";
 import OutLink from "@/components/OutLink";
 import { getContent } from "@/content/load";
+import AnchorLink from "./AnchorLink";
 import styles from "./Footer.module.css";
 
 const pages = [
@@ -55,11 +56,17 @@ const Footer = () => (
       </p>
     </div>
     <nav aria-label="Footer" className={styles.links}>
-      {pages.map(({ href, label }) => (
-        <Link key={href} href={href}>
-          {label}
-        </Link>
-      ))}
+      {pages.map(({ href, label }) =>
+        href.includes("#") ? (
+          <AnchorLink key={href} href={href}>
+            {label}
+          </AnchorLink>
+        ) : (
+          <Link key={href} href={href}>
+            {label}
+          </Link>
+        ),
+      )}
       {external.map(({ href, label }) => (
         <OutLink key={href} href={href} hiddenClassName={styles.hidden} icon>
           {label}

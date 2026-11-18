@@ -3,6 +3,7 @@ import Search from "@/components/search/Search";
 import { getContent } from "@/content/load";
 import { buildSearchIndex } from "@/search/build";
 import ThemeSwitcher from "../ThemeSwitcher";
+import AnchorLink from "./AnchorLink";
 import styles from "./Header.module.css";
 
 const Header = () => (
@@ -13,7 +14,7 @@ const Header = () => (
     </Link>
     <nav aria-label="Main" className={styles.nav}>
       <Search variant="header" index={buildSearchIndex(getContent())} />
-      <Link href="/#journeys">Journeys</Link>
+      <AnchorLink href="/#journeys">Journeys</AnchorLink>
       <Link href="/about/">About</Link>
       <ThemeSwitcher />
     </nav>

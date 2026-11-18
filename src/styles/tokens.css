@@ -74,6 +74,11 @@
   /* The one side gutter shared by the header, the Home sections and the footer. */
   --gutter: 1rem;
 
+  /* The sticky header's height, and the clear space under it where an anchor's heading lands. */
+  --header-h: 3.5rem;
+  --anchor-gap: var(--space-5);
+  --anchor-offset: calc(var(--header-h) + var(--anchor-gap));
+
   --radius-control: 0.125rem;
   --radius-panel: 0.25rem;
   --target: 2.75rem;

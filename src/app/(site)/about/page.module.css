@@ -16,7 +16,16 @@
 .page section {
   padding-block: var(--space-6);
   border-top: 1px solid var(--hairline-soft);
-  scroll-margin-top: var(--space-4);
+}
+
+/* A section's heading, not its top rule and padding, lands at the anchor offset; a heading
+   target lands there itself. */
+.page section[id] {
+  scroll-margin-top: calc(var(--anchor-offset) - 1px - var(--space-6));
+}
+
+.page h2[id] {
+  scroll-margin-top: var(--anchor-offset);
 }
 
 .page h2 {

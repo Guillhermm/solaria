@@ -39,6 +39,11 @@ a {
   outline-offset: 2px;
 }
 
+/* A heading takes focus only when an anchor lands on it (AnchorLink); the ring hugs its words. */
+[data-anchor-heading] {
+  width: fit-content;
+}
+
 @media (forced-colors: active) {
   :focus-visible {
     outline-color: Highlight;

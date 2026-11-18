@@ -1,7 +1,9 @@
 .index {
+  --index-top: var(--space-7);
   width: 100%;
-  padding: var(--space-7) var(--gutter) var(--space-6);
-  scroll-margin-top: var(--space-4);
+  padding: var(--index-top) var(--gutter) var(--space-6);
+  /* The heading, not the section's top padding, lands at the anchor offset. */
+  scroll-margin-top: calc(var(--anchor-offset) - var(--index-top));
 }
 
 .heading {
@@ -171,7 +173,8 @@
 
 @media (min-width: 48rem) {
   .index {
-    padding-block: var(--space-8) var(--space-7);
+    --index-top: var(--space-8);
+    padding-bottom: var(--space-7);
   }
 
   .heading {

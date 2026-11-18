@@ -1,8 +1,14 @@
+/* Sticky, so Journeys and About's anchors keep the way back on screen (design.md 7.5). Above the
+   Home hero's layers (z-index 3 at most), below the kiosk dock (10). */
 .header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 3.5rem;
+  min-height: var(--header-h);
+  background-color: var(--ground);
   padding-inline: max(var(--gutter), env(safe-area-inset-left, 0rem)) max(var(--gutter), env(safe-area-inset-right, 0rem));
   border-bottom: 1px solid var(--hairline-soft);
 }
