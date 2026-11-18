@@ -15,7 +15,7 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 |---|---|---|---|
 | 1 | Clean, tested base | B-01 to B-07 | done |
 | 2 | Next 16, content from manifests, static export | B-08, B-09, D-01 to D-07 | done |
-| 3 | New visual base; R2 sync and mock data ready | V-01 to V-03, D-08, D-09 | todo |
+| 3 | New visual base; R2 sync and mock data ready | V-01 to V-03, D-08, D-09 | doing |
 | 4 | Viewer as a page | X-01 to X-05 | todo |
 | 5 | Story mode and the Andromeda Journey | S-01 to S-04 | todo |
 | 6 | Home and About, launch-ready | L-01, L-02, L-05 | todo |
