@@ -4,9 +4,10 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "react-bootstrap";
 import { BsAlexa, BsFullscreen, BsFullscreenExit } from "react-icons/bs";
 import OpenSeadragon from "openseadragon";
+import { tileSource } from "@/content/tiles";
 import { DeepViewerProps } from "@/types";
 
-export default function DeepViewer({ title, image }: DeepViewerProps) {
+export default function DeepViewer({ title, image, tileBaseUrl }: DeepViewerProps) {
   const viewerRef = useRef<OpenSeadragon.Viewer | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -25,17 +26,8 @@ export default function DeepViewer({ title, image }: DeepViewerProps) {
 
     const viewer = OpenSeadragon({
       element: containerRef.current,
-      tileSources: {
-        width: image.tiles.width,
-        height: image.tiles.height,
-        tileSize: image.tiles.tileSize,
-        tileOverlap: image.tiles.overlap,
-        minLevel: image.tiles.minLevel,
-        maxLevel: image.tiles.maxLevel,
-        getTileUrl: (level, x, y) => {
-          return `/tiles/${image.id}/${level}/${x}/${y}.jpg`;
-        },
-      },
+      tileSources: tileSource(image, tileBaseUrl),
+      crossOriginPolicy: "Anonymous",
       showZoomControl: false,
       showHomeControl: false,
       showRotationControl: false,
@@ -67,7 +59,7 @@ export default function DeepViewer({ title, image }: DeepViewerProps) {
       viewer.destroy();
       viewerRef.current = null;
     };
-  }, [image]);
+  }, [image, tileBaseUrl]);
 
   const handleZoomTo = useCallback((percent: number) => {
     if (!viewerRef.current) return;

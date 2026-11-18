@@ -14,7 +14,7 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 | Sprint | Goal | Items | Status |
 |---|---|---|---|
 | 1 | Clean, tested base | B-01 to B-07 | done |
-| 2 | Next 16, content from manifests, static export | B-08, B-09, D-01 to D-07 | doing |
+| 2 | Next 16, content from manifests, static export | B-08, B-09, D-01 to D-07 | done |
 | 3 | New visual base; R2 sync and mock data ready | V-01 to V-03, D-08, D-09 | todo |
 | 4 | Viewer as a page | X-01 to X-05 | todo |
 | 5 | Story mode and the Andromeda Journey | S-01 to S-04 | todo |
@@ -58,7 +58,7 @@ Each item leaves the app working.
 | D-04 | `generate-tiles` writes thumbnail, preview and the manifest's dimensions and levels | done | D-01 | Manifest generated for a small test image |
 | D-05 | Manifests replace `/api/images`; app reads them at build time; static export | done | D-04 | `next build` produces a static site; API routes gone |
 | D-06 | Validation gate: production build fails on any unapproved or mock content | done | D-05 | Test proves both outcomes |
-| D-07 | `TILE_BASE_URL` with local default | todo | D-05 | Same build works against a local or remote base |
+| D-07 | `TILE_BASE_URL` with local default | done | D-05 | Same build works against a local or remote base |
 | D-08 | R2 sync script (dry run by default, credentials from env only) | todo | D-07 | Dry run lists the files it would upload |
 | D-09 | Mock manifests for Compare and Light development, flagged `mock: true` | todo | D-06 | Visible in dev, blocked in production |
 

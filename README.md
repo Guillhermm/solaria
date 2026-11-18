@@ -18,6 +18,8 @@ in [docs/science/](docs/science/).
   cuts the tile pyramid, a thumbnail and a preview, and writes the manifest's `tiles` block.
   `npm run validate` runs the content checks and the production gate alone; `next build`
   runs them too and fails on any draft, mock or unverified content.
+  `TILE_BASE_URL` (a root-relative path or an https URL, default `/tiles`) is read at build
+  time and sets where the viewer loads tiles from; a build serves one base.
   Architecture: [docs/architecture.md](docs/architecture.md).
 - Unit and integration tests (Vitest) and end-to-end tests (Playwright).
 

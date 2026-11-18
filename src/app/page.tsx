@@ -2,10 +2,13 @@ import { Container } from "@/components/Container";
 import SectionDivider from "@/components/SectionDivider";
 import DeepViewer from "@/components/tools/DeepViewer";
 import { getContent } from "@/content/load";
+import { resolveTileBase } from "@/content/tiles";
 
 export default function Home() {
   const image = getContent().images.find((i) => i.id === "andromeda-phat-phast-2025");
   if (!image) throw new Error("data/images/andromeda-phat-phast-2025.json is missing");
+
+  const tileBaseUrl = resolveTileBase(process.env.TILE_BASE_URL);
 
   return (
     <Container>
@@ -18,7 +21,7 @@ export default function Home() {
         compare, and analyze these ultra-high-resolution images in different ways.
       </div>
       <SectionDivider />
-      <DeepViewer title="1. Deep Viewer" image={image} />
+      <DeepViewer title="1. Deep Viewer" image={image} tileBaseUrl={tileBaseUrl} />
     </Container>
   );
 }

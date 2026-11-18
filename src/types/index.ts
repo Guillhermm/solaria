@@ -23,6 +23,7 @@ export interface Position {
 export interface DeepViewerProps {
   title: string;
   image: ImageManifest;
+  tileBaseUrl: string;
   initialFlags?: Flag[];
   onFlagsChange?: (flags: Flag[]) => void;
 }

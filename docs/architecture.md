@@ -1,6 +1,6 @@
 # Architecture: Sprint 2 (Next 16, content from manifests, static export)
 
-Covers roadmap items B-08 and D-01 to D-07. Status: in progress (see `docs/roadmap.md`). Plan and rules come from
+Covers roadmap items B-08 and D-01 to D-07. Status: built in Sprint 2. Plan and rules come from
 `docs/vision.md` (sections 5 and 7), `docs/science/compare-and-light.md` (section 3) and
 `docs/design.md` (sections 4, 6.3, 6.4, 7.2).
 
