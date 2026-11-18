@@ -26,7 +26,7 @@ test("the footer prints each credit line once, unaltered, after the images that 
     const credit = sources.get(image.sourceId)!;
     lines.set(credit, [...(lines.get(credit) ?? []), image.title]);
   }
-  const shown = page.getByRole("contentinfo").locator("p").filter({ hasNotText: "independent project" });
+  const shown = page.getByRole("contentinfo").locator("p[data-credit]");
   await expect(shown).toHaveText([...lines].map(([credit, titles]) => `${titles.join(", ")}: ${credit}`));
   const sdo = "Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams.";
   await expect(page.getByRole("contentinfo").getByText(sdo, { exact: false })).toHaveCount(1);

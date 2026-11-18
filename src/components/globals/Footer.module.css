@@ -26,6 +26,9 @@
 }
 
 .credits a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target);
   color: var(--text);
   text-underline-offset: 0.2em;
 }
