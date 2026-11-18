@@ -1,0 +1,27 @@
+{
+  "id": "pillars-webb-2022-nircam",
+  "title": "Pillars of Creation, Webb NIRCam, weic2216b (full resolution)",
+  "pageUrl": "https://esawebb.org/images/weic2216b/",
+  "fileUrl": "https://esawebb.org/media/archives/images/original/weic2216b.tif",
+  "releaseId": "weic2216b",
+  "releasedAt": "2022-10-19",
+  "credit": "NASA, ESA, CSA, STScI; J. DePasquale, A. Koekemoer, A. Pagan (STScI).",
+  "terms": {
+    "name": "Usage of ESA/Hubble/Webb Images and Videos (CC BY 4.0)",
+    "url": "https://esawebb.org/copyright/"
+  },
+  "retrievedAt": "2026-11-17",
+  "file": {
+    "format": "tif",
+    "bytes": 171385582,
+    "sha256": "3a0b5a62fa7f27d292d7e87c483a9faea0e7aa70829e6de28b61229a12b509d8",
+    "width": 8423,
+    "height": 14589
+  },
+  "validation": {
+    "status": "approved",
+    "date": "2026-11-18",
+    "notes": "Accepted with caveats by science review (reviewer, mathematician, physicist); fixes applied. docs/science/pillars.md, Validation of C-05."
+  },
+  "mock": false
+}

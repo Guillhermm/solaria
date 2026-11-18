@@ -1,0 +1,224 @@
+{
+  "id": "pillars-hubble-2014-webb-2022",
+  "title": "Pillars of Creation, Hubble 2014 and Webb 2022",
+  "imageIds": [
+    "pillars-hubble-2014",
+    "pillars-webb-2022-nircam"
+  ],
+  "reference": "pillars-hubble-2014",
+  "headline": "Different light, not a change in the pillars",
+  "labels": [
+    {
+      "full": "2014, Hubble WFC3, visible light",
+      "short": "Hubble 2014"
+    },
+    {
+      "full": "2022, Webb NIRCam, near-infrared",
+      "short": "Webb 2022"
+    }
+  ],
+  "caveats": [
+    "Webb's picture covers about 84% of this Hubble frame. In three corners, a large one at the top right and two small ones at the top left and bottom left, there are no Webb data and the background shows instead.",
+    "Aligned on 15 stars to about 0.02 arcsecond on average, less than one pixel of either image; 95% of 232 well-measured stars line up within 0.06 arcsecond. Shapes that differ across the divider come from the light, not from the alignment.",
+    "About eight years passed between the two pictures. The fastest jets in the pillars may move a few Hubble pixels in that time, but the two pictures record different light, so a wipe cannot show that motion.",
+    "Webb shows more stars, and they were already there in 2014. Hubble's three filters are narrow: each passes only a slice of light about 6 to 12 nanometers wide around one glowing gas, so little starlight gets through. Webb's broad filters pass far wider bands of starlight. Near-infrared light also gets through dust that blocks visible light, and Webb's mirror collects more than six times as much light as Hubble's. There are still no galaxies in this view: gas and dust in our own galaxy block the view beyond.",
+    "Colors are assigned in both pictures and mean different things. In Hubble's, blue is oxygen, green hydrogen and red sulfur. In Webb's, six filters, mostly near-infrared, run from purple (shortest wavelength) to red (longest). A red glow can be sulfur in one picture and hydrogen molecules in the other, and small red dots in Webb's are mostly young stars still wrapped in dust.",
+    "Bright stars are saturated in both published versions, so their brightness cannot be compared. Their spikes come from each telescope's structure, not from the stars."
+  ],
+  "alignment": "Alignment: about 0.02 arcsecond; 95% of stars within 0.06.",
+  "differs": {
+    "instrument": true,
+    "band": true,
+    "date": true,
+    "illumination": false,
+    "geometry": false,
+    "processing": true
+  },
+  "registration": {
+    "method": "similarity, least squares on 15 star control points (science review, 2026-11-17)",
+    "transform": "similarity",
+    "controlPoints": [
+      {
+        "label": "W01",
+        "moving": {
+          "x": 3884.47,
+          "y": 740.24
+        },
+        "reference": {
+          "x": 32.44,
+          "y": 1134.72
+        }
+      },
+      {
+        "label": "W02",
+        "moving": {
+          "x": 3064.46,
+          "y": 2716.66
+        },
+        "reference": {
+          "x": 448.06,
+          "y": 2684.85
+        }
+      },
+      {
+        "label": "W03",
+        "moving": {
+          "x": 2263.96,
+          "y": 3575.75
+        },
+        "reference": {
+          "x": 364.76,
+          "y": 3561.82
+        }
+      },
+      {
+        "label": "W04",
+        "moving": {
+          "x": 7444.35,
+          "y": 3306.16
+        },
+        "reference": {
+          "x": 3322.56,
+          "y": 1033.69
+        }
+      },
+      {
+        "label": "W05",
+        "moving": {
+          "x": 5322.33,
+          "y": 3712.49
+        },
+        "reference": {
+          "x": 2246.28,
+          "y": 2245.54
+        }
+      },
+      {
+        "label": "W06",
+        "moving": {
+          "x": 4130.22,
+          "y": 6489.73
+        },
+        "reference": {
+          "x": 2805.12,
+          "y": 4441.64
+        }
+      },
+      {
+        "label": "W07",
+        "moving": {
+          "x": 3458.7,
+          "y": 8591.47
+        },
+        "reference": {
+          "x": 3368.95,
+          "y": 5999.52
+        }
+      },
+      {
+        "label": "W08",
+        "moving": {
+          "x": 8115.51,
+          "y": 3952.68
+        },
+        "reference": {
+          "x": 4016.98,
+          "y": 1111.48
+        }
+      },
+      {
+        "label": "W09",
+        "moving": {
+          "x": 7221.69,
+          "y": 5137.85
+        },
+        "reference": {
+          "x": 4027.27,
+          "y": 2224.89
+        }
+      },
+      {
+        "label": "W10",
+        "moving": {
+          "x": 4038.54,
+          "y": 9360.93
+        },
+        "reference": {
+          "x": 4064.83,
+          "y": 6191.39
+        }
+      },
+      {
+        "label": "W11",
+        "moving": {
+          "x": 8343.52,
+          "y": 7096.96
+        },
+        "reference": {
+          "x": 5589.81,
+          "y": 2877.11
+        }
+      },
+      {
+        "label": "W12",
+        "moving": {
+          "x": 8325.33,
+          "y": 8807.81
+        },
+        "reference": {
+          "x": 6360.45,
+          "y": 3902.64
+        }
+      },
+      {
+        "label": "W13",
+        "moving": {
+          "x": 7072.32,
+          "y": 10649.75
+        },
+        "reference": {
+          "x": 6457.67,
+          "y": 5570.98
+        }
+      },
+      {
+        "label": "W14",
+        "moving": {
+          "x": 6183.32,
+          "y": 1545.66
+        },
+        "reference": {
+          "x": 1767.81,
+          "y": 563.27
+        }
+      },
+      {
+        "label": "W15",
+        "moving": {
+          "x": 7798.77,
+          "y": 2049.53
+        },
+        "reference": {
+          "x": 2958.18,
+          "y": 124.31
+        }
+      }
+    ],
+    "similarity": {
+      "scale": 0.7500773742586575,
+      "rotationDeg": -37.546391250517686,
+      "tx": -2616.1731035340845,
+      "ty": 2470.321934257321
+    },
+    "residualPx": 0.579611899140067,
+    "maxResidualPx": 1.450662445939999,
+    "notes": "One similarity, Webb onto the Hubble 2014 frame; an affine fit on 232 inlier stars lowers the RMS only from 0.715 to 0.713 px, so no shear or per-region offset is left to model. Held out of the fit: W16 Webb (4826.81, 7592.26) to 2014 (3724.84, 4779.69); W17 Webb (5091.63, 2130.9) to 2014 (1385.85, 1410.28); W18 Webb (6211.58, 8536.51) to 2014 (4980.14, 4708.21); residuals 0.54, 0.09, 0.53 px (2014). Webb covers 83.6% of the Hubble frame: the top-left, top-right and bottom-left corners of the Hubble frame have no Webb data. Details: docs/science/pillars.md, Part 4."
+  },
+  "whatDiffers": "Two telescopes, about eight years apart: Hubble's Wide Field Camera 3 in September 2014 and Webb's Near-Infrared Camera in August 2022. Hubble recorded visible light through three narrow filters, each tuned to glowing oxygen, hydrogen or sulfur, which pass little starlight. Webb recorded six broad and narrow bands from 0.9 to 4.7 micrometers: mostly near-infrared, with the shortest just past the red end of what our eyes see. Webb's broad filters collect much more starlight, and near-infrared light gets through dust that hides stars in visible light, so Webb shows more stars and the pillars look partly see-through. Colors are assigned in both and mean different things, and each image was processed by its own team. The differences you see come from the light, the telescopes and the processing, not from changes in the pillars.",
+  "validation": {
+    "status": "approved",
+    "date": "2026-11-18",
+    "notes": "Accepted with caveats by science review (reviewer, mathematician, physicist); fixes applied. docs/science/pillars.md, Validation of C-05."
+  },
+  "mock": false
+}

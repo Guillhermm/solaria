@@ -296,6 +296,27 @@ aim); tapping a stop opens the Journey at that stop.
   the image right of the story column, and the stop's split is a share of that area; on a
   phone the handle keeps clear of the stop card. Divider and bar fade in over 700 ms with the
   flight, like a band, at once under reduced motion; leaving the stop removes them.
+- Design gate on C-05 (2026-11-18, Pillars draft): the as-built note above is accepted, with
+  these decisions on top of it.
+  - C5-1, the handle keeps off the stop. At a compare stop the current marker (bracket, ticks
+    and chip) joins the divider handle's `avoid` list, measured when the flight lands and on
+    resize, never during the flight. The handle takes the free stretch below the marker when
+    one fits (handle plus 1rem each side), else the one above, else it sits 0.5rem above the
+    sheet (phone) or the compare bar (desktop). Once the user pans, it stays where it is. Today
+    it sits on the reticle's center on a phone (stop 06 hides the four stars the stop is about)
+    and on the bracket's lower corners on desktop.
+  - C5-2, a shorter phone bar. Below 40rem the chips row also carries "What differs?" at its
+    end, and the chips read "← Hubble 2014" and "Webb 2022 →" (the arrow gives the side; the
+    chips stay hidden from assistive technology, whose users get both sides from the credits
+    list). Target: the bar at most 5.5rem tall, the headline still in it. Today "What differs?" has a row of its own (the Sprint 8 finding
+    again) and the image keeps 242 of 844 px at a compare stop.
+  - C5-3, Home names Compare. A Journey with a compare stop lists "Story, Explore, Compare"
+    on its Home card, as one with a band set lists Light.
+  - Polish: the current stop's chip covers a co-located marker's number (stop 03 over 07),
+    and the left side label covers marker 02's number at stop 04; a label or chip that would
+    cover another marker's tag moves to the bracket's other top corner.
+  - As built (2026-11-18): C5-1 to C5-3 and the polish item as written. Between 40rem and
+    64rem the chips still read "Left: 2014".
 
 ### 5.7 Light mode (replaces Spectral Gallery)
 
@@ -904,9 +925,9 @@ come only from the validated data.
 
 **Attract loop.**
 
-- K5. With no input, the app plays Story through every published Journey in roadmap order
-  (Andromeda, then the Sun), and after the last stop of the last Journey starts again at
-  stop 1 of the first.
+- K5. With no input, the app plays Story through every published Journey in Home's order
+  (Andromeda, Nili Patera, the Pillars, then the Sun), and after the last stop of the last
+  Journey starts again at stop 1 of the first.
 - K6. Each stop dwells 8 s after its flight settles. The stop card, the credit and the
   current stop marker are visible for the whole dwell (S2 holds on every stop).
 - K7. A chip "Touch to explore" sits bottom center, 0.75rem above the highest top edge of
@@ -992,12 +1013,20 @@ S1 to S4 (14.1) hold for every element added here. Three more apply to every rul
 
 - Q1. The index is built at build time from content whose validation status is `approved`
   and whose `mock` is false, and is inlined into the page: opening search or typing makes
-  no network request. It holds three kinds: every image title (10), every label text in
-  `data/labels` (4) and the title of every Journey stop that lands on one place (10), 24
+  no network request. It holds three kinds: every image title (13), every label text in
+  `data/labels` (4) and the title of every Journey stop that lands on one place (19), 36
   entries today. Stops at the fit view (the two "Your turn" stops and the whole-galaxy and
   whole-disk stops) stay out (15.5, D1). A mock or
   unapproved entry never appears (unit test with a fixture).
-- Q2. The serialized index is 8 KB or less in each page's HTML.
+- Q2. The serialized index is 16 KB or less in each page's HTML. Raised from 8 KB on
+  2026-11-18, when the Pillars Journey took it to 8 593 bytes; no reason for 8 KB was
+  recorded, and the target it serves is section 9's LCP. Measured on the production build:
+  the index is 1.3 KB of Home's 15.3 KB of gzipped HTML (82 KB raw), about 6 ms at the
+  1.6 Mbps of section 9's throttling; Home LCP stays the poster, median 1.66 s over five
+  runs at 390 by 844 with that throttling (1.38 to 1.72 s), under the 2.5 s target. At
+  16 KB the index would cost about 13 ms. Trimming the entries (the `images` lists and
+  repeated contexts) would save about 60 gzipped bytes now and change the entry format,
+  so the budget moved instead; past 16 KB, trim or load the index on demand.
 - Q3. Each entry links as follows; the parameter order is the one `serializeViewerParams`
   writes.
   - Image: `/<id>/?mode=explore`.
@@ -1067,9 +1096,10 @@ S1 to S4 (14.1) hold for every element added here. Three more apply to every rul
   M32. "andromeda" gives Andromeda core, then Andromeda Galaxy (M31), Hubble PHAT+PHAST
   panorama. "171" gives 171 Å, active region 13664, then The Sun, SDO AIA 171 Å,
   2024-05-10 12:00 UTC. "your turn" gives the no-match state. "sun" gives the seven SDO
-  images, 7 rows and no overflow line. "the" matches 11 entries: The bright center, The
-  companion galaxy M32, then six SDO images, with "Showing 8 of 11. Type more to narrow."
-  under them (the line shows only past 8). "pillars" gives the 1995 image, then 2014.
+  images, 7 rows and no overflow line. "the" matches 16 entries: The bright center, The
+  companion galaxy M32, The ripples moved, The dunes stayed, then four SDO images, with
+  "Showing 8 of 16. Type more to narrow." under them (the line shows only past 8).
+  "pillars" gives the 1995 image, then 2014, then Webb 2022.
   (Vectors as of D1 and the Sun stop titles of D3.)
 - Q17. Results update on every input event with no debounce and no animation. The live
   region (`role="status"` inside the dialog) says "1 result", "{n} results" or "No
@@ -1111,9 +1141,9 @@ S1 to S4 (14.1) hold for every element added here. Three more apply to every rul
 - Q24. On Home a point gives one row per image that contains it, "Go to {x}, {y}" with the
   image title as context, to `/<id>/?mode=explore&x=&y=&z=4`. The images of one band set
   are one row, to its first image in Light (`?mode=light&x=&y=&z=4`) with the band set's
-  title as context. Order: Journey images in roadmap order, then the rest by id. "2048,
-  2048" gives Andromeda, the Sun band set, then Pillars of Creation, Hubble 2014 (the 1995
-  frame is 1518 by 1497).
+  title as context. Order: Journey images in Home's order, then the rest by id. "2048,
+  2048" gives Andromeda, Mars 2007-06-30, Pillars of Creation, Hubble 2014, the Sun band
+  set, Mars 2007-10-13, then Webb 2022 (the 1995 frame is 1518 by 1497).
 - Q25. Sky coordinates are detected, not converted: a query with a digit followed by `h`,
   `m`, `s`, `°`, `′`, `″`, `'` or `"`, or with the word `ra` or `dec`, shows the sky note
   (copy below) and no point row. Converting RA and Dec to pixels is deferred (F-09).

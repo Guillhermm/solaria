@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { stop } from "@/content/__fixtures__/content";
 import type { Stop } from "@/content/types";
-import { bracketPath, chipText, mergeMarks, polyline, reticleSide, routeMarks, splitRoute, tagPlacement, toDrawn } from "./route";
+import { bracketPath, chipText, flipTags, mergeMarks, polyline, reticleSide, routeMarks, splitRoute, tagPlacement, toDrawn } from "./route";
 
 const ANDROMEDA = { width: 42208, height: 9870 };
 const PILLARS = { width: 8423, height: 14589 };
@@ -161,5 +161,24 @@ describe("mergeMarks", () => {
 
   it("writes a merged chip in stop order", () => {
     expect(chipText([2, 3], num)).toBe("03·04");
+  });
+});
+
+describe("flipTags", () => {
+  const box = (x: number, y: number, width = 30, height = 16) => ({ x, y, width, height });
+  const tag = (index: number, x: number, y: number) => ({ index, right: box(x + 10, y), left: box(x - 40, y) });
+
+  it("moves nothing when nothing is covered", () => {
+    expect(flipTags(tag(2, 100, 100), [tag(6, 300, 100)], [box(500, 0, 100)])).toEqual(new Set());
+  });
+  it("moves the current chip off another marker's chip", () => {
+    expect(flipTags(tag(2, 100, 100), [tag(6, 120, 100)], [])).toEqual(new Set([2]));
+  });
+  it("moves another marker's chip from under a side label, and the current chip off the moved one", () => {
+    expect(flipTags(null, [tag(1, 100, 100)], [box(105, 95, 60)])).toEqual(new Set([1]));
+    expect(flipTags(tag(3, 30, 100), [tag(1, 100, 100)], [box(105, 95, 60)])).toEqual(new Set([1, 3]));
+  });
+  it("stays put when the other corner is covered too", () => {
+    expect(flipTags(null, [tag(1, 100, 100)], [box(40, 95, 140)])).toEqual(new Set());
   });
 });

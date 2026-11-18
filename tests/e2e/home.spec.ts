@@ -171,14 +171,15 @@ test.describe("desktop", () => {
     const rows = index.getByRole("listitem");
     await expect(rows.getByRole("heading", { level: 3 })).toHaveText(readContent("journeys").map((j) => j.title));
     const mars = JSON.parse(readFileSync("data/journeys/nili-patera.json", "utf8"));
-    const marsRow = rows.nth(1);
+    const rowOf = (title: string) => rows.filter({ has: page.getByRole("heading", { level: 3, name: title, exact: true }) });
+    const marsRow = rowOf(mars.title);
     await expect(marsRow.getByRole("heading", { level: 3 })).toHaveText(mars.title);
     await expect(marsRow).toContainText(mars.summary);
     await expect(marsRow).toContainText("6 stops · Story, Explore · Mars Reconnaissance Orbiter");
     await expect(marsRow).toContainText("3 934 × 5 747 px");
     await expect(marsRow.getByRole("link", { name: `Begin ${mars.title}` })).toHaveAttribute("href", "/nili-patera/");
     const sun = JSON.parse(readFileSync("data/journeys/sun.json", "utf8"));
-    const second = rows.nth(2);
+    const second = rowOf(sun.title);
     await expect(second.getByRole("heading", { level: 3 })).toHaveText(sun.title);
     await expect(second).toContainText(sun.summary);
     await expect(second).toContainText("7 stops · Story, Explore, Light · SDO");

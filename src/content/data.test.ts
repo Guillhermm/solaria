@@ -47,10 +47,10 @@ describe("the real data directory", () => {
       const r = raw as { id?: string; slug?: string };
       return r.id ?? r.slug;
     });
-    expect(c.pairs.map((p) => p.id)).toEqual(["nili-patera-hirise-2007", "pillars-hubble-1995-2014", "mock-compare", ...staged("pairs")]);
+    expect(c.pairs.map((p) => p.id)).toEqual(["nili-patera-hirise-2007", "pillars-hubble-1995-2014", "pillars-hubble-2014-webb-2022", "mock-compare", ...staged("pairs")]);
     // K5: the kiosk loop and Home follow this order, so published Journeys come before staged
     // ones and Andromeda opens it.
-    expect(c.journeys.map((j) => j.slug)).toEqual(["andromeda", "nili-patera", "sun", "mock-compare-tour", ...staged("journeys")]);
+    expect(c.journeys.map((j) => j.slug)).toEqual(["andromeda", "nili-patera", "pillars", "sun", "mock-compare-tour", ...staged("journeys")]);
     const mars = c.images.filter((i) => i.id.startsWith("nili-patera-hirise-"));
     expect(mars.map((i) => [i.crop, i.tiles.width, i.tiles.height, i.validation.status])).toEqual([
       [{ x: 667, y: 4310, width: 3934, height: 5747 }, 3934, 5747, "approved"],
@@ -103,13 +103,14 @@ describe("the real data directory", () => {
     ]);
   });
 
-  it("publishes the approved Hubble pair and its images", () => {
+  it("publishes the approved pairs and their images", () => {
     const prod = loadContent({ root: process.cwd(), mode: "production" });
     expect(prod.pairs.map((p) => [p.id, p.validation.status])).toEqual([
       ["nili-patera-hirise-2007", "approved"],
       ["pillars-hubble-1995-2014", "approved"],
+      ["pillars-hubble-2014-webb-2022", "approved"],
     ]);
-    expect(prod.images.map((i) => i.id)).toEqual(expect.arrayContaining(["pillars-hubble-1995", "pillars-hubble-2014"]));
+    expect(prod.images.map((i) => i.id)).toEqual(expect.arrayContaining(["pillars-hubble-1995", "pillars-hubble-2014", "pillars-webb-2022-nircam"]));
   });
 
   it("leaves the mock pair and band set out of a production load", () => {

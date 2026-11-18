@@ -2,7 +2,7 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type OpenSeadragon from "openseadragon";
 import { applySimilarity } from "@/content/registration";
-import { clipHalfPlane, movingCrop, overlapBounds, placement, referenceCrop, sides, splitToReferenceX, wholeImage } from "./compare";
+import { clipHalfPlane, movingCrop, overlapBounds, pairCaveats, placement, referenceCrop, sides, splitToReferenceX, wholeImage } from "./compare";
 
 const S = { scale: 2.48041, rotationDeg: 7.3167, tx: 1922.68, ty: 290.55 };
 const MOVING = { width: 1518, height: 1497 };
@@ -142,5 +142,12 @@ describe("sides", () => {
     const labels: [string, string] = ["1995", "2014"];
     expect(sides({ imageIds: ["a", "b"], reference: "b", labels })).toEqual({ left: "2014", right: "1995" });
     expect(sides({ imageIds: ["a", "b"], reference: "a", labels })).toEqual({ left: "1995", right: "2014" });
+  });
+});
+
+describe("pairCaveats", () => {
+  it("lists a caveat shared by both images once, in first-seen order", () => {
+    const shared = "Colors are assigned, not seen by eye.";
+    expect(pairCaveats(["Pair note"], [shared], undefined, [shared, "Saturated stars"])).toEqual(["Pair note", shared, "Saturated stars"]);
   });
 });

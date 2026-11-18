@@ -8,6 +8,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -48,9 +49,9 @@ import { keyAction, zoomAnnouncement } from "@/viewer/keys";
 import { type SheetState, stepSheet } from "@/viewer/sheet";
 import { type CompareOptions, type CompareState, DEFAULT_SPLIT, type Layout, type Mode, LAYOUTS, maxZoom, parseCompareParams, parseViewerParams, serializeViewerParams } from "@/viewer/url";
 import { bandValueText, type LightOptions, type LightState, nearestStop, parseLightParams, shownBands, stopBand, wavelengthLabel } from "@/viewer/light";
-import { sides } from "@/viewer/compare";
+import { pairCaveats, sides } from "@/viewer/compare";
 import { dividerValueText } from "@/viewer/divider";
-import { chipText, mergeMarks, reticleSide } from "@/viewer/route";
+import { chipText, flipTags, mergeMarks, reticleSide, type Tag } from "@/viewer/route";
 import { type Bounds, clearStop, type DraggedSplit, flightPlan, parseStop, stepStop, stopCompare, stopNumber, stopOf, stopTarget, storySearch, viewBounds, zoomSpan } from "@/viewer/story";
 import { fitScale, formatInt, formatZoom, homeView, osdFromView, type Size, viewFromOsd, waitsForTiles } from "@/viewer/view";
 import { DWELL_MS, storySearch1 } from "@/kiosk/kiosk";
@@ -193,6 +194,10 @@ const RETICLE_REM = 5.5;
 const HANDLE_AVOIDS = "main > header > *, [data-testid=overview], [data-testid=compare-bar], [role=group][aria-label='View controls'], [data-testid=toasts] > *";
 // In Story the phone's stop card covers the foot of the divider too.
 const STORY_HANDLE_AVOIDS = `${HANDLE_AVOIDS}, [data-testid=sheet]`;
+const CURRENT_MARK = "[data-testid=marks] [data-current]";
+// What the handle sits above when it fits neither below nor above the reticle: the stop card on
+// a phone, the compare bar on desktop.
+const STOP_FLOOR = "[data-testid=sheet], [data-stop-compare] [data-testid=compare-bar]";
 // Stop markers nearer than this on screen merge into one chip (24 px at the default font size).
 const MERGE_REM = 1.5;
 const REDUCED = "(prefers-reduced-motion: reduce)";
@@ -290,6 +295,9 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   // A Story stop with a compare shows its pair in wipe (architecture-compare.md 5); the divider
   // starts at the stop's split, and a drag holds only while the story stays at that stop.
   const [dragged, setDragged] = useState<DraggedSplit | null>(null);
+  // The last landing of the camera on a stop: the handle keeps off that stop's reticle from then
+  // on (design.md 5.6, C5-1), measured then and on resize, never during a flight.
+  const [landed, setLanded] = useState<{ stop: number; n: number } | null>(null);
   const atStop = story && journey && opened?.rotates ? stopCompare(journey.stops, stop, stopPairs, dragged) : null;
   const layerRef = useRef<HTMLDivElement>(null);
   const layerLeft = useCallback(() => layerRef.current?.offsetLeft ?? 0, []);
@@ -340,7 +348,9 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   const labelsInUrl = labelsMode && labelsOn;
   const closeLabelRef = useRef<() => void>(() => {});
   const pageRef = useRef({ story, stop, paused, journey, modeUrl, split, band, labels: labelsInUrl });
-  useEffect(() => {
+  // A layout effect, so it is current before any effect cleanup that reads it (a bar leaving
+  // with the stop calls syncMargins, which frames pageRef's stop).
+  useLayoutEffect(() => {
     pageRef.current = { story, stop, paused, journey, modeUrl, split, band, labels: labelsInUrl };
   });
   const home = homeView(size);
@@ -449,6 +459,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         const here = stopTarget(j.stops[at]);
         const reticle = (RETICLE_REM * rem) / 2;
         const shown: { index: number; x: number; y: number }[] = [];
+        let current: { x: number; y: number; side: number } | null = null;
         j.stops.forEach((s, i) => {
           const el = marksRef.current[i];
           const target = stopTarget(s);
@@ -461,14 +472,19 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           const stacked = !!here && Math.hypot(target.x - here.x, target.y - here.y) * scale < reticle;
           el.style.visibility = i !== at && (covered || stacked) ? "hidden" : "";
           el.style.translate = `${sx.toFixed(1)}px ${sy.toFixed(1)}px`;
-          if (i === at) el.style.setProperty("--side", `${reticleSide(RETICLE_REM * rem, scale, s.marker?.r)}px`);
-          else if (!covered && !stacked) shown.push({ index: i, x: sx, y: sy });
+          if (i === at) {
+            const side = reticleSide(RETICLE_REM * rem, scale, s.marker?.r);
+            el.style.setProperty("--side", `${side}px`);
+            current = { x: sx, y: sy, side };
+          } else if (!covered && !stacked) shown.push({ index: i, x: sx, y: sy });
         });
         // Markers, or chips, that would sit on each other share the first one's chip (design.md 15.5, D12).
         // A chip sits right of its 1.25rem marker, from the marker's top; its width is a
         // generous estimate per character of the mono label.
         const chip = (m: { x: number; y: number }, text: string) => ({ x: m.x + 0.875 * rem, y: m.y - 0.625 * rem, width: (0.5 + 0.5 * text.length) * rem, height: rem });
-        for (const group of mergeMarks(shown, MERGE_REM * rem, chip, stopNumber)) {
+        const groups = mergeMarks(shown, MERGE_REM * rem, chip, stopNumber);
+        const at0 = new Map(shown.map((m) => [m.index, m]));
+        for (const group of groups) {
           group.forEach((i, k) => {
             const el = marksRef.current[i]!;
             if (k > 0) el.style.visibility = "hidden";
@@ -477,6 +493,27 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
             if (tag && tag.textContent !== text) tag.textContent = text;
           });
         }
+        // A chip that would cover another marker's chip or a compare side label moves to its
+        // bracket's other top corner (design.md 5.6, C-05 polish).
+        const tags: Tag[] = groups.map((g) => {
+          const m = at0.get(g[0])!;
+          const right = chip(m, chipText(g, stopNumber));
+          return { index: g[0], right, left: { ...right, x: m.x - 0.875 * rem - right.width } };
+        });
+        const cur = current as { x: number; y: number; side: number } | null;
+        const curTag: Tag | null = cur
+          ? (() => {
+              const width = (0.5 + 0.5 * `Stop ${stopNumber(at)}`.length) * rem;
+              const y = cur.y - cur.side / 2 - rem;
+              return { index: at, right: { x: cur.x + cur.side / 2 + 0.25 * rem, y, width, height: rem }, left: { x: cur.x - cur.side / 2 - 0.25 * rem - width, y, width, height: rem } };
+            })()
+          : null;
+        const labelBoxes = [...root.querySelectorAll<HTMLElement>("[data-testid=divider] > p:not([hidden])")]
+          .map((p) => p.getBoundingClientRect())
+          .filter((r) => r.width > 0)
+          .map((r) => ({ x: r.left - hostBox.left, y: r.top - hostBox.top, width: r.width, height: r.height }));
+        const flipped = flipTags(curTag, tags, labelBoxes);
+        marksRef.current.forEach((el, i) => el?.toggleAttribute("data-flip", flipped.has(i)));
       }
       const hostBox = host.getBoundingClientRect();
       painterRef.current?.({
@@ -486,6 +523,11 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(paint);
+    };
+    // A stop's flight has landed (or the page opened on it).
+    const land = () => {
+      landedRef.current();
+      setLanded((l) => ({ stop: pageRef.current.stop, n: (l?.n ?? 0) + 1 }));
     };
 
     // OpenSeadragon touches `document` when its module loads, so it is imported in the browser only.
@@ -602,6 +644,8 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       const fly = (view: Viewport, done?: () => void, exact = false) => {
         const cap = exact ? Infinity : 1;
         if (exact) allow(view);
+        // A flight retargeted mid-air (a bar arriving with the stop) gets no new animation-start.
+        const midAir = flying && started;
         nextLeg = null;
         fitted = false;
         flying = true;
@@ -617,13 +661,13 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           flying = false;
           requestAnimationFrame(() => {
             done?.();
-            landedRef.current();
+            land();
           });
           return;
         }
         const from = { x: b.x * width, y: b.y * width, width: b.width * width, height: b.height * width };
         const [first, second] = flightPlan(from, settledView(opened, size).z, view, size, px, span, cap);
-        started = false;
+        started = midAir;
         fitImageBounds(first.bounds, first.ms);
         if (second) nextLeg = () => fitImageBounds(second.bounds, second.ms);
         // A stop that keeps the view (a band change only) has no flight to finish.
@@ -634,7 +678,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
             const finish = afterFlight;
             afterFlight = null;
             finish?.();
-            landedRef.current();
+            land();
           }),
         );
       };
@@ -752,7 +796,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         syncMargins();
         if (journey && asked === "story") {
           fitImageBounds(viewBounds(stopView(journey.stops[parseStop(window.location.search, journey.stops.length)]), size, viewerPx()), 0);
-          requestAnimationFrame(() => landedRef.current());
+          requestAnimationFrame(() => land());
         } else if (view) {
           heldViewRef.current = view;
           allow(view);
@@ -795,7 +839,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         const done = afterFlight;
         afterFlight = null;
         done?.();
-        if (wasFlying) landedRef.current();
+        if (wasFlying) land();
         // design.md 7.1: in Explore the URL follows the view 400 ms after it settles; in Story
         // it holds the stop.
         clearTimeout(urlTimer);
@@ -1460,6 +1504,9 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
               draft={pairDraft}
               hint={shownPair.pair.alignment}
               avoid={atStop ? STORY_HANDLE_AVOIDS : HANDLE_AVOIDS}
+              mark={atStop && landed?.stop === stop ? CURRENT_MARK : undefined}
+              floor={STOP_FLOOR}
+              placeKey={landed?.n}
             />
           ) : (
             <Divider split={50} labels={[leftLabel, rightLabel]} draft={pairDraft} />
@@ -1602,7 +1649,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
             <WhatDiffers
               note={shownPair.pair.whatDiffers}
               differs={shownPair.pair.differs}
-              caveats={[...(shownPair.pair.caveats ?? []), ...info.caveats, ...shownPair.movingInfo.caveats]}
+              caveats={pairCaveats(shownPair.pair.caveats, info.caveats, shownPair.movingInfo.caveats)}
               draft={pairDraft}
             />
           </CompareBar>

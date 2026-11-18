@@ -23,10 +23,10 @@
     },
     {
       "id": "corner",
-      "title": "The top left corner",
+      "title": "Left of the disc",
       "body": "Synthetic test stop away from the pair.",
-      "viewport": { "x": 900, "y": 500, "z": 2 },
-      "marker": { "x": 1040, "y": 480, "r": 60 },
+      "viewport": { "x": 1100, "y": 1000, "z": 2 },
+      "marker": { "x": 1040, "y": 960, "r": 60 },
       "sources": [{ "label": "Mock source", "url": "https://example.org/mock" }],
       "validation": { "status": "draft", "date": null, "notes": "Synthetic test content, never validated." }
     }

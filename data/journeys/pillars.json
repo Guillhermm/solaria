@@ -1,0 +1,288 @@
+{
+  "slug": "pillars",
+  "imageId": "pillars-hubble-2014",
+  "title": "Pillars of Creation, in two kinds of light",
+  "summary": "Eight stops over Hubble's 2014 picture of the Pillars of Creation, with Hubble's 1995 view and Webb's near-infrared view of the same place.",
+  "stops": [
+    {
+      "id": "where",
+      "title": "The Pillars of Creation",
+      "body": "These towers of gas and dust stand in the Eagle Nebula, also called Messier 16, about 6,500 light-years away. New stars are forming inside them.\n\nHubble took this picture in September 2014 with its Wide Field Camera 3, through three filters that each pass the light of one kind of glowing gas: oxygen, shown in blue; hydrogen, with a little nitrogen, in green; and sulfur in red. The colors are assigned, not what your eye would see. The whole view is about 8.5 light-years wide (our estimate from the picture's field and that distance).",
+      "viewport": {
+        "x": 3390,
+        "y": 3535,
+        "z": 1
+      },
+      "sources": [
+        {
+          "label": "ESA/Hubble release heic1501",
+          "url": "https://esahubble.org/news/heic1501/"
+        },
+        {
+          "label": "NASA, 2014 Hubble WFC3/UVIS image of M16",
+          "url": "https://science.nasa.gov/asset/hubble/2014-hubble-wfc3uvis-image-of-m16/"
+        },
+        {
+          "label": "ESA/Hubble image heic1501a",
+          "url": "https://esahubble.org/images/heic1501a/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-18",
+        "notes": "Accepted with caveats by science review (reviewer, mathematician, physicist); fixes applied. docs/science/pillars.md, Validation of C-05."
+      }
+    },
+    {
+      "id": "edges",
+      "title": "Glowing edges",
+      "body": "Massive young stars nearby shine ultraviolet light on the pillars. It makes the oxygen, hydrogen and sulfur glow.\n\nThe glowing haze around the dense edges is material heated by those stars and evaporating away. Their light and strong winds slowly wear the pillars down, which is why the 2014 release also called them pillars of destruction.",
+      "viewport": {
+        "x": 2550,
+        "y": 1150,
+        "z": 5
+      },
+      "sources": [
+        {
+          "label": "ESA/Hubble release heic1501",
+          "url": "https://esahubble.org/news/heic1501/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-18",
+        "notes": "Accepted with caveats by science review (reviewer, mathematician, physicist); fixes applied. docs/science/pillars.md, Validation of C-05."
+      }
+    },
+    {
+      "id": "hubble-1995",
+      "title": "Hubble's first look, 1995",
+      "body": "Hubble first photographed the pillars in April 1995, with an older camera, WFPC2. Drag the divider to compare: the 2014 picture is sharper and covers a wider field, so part of this view has no 1995 data.\n\nBoth pictures show oxygen in blue, hydrogen in green and sulfur in red, but through different filters, and each was processed on its own. Differences in color and brightness come from the cameras and the processing. The two are aligned to about 0.1 arcsecond, up to 0.3 in places, so a small shift at the divider is an alignment limit, not motion in the nebula.",
+      "viewport": {
+        "x": 3550,
+        "y": 2370,
+        "z": 1.6
+      },
+      "compare": {
+        "pairId": "pillars-hubble-1995-2014",
+        "split": 50
+      },
+      "sources": [
+        {
+          "label": "NASA, Hubble 1995 image of the pillars",
+          "url": "https://science.nasa.gov/asset/hubble/gas-pillars-in-the-eagle-nebula-m16-pillars-of-creation-in-a-star-forming-region"
+        },
+        {
+          "label": "ESA/Hubble release heic1501",
+          "url": "https://esahubble.org/news/heic1501/"
+        },
+        {
+          "label": "NASA, 2014 Hubble WFC3/UVIS image of M16",
+          "url": "https://science.nasa.gov/asset/hubble/2014-hubble-wfc3uvis-image-of-m16/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-18",
+        "notes": "Accepted with caveats by science review (reviewer, mathematician, physicist); fixes applied. docs/science/pillars.md, Validation of C-05."
+      }
+    },
+    {
+      "id": "webb",
+      "title": "Different light",
+      "body": "In August 2022 the James Webb Space Telescope photographed the same pillars with its Near-Infrared Camera. Drag the divider to compare.\n\nWebb recorded six filters from 0.9 to 4.7 micrometers, mostly near-infrared light; the shortest sits just past the red end of what our eyes see. Its colors are assigned in order of wavelength: purple for the shortest, red for the longest. In Hubble's picture, blue, green and red stand for oxygen, hydrogen and sulfur instead. The same color means different things in the two pictures: what changes across the divider is the light, not the pillars.\n\nWebb's picture does not cover the whole Hubble view; in three corners there is nothing on Webb's side.",
+      "viewport": {
+        "x": 3390,
+        "y": 3535,
+        "z": 1
+      },
+      "compare": {
+        "pairId": "pillars-hubble-2014-webb-2022",
+        "split": 50
+      },
+      "sources": [
+        {
+          "label": "NASA, Webb NIRCam image of the pillars",
+          "url": "https://science.nasa.gov/asset/webb/pillars-of-creation-nircam-image/"
+        },
+        {
+          "label": "ESA/Webb image weic2216b",
+          "url": "https://esawebb.org/images/weic2216b/"
+        },
+        {
+          "label": "NASA, Visible light",
+          "url": "https://science.nasa.gov/ems/09_visiblelight/"
+        },
+        {
+          "label": "NASA, 2014 Hubble WFC3/UVIS image of M16",
+          "url": "https://science.nasa.gov/asset/hubble/2014-hubble-wfc3uvis-image-of-m16/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-18",
+        "notes": "Accepted with caveats by science review (reviewer, mathematician, physicist); fixes applied. docs/science/pillars.md, Validation of C-05."
+      }
+    },
+    {
+      "id": "more-stars",
+      "title": "Stars behind the dust",
+      "body": "Webb shows more stars than Hubble. They were already there in 2014.\n\nThe biggest reason is the filters. Hubble's three filters are narrow: each passes only a slice of light a few nanometers wide around one glowing gas, so little starlight gets through. Webb's broad filters pass much wider bands of starlight.\n\nDust matters too. Visible light has short wavelengths that bounce off dust grains, and dust soaks it up; near-infrared light has longer wavelengths and slips past the dust more easily. And Webb's mirror collects more than six times as much light as Hubble's.\n\nEven so, there are no galaxies in this view: gas and dust in our own galaxy block the view of the more distant universe.",
+      "viewport": {
+        "x": 1300,
+        "y": 1600,
+        "z": 5
+      },
+      "compare": {
+        "pairId": "pillars-hubble-2014-webb-2022",
+        "split": 50
+      },
+      "sources": [
+        {
+          "label": "NASA, 2014 Hubble WFC3/UVIS image of M16",
+          "url": "https://science.nasa.gov/asset/hubble/2014-hubble-wfc3uvis-image-of-m16/"
+        },
+        {
+          "label": "NASA, Webb NIRCam image of the pillars",
+          "url": "https://science.nasa.gov/asset/webb/pillars-of-creation-nircam-image/"
+        },
+        {
+          "label": "SVO Filter Profile Service, HST and JWST filters",
+          "url": "https://svo2.cab.inta-csic.es/theory/fps/"
+        },
+        {
+          "label": "NASA, Infrared astronomy",
+          "url": "https://science.nasa.gov/mission/webb/science-overview/science-explainers/infrared-astronomy/"
+        },
+        {
+          "label": "NASA, Hubble vs. Webb",
+          "url": "https://science.nasa.gov/mission/hubble/observatory/hubble-vs-webb/"
+        },
+        {
+          "label": "ESA/Webb release weic2216",
+          "url": "https://esawebb.org/news/weic2216/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-18",
+        "notes": "Accepted with caveats by science review (reviewer, mathematician, physicist); fixes applied. docs/science/pillars.md, Validation of C-05."
+      }
+    },
+    {
+      "id": "hidden-stars",
+      "title": "Four bright stars",
+      "body": "In Webb's light, four bright stars sit close together here, in the dusty gas below the right-hand pillar. In Hubble's picture two of them are faint red dots and the other two do not show at all.\n\nLonger wavelengths slip past dust more easily than visible light, so near-infrared light from these stars reaches Webb while little of their visible light reaches Hubble. These pictures alone cannot tell whether the stars lie inside the dust or behind it.",
+      "viewport": {
+        "x": 4478,
+        "y": 4729,
+        "z": 8
+      },
+      "marker": {
+        "x": 4478,
+        "y": 4729,
+        "r": 170
+      },
+      "compare": {
+        "pairId": "pillars-hubble-2014-webb-2022",
+        "split": 50
+      },
+      "sources": [
+        {
+          "label": "ESA/Hubble image heic1501a",
+          "url": "https://esahubble.org/images/heic1501a/"
+        },
+        {
+          "label": "ESA/Webb image weic2216b",
+          "url": "https://esawebb.org/images/weic2216b/"
+        },
+        {
+          "label": "NASA, Infrared astronomy",
+          "url": "https://science.nasa.gov/mission/webb/science-overview/science-explainers/infrared-astronomy/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-18",
+        "notes": "Accepted with caveats by science review (reviewer, mathematician, physicist); fixes applied. docs/science/pillars.md, Validation of C-05."
+      }
+    },
+    {
+      "id": "red-glow",
+      "title": "A red glow at the tip",
+      "body": "At the tip of the middle pillar, Webb shows a red glow. Webb's red is its longest filter, at 4.7 micrometers, which picks up light from hydrogen molecules. Stars still forming inside the pillars shoot out jets that crash into the surrounding gas, and the Webb team describes red glows like this one, from energetic hydrogen molecules in those jets and shocks, especially in the second and third pillars from the top.\n\nHubble shows red here too, but Hubble's red is sulfur: the same color, different light.",
+      "viewport": {
+        "x": 3930,
+        "y": 2120,
+        "z": 6
+      },
+      "marker": {
+        "x": 3965,
+        "y": 2075,
+        "r": 130
+      },
+      "compare": {
+        "pairId": "pillars-hubble-2014-webb-2022",
+        "split": 50
+      },
+      "sources": [
+        {
+          "label": "ESA/Webb release weic2216",
+          "url": "https://esawebb.org/news/weic2216/"
+        },
+        {
+          "label": "ESA/Webb image weic2216b",
+          "url": "https://esawebb.org/images/weic2216b/"
+        },
+        {
+          "label": "NASA, Webb NIRCam image of the pillars",
+          "url": "https://science.nasa.gov/asset/webb/pillars-of-creation-nircam-image/"
+        },
+        {
+          "label": "NASA, 2014 Hubble WFC3/UVIS image of M16",
+          "url": "https://science.nasa.gov/asset/hubble/2014-hubble-wfc3uvis-image-of-m16/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-18",
+        "notes": "Accepted with caveats by science review (reviewer, mathematician, physicist); fixes applied. docs/science/pillars.md, Validation of C-05."
+      }
+    },
+    {
+      "id": "your-turn",
+      "title": "Your turn",
+      "body": "Drag to move and zoom in anywhere, and move the divider. Look for stars that appear only in Webb's light, edges that glow in Hubble's, and a red glow that means sulfur in one picture and hydrogen molecules in the other. Small red dots in Webb's picture are mostly young stars still wrapped in dust. About eight years passed between the two, but what you see change is the light.",
+      "viewport": {
+        "x": 3390,
+        "y": 3535,
+        "z": 1
+      },
+      "compare": {
+        "pairId": "pillars-hubble-2014-webb-2022",
+        "split": 50
+      },
+      "sources": [
+        {
+          "label": "ESA/Hubble release heic1501",
+          "url": "https://esahubble.org/news/heic1501/"
+        },
+        {
+          "label": "ESA/Webb release weic2216",
+          "url": "https://esawebb.org/news/weic2216/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-18",
+        "notes": "Accepted with caveats by science review (reviewer, mathematician, physicist); fixes applied. docs/science/pillars.md, Validation of C-05."
+      }
+    }
+  ],
+  "validation": {
+    "status": "approved",
+    "date": "2026-11-18",
+    "notes": "Accepted with caveats by science review (reviewer, mathematician, physicist); fixes applied. docs/science/pillars.md, Validation of C-05."
+  },
+  "mock": false
+}

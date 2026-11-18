@@ -757,6 +757,12 @@
   background: var(--accent);
 }
 
+/* A chip that would cover another one, or a compare side label, takes the other top corner. */
+.marker[data-flip] .tag {
+  left: auto;
+  right: calc(100% + var(--space-1));
+}
+
 .pill {
   display: inline-flex;
   align-items: center;

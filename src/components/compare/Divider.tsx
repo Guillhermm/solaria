@@ -2,7 +2,7 @@
 
 import { type CSSProperties, type KeyboardEvent, type PointerEvent, useCallback, useEffect, useId, useRef, useState } from "react";
 import { LuChevronsLeftRight } from "react-icons/lu";
-import { dividerKey, handleCenter, splitFromPointer } from "@/viewer/divider";
+import { dividerKey, handleCenter, splitFromPointer, stopHandleCenter } from "@/viewer/divider";
 import styles from "./Compare.module.css";
 
 interface DividerProps {
@@ -13,11 +13,16 @@ interface DividerProps {
   draft: boolean;
   hint?: string; // the pair's alignment line, shown beside the handle on hover and focus
   avoid?: string; // overlays the handle keeps 1rem from, as a selector list (design.md 15.5, D17)
+  // A Journey stop (design.md 5.6, C5-1): the reticle the handle keeps off, the overlays it sits
+  // above when there is no room, and a key that changes when the camera lands.
+  mark?: string;
+  floor?: string;
+  placeKey?: number;
 }
 
 // design.md 7.3: the WAI-ARIA slider pattern on a vertical line across the image. Dragging the
 // image pans it; only the handle and the strip along the bottom move the divider.
-const Divider = ({ split, onChange, labels, valueText, draft, hint, avoid }: DividerProps) => {
+const Divider = ({ split, onChange, labels, valueText, draft, hint, avoid, mark, floor, placeKey }: DividerProps) => {
   const hintId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLDivElement>(null);
@@ -35,18 +40,32 @@ const Divider = ({ split, onChange, labels, valueText, draft, hint, avoid }: Div
       const size = handle.offsetHeight;
       const gap = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
       const x = box.left + (split / 100) * box.width;
+      const crosses = (r: { left: number; right: number; width: number }) => r.width > 0 && r.left < x + size / 2 + gap && r.right > x - size / 2 - gap;
       const blocked = [...document.querySelectorAll(avoid)]
         .map((el) => el.getBoundingClientRect())
-        .filter((r) => r.width > 0 && r.left < x + size / 2 + gap && r.right > x - size / 2 - gap)
+        .filter(crosses)
         .map((r) => ({ top: r.top - box.top, bottom: r.bottom - box.top }));
-      setHandleY(handleCenter({ top: 0, bottom: box.height }, blocked, size, gap));
+      const range = { top: 0, bottom: box.height };
+      // The reticle with its ticks and chip, which reach outside its own box.
+      const markEl = mark ? document.querySelector(mark) : null;
+      const parts = markEl ? [markEl, ...markEl.querySelectorAll("*")].map((el) => el.getBoundingClientRect()).filter((r) => r.width > 0) : [];
+      const reach = parts.length
+        ? { left: Math.min(...parts.map((r) => r.left)), right: Math.max(...parts.map((r) => r.right)), top: Math.min(...parts.map((r) => r.top)), bottom: Math.max(...parts.map((r) => r.bottom)) }
+        : null;
+      if (reach && crosses({ ...reach, width: reach.right - reach.left })) {
+        const markBottom = reach.bottom - box.top;
+        const below = floor ? [...document.querySelectorAll(floor)].map((el) => el.getBoundingClientRect().top - box.top).filter((t) => t > markBottom) : [];
+        const floorAt = Math.min(box.height, ...below);
+        setHandleY(stopHandleCenter(range, blocked, { top: reach.top - box.top, bottom: reach.bottom - box.top }, size, gap, floorAt));
+      } else setHandleY(handleCenter(range, blocked, size, gap));
     };
     place();
     const observer = new ResizeObserver(place);
     observer.observe(root);
     for (const el of document.querySelectorAll(avoid)) observer.observe(el);
     return () => observer.disconnect();
-  }, [split, avoid]);
+    // placeKey is read by no line here: it only asks for a new measure when the camera lands.
+  }, [split, avoid, mark, floor, placeKey]);
 
   const fromPointer = useCallback(
     (e: PointerEvent) => {

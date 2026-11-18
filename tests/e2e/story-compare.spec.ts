@@ -33,10 +33,70 @@ const pixel = (page: Page, x: number, y: number) =>
   );
 const cool = (p: { r: number; b: number }) => p.b > p.r * 1.3;
 
-test.use({ viewport: { width: 1280, height: 800 } });
+const IMAGE = { width: 4096, height: 2048 };
+type View = { x: number; y: number; z: number };
+// The readout shows the stop's zoom and its center, or the small pan that keeps the reticle
+// clear of the overlays (design.md 15.5, D16): within 6 % of the image on each axis.
+const atStop = async (page: Page, i: number) => {
+  const { x, y, z } = journey.stops[i].viewport as View;
+  await expect
+    .poll(
+      async () => {
+        const t = ((await page.getByTestId("readout").textContent()) ?? "").replace(/[\s\u202f\u00a0]/g, "");
+        const m = /Centerx(\d+)y(\d+)Zoom([\d.]+)×/.exec(t);
+        return !!m && m[3] === z.toFixed(1) && Math.abs(Number(m[1]) - x) <= 0.06 * IMAGE.width && Math.abs(Number(m[2]) - y) <= 0.06 * IMAGE.height;
+      },
+      { timeout: 8000 },
+    )
+    .toBe(true);
+};
+const rect = (page: Page, selector: string) => page.locator(selector).first().evaluate((el) => el.getBoundingClientRect().toJSON() as DOMRect);
+const apart = (a: DOMRect, b: DOMRect) => a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top;
+const stopName = (i: number) => String(i + 1).padStart(2, "0");
+
+for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+  test.describe(`${viewport.width}x${viewport.height}`, () => {
+    test.use({ viewport });
+
+    test("the camera lands on each stop, forward and back across the compare stop", async ({ page }) => {
+      test.slow();
+      await page.goto(`/${journey.slug}/?mode=story&stop=${STOP}`);
+      await ready(page);
+      await atStop(page, STOP - 1);
+      const handle = page.getByRole("slider", { name: "Divider between the two images" });
+      const reticle = '[data-testid="marks"] [data-current]';
+      const arrive = async () => {
+        await atStop(page, STOP);
+        await expect(handle).toBeVisible();
+        // C5-1: once the flight lands the handle keeps off the stop's reticle, and the reticle
+        // sits below the top bar and the compare bar.
+        await expect.poll(async () => apart(await rect(page, "[role=slider]"), await rect(page, reticle)), { timeout: 4000 }).toBe(true);
+        const r = await rect(page, reticle);
+        const bar = await rect(page, '[data-testid="compare-bar"]');
+        const top = await rect(page, "main > header");
+        expect((r.top + r.bottom) / 2).toBeGreaterThan(Math.max(top.bottom, viewport.width < 1024 ? bar.bottom : 0));
+        // C5-2: on a phone the bar keeps the headline and stays within 5.5rem.
+        if (viewport.width < 640) {
+          expect(bar.height).toBeLessThanOrEqual(88);
+          await expect(page.getByTestId("compare-bar").getByText(pair.headline)).toBeVisible();
+        }
+      };
+      await page.getByRole("button", { name: `Next: stop ${stopName(STOP)}` }).click();
+      await arrive();
+      await page.getByRole("button", { name: `Next: stop ${stopName(STOP + 1)}` }).click();
+      await atStop(page, STOP + 1);
+      await page.getByRole("button", { name: "Previous stop" }).click();
+      await arrive();
+      await page.getByRole("button", { name: "Previous stop" }).click();
+      await atStop(page, STOP - 1);
+      await expect(handle).toHaveCount(0);
+    });
+  });
+}
 
 test("arriving at a compare stop shows the pair in wipe, and leaving removes it", async ({ page }) => {
   test.slow();
+  await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto(`/${journey.slug}/`);
   await ready(page);
   const divider = page.getByTestId("divider");
