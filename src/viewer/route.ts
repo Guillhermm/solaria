@@ -53,18 +53,41 @@ export const reticleSide = (minPx: number, scale: number, r?: number) => Math.ma
 
 export const polyline = (points: Point[]) => points.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
 
-// Stop markers closer than `min` on screen share one chip ("03·04"), so none hides another.
-// Closeness chains: a group holds every marker within `min` of any of its members. Groups come
-// back in stop order, each led by its lowest stop.
-export const mergeMarks = (marks: (Point & { index: number })[], min: number): number[][] => {
-  const group = marks.map((_, i) => i);
-  const root = (i: number): number => (group[i] === i ? i : (group[i] = root(group[i])));
-  for (let i = 0; i < marks.length; i++)
-    for (let j = i + 1; j < marks.length; j++)
-      if (Math.hypot(marks[i].x - marks[j].x, marks[i].y - marks[j].y) < min) group[root(j)] = root(i);
-  const out = new Map<number, number[]>();
-  marks.forEach((m, i) => out.set(root(i), [...(out.get(root(i)) ?? []), m.index]));
-  return [...out.values()].map((g) => g.sort((a, b) => a - b)).sort((a, b) => a[0] - b[0]);
-};
+export interface Box {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+const overlaps = (a: Box, b: Box) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 
 export const chipText = (indexes: number[], number: (i: number) => string) => indexes.map(number).join("·");
+
+// Stop markers share one chip ("03·04") when they are nearer than `min` on screen or when their
+// chips would overlap, so none hides another. `chip` gives the box a chip with that text takes
+// beside its marker. A merged chip is wider, so merging repeats until no two chips touch.
+// Groups come back in stop order, each led by its lowest stop, which carries the chip.
+export const mergeMarks = (marks: Mark[], min: number, chip: (mark: Mark, text: string) => Box, number: (i: number) => string): number[][] => {
+  let groups = marks.map((m) => [m.index]);
+  for (let pass = 0; pass <= marks.length; pass++) {
+    const lead = new Map(groups.flatMap((g) => g.map((i) => [i, g] as const)));
+    const at = new Map(marks.map((m) => [m.index, m]));
+    const boxes = new Map(groups.map((g) => [g, chip(at.get(g[0])!, chipText(g, number))]));
+    const parent = marks.map((_, i) => i);
+    const root = (i: number): number => (parent[i] === i ? i : (parent[i] = root(parent[i])));
+    for (let i = 0; i < marks.length; i++)
+      for (let j = i + 1; j < marks.length; j++) {
+        const [a, b] = [marks[i], marks[j]];
+        const ga = lead.get(a.index)!;
+        const gb = lead.get(b.index)!;
+        if (ga === gb || Math.hypot(a.x - b.x, a.y - b.y) < min || overlaps(boxes.get(ga)!, boxes.get(gb)!)) parent[root(j)] = root(i);
+      }
+    const out = new Map<number, number[]>();
+    marks.forEach((m, i) => out.set(root(i), [...(out.get(root(i)) ?? []), m.index]));
+    const next = [...out.values()].map((g) => g.sort((x, y) => x - y)).sort((x, y) => x[0] - y[0]);
+    if (next.length === groups.length) return next;
+    groups = next;
+  }
+  return groups;
+};

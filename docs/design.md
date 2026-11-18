@@ -1273,7 +1273,9 @@ descriptions, stop bodies and credits, all from validated data.
   there.
 - **D12, stop markers that would sit on each other share one chip.** In the view and in the
   overview, markers of stops other than the current one that are nearer than 1.5rem (24 px)
-  on screen merge, chained, into one marker whose chip lists every stop in order ("03·04").
+  on screen, or whose chips would overlap, merge, chained, into one marker whose chip lists
+  every stop in order ("03·04"). A merged chip is wider, so merging repeats until no two
+  chips touch.
   Each stop keeps its own button in the overview and its row in the stop list.
 - **D13, Compare from a Journey.** A Journey on a pair's reference image links to that
   image's Compare (wipe) on the stop's view: a "Compare" item after Story and Explore in the

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Stop } from "@/content/types";
 import { useKiosk } from "@/kiosk/useKiosk";
-import { bracketPath, chipText, mergeMarks, polyline, routeMarks, splitRoute, tagPlacement } from "@/viewer/route";
+import { bracketPath, chipText, type Mark, mergeMarks, polyline, routeMarks, splitRoute, tagPlacement } from "@/viewer/route";
 import { stopNumber } from "@/viewer/story";
 import type { Size } from "@/viewer/view";
 import styles from "./RouteOverlay.module.css";
@@ -45,14 +45,19 @@ const RouteOverlay = ({ stops, image, current, onGo }: RouteOverlayProps) => {
   const { travelled, ahead } = splitRoute(marks, current);
   const settled = travelled.slice(0, -1);
   // Stops at one place (a Journey that changes band without moving) would stack their tags:
-  // markers nearer than MERGE_REM share the first one's chip ("03·04"), the current stop's tag
+  // markers nearer than MERGE_REM, or whose chips would overlap, share the first one's chip
+  // ("03·04"), the current stop's tag
   // goes first, and a tag that would still overlap one already placed is left out. Every stop
   // keeps its button and its label for screen readers.
   const placed: { x: number; y: number; width: number; height: number }[] = [];
   const shownTags = new Map<number, string>();
   if (drawn) {
     const others = marks.filter((m) => m.index !== current);
-    const leaders = new Map(mergeMarks(others, MERGE_REM * drawn.rem).map((g) => [g[0], g] as const));
+    const chip = (m: Mark, text: string) => {
+      const tag = tagSize(text, drawn.rem);
+      return { ...tagPlacement(m, drawn, (MARK_REM * drawn.rem) / 2, tag, 0.1875 * drawn.rem), ...tag };
+    };
+    const leaders = new Map(mergeMarks(others, MERGE_REM * drawn.rem, chip, stopNumber).map((g) => [g[0], g] as const));
     const tagged = [...marks.filter((m) => m.index === current), ...others.filter((m) => leaders.has(m.index))];
     for (const m of tagged) {
       const text = m.index === current ? stopNumber(m.index) : chipText(leaders.get(m.index)!, stopNumber);

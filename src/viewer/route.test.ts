@@ -117,19 +117,49 @@ describe("markers", () => {
 });
 
 describe("mergeMarks", () => {
+  const num = (i: number) => String(i + 1).padStart(2, "0");
+  // A chip 10 px per character, 14 px tall, to the right of its marker.
+  const chip = (m: { x: number; y: number }, text: string) => ({ x: m.x + 12, y: m.y - 7, width: text.length * 10, height: 14 });
+
   it("merges markers closer than the minimum, in chains, and keeps the others apart", () => {
     const marks = [
       { index: 4, x: 100, y: 100 },
       { index: 1, x: 300, y: 300 },
       { index: 3, x: 100, y: 100 },
       { index: 2, x: 120, y: 110 },
-      { index: 5, x: 300, y: 324 },
+      { index: 5, x: 300, y: 340 },
     ];
-    expect(mergeMarks(marks, 24)).toEqual([[1], [2, 3, 4], [5]]);
-    expect(mergeMarks(marks, 25)).toEqual([[1, 5], [2, 3, 4]]);
-    expect(mergeMarks([], 24)).toEqual([]);
+    expect(mergeMarks(marks, 24, chip, num)).toEqual([[1], [2, 3, 4], [5]]);
+    expect(mergeMarks([], 24, chip, num)).toEqual([]);
   });
+
+  it("merges markers far apart whose chips would overlap", () => {
+    // 27 px apart: the markers stay separate by distance, but the first chip (x 112 to 142,
+    // y 93 to 107) runs into the second (x 137 on, y 103 to 117).
+    const wide = (m: { x: number; y: number }, text: string) => ({ ...chip(m, text), width: text.length * 10 + 10 });
+    const two = [
+      { index: 0, x: 100, y: 100 },
+      { index: 1, x: 125, y: 110 },
+    ];
+    expect(mergeMarks(two, 24, wide, num)).toEqual([[0, 1]]);
+    const apart = [
+      { index: 0, x: 100, y: 100 },
+      { index: 1, x: 100, y: 130 },
+    ];
+    expect(mergeMarks(apart, 24, chip, num)).toEqual([[0], [1]]);
+  });
+
+  it("merges again when a merged chip grows into a third", () => {
+    const three = [
+      { index: 0, x: 100, y: 100 },
+      { index: 1, x: 100, y: 100 },
+      { index: 2, x: 150, y: 100 },
+    ];
+    // "01·02" spans x 112 to 162 and meets the third chip's marker area at 162.
+    expect(mergeMarks(three, 24, (m, t) => ({ x: m.x + 12, y: m.y - 7, width: t.length * 10 + 30, height: 14 }), num)).toEqual([[0, 1, 2]]);
+  });
+
   it("writes a merged chip in stop order", () => {
-    expect(chipText([2, 3], (i) => String(i + 1).padStart(2, "0"))).toBe("03·04");
+    expect(chipText([2, 3], num)).toBe("03·04");
   });
 });

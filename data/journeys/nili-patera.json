@@ -32,16 +32,16 @@
     {
       "id": "barchans",
       "title": "Dunes and the wind",
-      "body": "Many of these crescent-shaped dunes are barchans. Each has a gentle side and a steep side, called the slip face. Here the slip faces point southwest.\n\nSand is blown up the gentle side and slides down the steep one, so the dunes' shape tells us the wind here blows mainly from the northeast.",
+      "body": "This crescent-shaped dune is a barchan. It has a gentle side and a steep side, called the slip face. Here the slip face points west-southwest.\n\nSand is blown up the gentle side and slides down the steep one, so the shape of dunes like this one tells us the wind here blows mainly from the east-northeast.",
       "viewport": {
-        "x": 1180,
-        "y": 3290,
-        "z": 6
+        "x": 2265,
+        "y": 3500,
+        "z": 2.5
       },
       "marker": {
-        "x": 1158,
-        "y": 3340,
-        "r": 120
+        "x": 2630,
+        "y": 3048,
+        "r": 250
       },
       "sources": [
         {

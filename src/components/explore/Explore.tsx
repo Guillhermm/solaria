@@ -449,8 +449,11 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           if (i === at) el.style.setProperty("--side", `${reticleSide(RETICLE_REM * rem, scale, s.marker?.r)}px`);
           else if (!covered && !stacked) shown.push({ index: i, x: sx, y: sy });
         });
-        // Markers that would sit on each other share the first one's chip (design.md 15.5, D12).
-        for (const group of mergeMarks(shown, MERGE_REM * rem)) {
+        // Markers, or chips, that would sit on each other share the first one's chip (design.md 15.5, D12).
+        // A chip sits right of its 1.25rem marker, from the marker's top; its width is a
+        // generous estimate per character of the mono label.
+        const chip = (m: { x: number; y: number }, text: string) => ({ x: m.x + 0.875 * rem, y: m.y - 0.625 * rem, width: (0.5 + 0.5 * text.length) * rem, height: rem });
+        for (const group of mergeMarks(shown, MERGE_REM * rem, chip, stopNumber)) {
           group.forEach((i, k) => {
             const el = marksRef.current[i]!;
             if (k > 0) el.style.visibility = "hidden";

@@ -110,7 +110,13 @@ in cropped pixels. The coordinates of the dune stops come from the crops checked
 - The wind direction is inferred from the dunes' shape (the paper reports the same), and the stop
   cites the paper.
 - Stops 3 and 4 use z 10, which is at or above native resolution on a phone, so both render at
-  the viewer's 1:1 cap. The barchans stop sits at x 1180 to stay inside the overlap.
+  the viewer's 1:1 cap.
+- The barchans stop frames one whole, isolated barchan (2465 to 2795 x 2940 to 3155) at view
+  (2265, 3500, z 2.5), marker (2630, 3048, r 250). The whole image holds only four separate
+  barchans and no view inside the overlap shows three whole, so the stop describes this one.
+  Its slip face points about 250 degrees +/- 10 (west-southwest), measured from the horn tips
+  and the crest normal, so its shape implies wind from the east-northeast; the field-wide
+  statement above stays southwest and northeasterly.
 
 ## Validation (2026-11-17)
 
