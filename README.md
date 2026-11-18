@@ -162,3 +162,9 @@ CI (`.github/workflows/ci.yml`) runs the same checks plus `npm audit --audit-lev
 
 - Kauê Melo <kaue.cmelo@gmail.com>
 - Guilherme Almeida Zeni <guillhermm_zenni@hotmail.com, g146284@dac.unicamp.br>
+
+## License
+
+The code is under the [MIT License](LICENSE). It does not cover the images, tiles or the
+captions taken from their sources: each image keeps its owner's terms and credit line, listed
+on the About page and in [docs/science/](docs/science/).
