@@ -65,7 +65,8 @@ const About = () => {
       <section aria-labelledby="team">
         <h2 id="team">Who made it</h2>
         <p>
-          Solaria was made by Kauê Melo and Guilherme Almeida Zeni. It began as their entry in the NASA Space Apps
+          Solaria was made by <External href="https://github.com/kauemelo01">Kauê Melo</External> and{" "}
+          <External href="https://github.com/Guillhermm">Guilherme Almeida Zeni</External>. It began as their entry in the NASA Space Apps
           Challenge 2025, in the challenge &ldquo;Embiggen Your Eyes!&rdquo;, and they kept working on it after the event.
         </p>
         <p>

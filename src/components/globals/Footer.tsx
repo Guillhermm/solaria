@@ -9,6 +9,11 @@ const pages = [
   { href: "/about/#accessibility", label: "Accessibility" },
 ];
 
+export const AUTHORS = [
+  { name: "Kauê Melo", href: "https://github.com/kauemelo01" },
+  { name: "Guilherme Almeida Zeni", href: "https://github.com/Guillhermm" },
+];
+
 const external = [
   { href: "https://github.com/Guillhermm/solaria", label: "Source code" },
   { href: "https://www.spaceappschallenge.org/2025/find-a-team/solaria4/", label: "Space Apps entry" },
@@ -36,6 +41,18 @@ const Footer = () => (
         </p>
       ))}
       <p className={styles.note}>Solaria is an independent project. It is not endorsed by NASA or ESA.</p>
+      <p className={styles.note} data-authors>
+        Made by{" "}
+        {AUTHORS.map(({ name, href }, i) => (
+          <span key={href}>
+            {i > 0 && " and "}
+            <OutLink href={href} hiddenClassName={styles.hidden}>
+              {name}
+            </OutLink>
+          </span>
+        ))}
+        .
+      </p>
     </div>
     <nav aria-label="Footer" className={styles.links}>
       {pages.map(({ href, label }) => (

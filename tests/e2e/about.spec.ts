@@ -95,3 +95,14 @@ test("source links point at the current repository and name the archived one", a
   await expect(section.locator('a[href="https://github.com/Guillhermm/nasa-2025-solaria"]')).toHaveCount(1);
   await expect(page.getByRole("contentinfo").getByRole("link", { name: /Source code/ })).toHaveAttribute("href", "https://github.com/Guillhermm/solaria");
 });
+
+test("the footer and About name both authors with their GitHub profiles", async ({ page }) => {
+  await page.goto("/about/");
+  const authors = page.getByRole("contentinfo").locator("[data-authors]");
+  await expect(authors).toHaveText(/^Made by Kauê Melo( \(opens in a new tab\))? and Guilherme Almeida Zeni( \(opens in a new tab\))?\.$/);
+  await expect(authors.locator('a[href="https://github.com/kauemelo01"]')).toHaveCount(1);
+  await expect(authors.locator('a[href="https://github.com/Guillhermm"]')).toHaveCount(1);
+  const team = page.locator("section", { has: page.getByRole("heading", { name: "Who made it" }) });
+  await expect(team.locator('a[href="https://github.com/kauemelo01"]')).toHaveCount(1);
+  await expect(team.locator('a[href="https://github.com/Guillhermm"]')).toHaveCount(1);
+});
