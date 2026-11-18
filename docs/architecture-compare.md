@@ -302,3 +302,6 @@ Where the build differs from sections 1 to 4, and why. Each was the simpler work
   worst 6.07 px (2014 pixels), and a test holds it there. One similarity for the whole
   mosaic, by decision; the per-chip offsets are in `registration.notes`. Footprint: the
   measured data area with the x = 768 edge moved in to 766.
+- **"What differs?" (C-04)** is a native popover (`popover="auto"`, Baseline 2024) opened
+  from the compare bar: the pair's `whatDiffers` as text paragraphs, its `differs` flags, and
+  both images' `caveats`. Esc and a click outside close it. Draft text carries the Draft tag.

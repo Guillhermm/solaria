@@ -28,6 +28,7 @@ import type OpenSeadragon from "openseadragon";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import CompareBar from "@/components/compare/CompareBar";
 import Divider from "@/components/compare/Divider";
+import WhatDiffers from "@/components/compare/WhatDiffers";
 import type { CompareView } from "@/components/compare/types";
 import { type Opened, useCompareLayer } from "@/components/compare/useCompareLayer";
 import { tileSource } from "@/content/tiles";
@@ -952,7 +953,14 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
                   }
                 : null
             }
-          />
+          >
+            <WhatDiffers
+              note={active.pair.whatDiffers}
+              differs={active.pair.differs}
+              caveats={[...info.caveats, ...active.movingInfo.caveats]}
+              draft={pairDraft}
+            />
+          </CompareBar>
         </div>
       )}
 

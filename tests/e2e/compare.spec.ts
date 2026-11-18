@@ -58,7 +58,7 @@ test.describe("desktop", () => {
     await expect(credits.nth(1)).toBeVisible();
     await expect(bar).toContainText(pair.headline);
     // The pair is draft: its headline and labels carry the Draft tag.
-    await expect(bar.getByText("Draft", { exact: true })).toBeVisible();
+    await expect(bar.locator("p", { hasText: pair.headline }).getByText("Draft", { exact: true })).toBeVisible();
     await page.keyboard.press("e");
     await expect(page).toHaveURL(/\?mode=explore/);
     await expect(divider(page)).toHaveCount(0);
@@ -192,6 +192,24 @@ test.describe("desktop", () => {
     await page.waitForTimeout(500);
     expect(await signature()).not.toBe(was);
     await expect(page.getByRole("slider")).toHaveCount(0);
+  });
+
+  test("What differs? shows the pair's note, its flags and both images' caveats, from the manifests only", async ({ page }) => {
+    const reference = read("data/mock/images/mock-compare-before.json");
+    const moving = read("data/mock/images/mock-compare-after.json");
+    await page.goto(`${PATH}?mode=compare`);
+    await ready(page);
+    const open = page.getByRole("button", { name: "What differs?" });
+    await open.click();
+    const note = page.getByRole("dialog", { name: /What differs\?/ });
+    await expect(note).toBeVisible();
+    await expect(note.getByText(pair.whatDiffers)).toBeVisible();
+    await expect(note.getByText("Draft", { exact: true })).toBeVisible();
+    await expect(note).toContainText("Differs Date, Viewing geometry");
+    await expect(note.getByRole("listitem")).toHaveText([...reference.caveats, ...moving.caveats]);
+    await page.keyboard.press("Escape");
+    await expect(note).toBeHidden();
+    await expect(open).toBeFocused();
   });
 
   test("the compare bar covers neither the overview nor the zoom controls", async ({ page }) => {

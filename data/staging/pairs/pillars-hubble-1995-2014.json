@@ -205,7 +205,7 @@
     "maxResidualPx": 6.074423915251294,
     "notes": "One similarity for the whole mosaic, by decision; the fit is not per chip. The WFPC2 release mosaic keeps per-chip offsets: with a shared scale, chip translations relative to WF-BR are WF-TL (-2.8, -6.9), WF-BL (-2.6, -1.2) and PC (-1.6, -2.5) 2014 px, up to about 7.5 2014 px (0.3 arcsec) between WF-TL and WF-BR; a translation per chip would bring the RMS from 2.56 to 1.66 px (90 inliers). Held out of the fit: S16 (WF-TL) 1995 (486.44, 195.24) to 2014 (3057.02, 922.66); S17 (WF-BL) 1995 (264.62, 1179.22) to 2014 (2203.6, 3276.26); S18 (WF-BR) 1995 (1193.62, 1330.51) to 2014 (4439.43, 3940.82); residuals 2.02, 2.59 and 0.50 px (2014). Details: docs/science/pillars.md, part 2."
   },
-  "whatDiffers": "Draft, awaiting science review. Same telescope, two cameras: WFPC2 in 1995, WFC3 in 2014. The 2014 image is sharper and covers a wider field. The two were taken about 19 years apart.",
+  "whatDiffers": "Same telescope, two cameras: WFPC2 in 1995, WFC3 in 2014. The 2014 image is sharper and covers a wider field. The two were taken about 19 years apart.",
   "validation": {
     "status": "draft",
     "date": null,

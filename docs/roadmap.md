@@ -113,8 +113,10 @@ measures 0.016.
 | C-01 | Compare mode in OpenSeadragon: wipe and side by side, synced at any zoom | done | X-02, D-09 | Works on mock pair; drop `@img-comparison-slider/react` |
 | C-02 | Pillars of Creation, Hubble 1995 (WFPC2) vs 2014 (WFC3): source, fetch, tile | done | D-08 | Sources and credits recorded |
 | C-03 | Register the pair from star control points; record transform and residual | done | C-02 | Residual recomputed independently |
-| C-04 | "What differs?" note for the pair | todo | C-03 | Validated |
+| C-04 | "What differs?" note for the pair | doing | C-03 | Validated |
 | C-05 | Pillars Journey (adds Webb 2022 as a band comparison, labeled "different light, not different time") | blocked | C-04 | Every stop validated |
+
+C-04: the note opens from the compare bar and renders the pair's `whatDiffers`, `differs` flags and both images' caveats; the Hubble note, headline and labels are drafts until science review validates them.
 
 The Hubble pair sits in `data/staging/` (read by `next dev` and the end-to-end build only) until science review approves it; its tiles are committed and stripped from the production output.
 
