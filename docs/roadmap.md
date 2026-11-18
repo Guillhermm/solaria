@@ -19,8 +19,8 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 | 4 | Viewer as a page | X-01 to X-05 | done |
 | 5 | Story mode and the Andromeda Journey | S-01 to S-04 | done |
 | 6 | Home and About, launch-ready | L-01, L-02, L-05 | done |
-| 7 | Compare | C-01 to C-05 | doing |
-| 8 | Light | G-01 to G-04 | todo |
+| 7 | Compare | C-01 to C-04 (C-05 waits for R2) | done |
+| 8 | Light | G-01 to G-04 | doing |
 
 Waiting on the maintainer: host and analytics (L-03), deploy and domain (L-04, L-06), and
 the R2 bucket and its credentials (R-01, R-02).
