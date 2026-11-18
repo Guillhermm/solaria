@@ -1,0 +1,27 @@
+{
+  "id": "sun-sdo-2024-05-10-aia-1700",
+  "title": "The Sun, SDO AIA 1700 Å, 2024-05-10 12:00 UTC",
+  "pageUrl": "https://sdo.gsfc.nasa.gov/data/rules.php",
+  "fileUrl": "https://api.helioviewer.org/v2/downloadImage/?id=156611797&type=jpg",
+  "releaseId": null,
+  "releasedAt": "2024-05-10",
+  "credit": "Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams.",
+  "terms": {
+    "name": "SDO data and image rules of the road",
+    "url": "https://sdo.gsfc.nasa.gov/data/rules.php"
+  },
+  "retrievedAt": "2026-11-17",
+  "file": {
+    "format": "jpg",
+    "bytes": 1219444,
+    "sha256": "21a4dfe1ab4e68e4300278850f842c4f8909c733017d4e42082eb77ac47a95f5",
+    "width": 4096,
+    "height": 4096
+  },
+  "validation": {
+    "status": "draft",
+    "date": null,
+    "notes": "Draft for science review (G-02). Facts and their status: docs/science/sun-sdo.md."
+  },
+  "mock": false
+}

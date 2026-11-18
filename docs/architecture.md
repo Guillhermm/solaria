@@ -587,3 +587,17 @@ Light reuses the Compare layer pattern (`docs/architecture-compare.md`, sections
   default. `x`, `y` and `z` are in the first band's pixels, the same for every band.
 - **Drawer.** Light pages use the canvas drawer, as Compare pages do.
 
+### The Sun from SDO (G-02)
+
+- Seven Helioviewer JPEGs (4096 x 4096, one per channel, within 30.4 s of 2024-05-10 12:00
+  UTC) are staged drafts in `data/staging/` (`sun-sdo-2024-05-10-*`), with the band set
+  `sun-sdo-2024-05-10` in rail order 94, 171, 193, 211, 304, 1700 and 6173 Å. Sources, frame,
+  scale, orientation and credit: `docs/science/sun-sdo.md`.
+- `registration` "none" now carries the residual a check measured and optional `notes`
+  (synthetic sets keep 0). The SDO set records the limb and sunspot check: 2.05 px RMS.
+- `whatDiffers` may be empty in a draft; the gate refuses to publish a pair or band set
+  whose note is empty. The Light bar offers "What differs?" only when there is a note.
+- Tiles, measured: 2,422 files, 22.9 MB of JPEG (27.2 MB on disk), 2.8 to 6.2 MB per channel
+  (94 Å the heaviest, HMI the lightest). Committed, like the Hubble pair; staged tile trees stay
+  out of `out/` and the bucket until the records move to `data/`.
+

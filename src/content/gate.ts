@@ -49,6 +49,7 @@ export const publishProblems = (content: Content): string[] => {
   for (const { what, g } of groups) {
     mock(what, g.mock);
     review(what, g.validation);
+    if (g.whatDiffers.trim() === "") out.push(`${what}: whatDiffers is empty`);
     for (const id of g.imageIds) {
       if (!approvedImages.has(id)) out.push(`${what}: image "${id}" is not approved`);
     }

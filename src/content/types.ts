@@ -146,7 +146,9 @@ export interface Similarity {
 }
 
 export type Registration =
-  | { method: string; transform: "none"; residualPx: 0 }
+  // No transform: the images share one pixel grid. residualPx is what a check of that measured
+  // (0 for synthetic grids), in pixels, with how it was measured in notes.
+  | { method: string; transform: "none"; residualPx: number; notes?: string }
   | {
       method: string; // e.g. "similarity, least squares on star control points"
       transform: "similarity";

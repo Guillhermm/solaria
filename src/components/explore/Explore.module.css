@@ -294,8 +294,13 @@
   max-width: 100%;
 }
 
-/* Sized to the image's own aspect (design.md 6.4), under a hairline frame. */
+/* Sized to the image's own aspect (design.md 6.4), under a hairline frame. It keeps to the
+   start of the card and takes no size from its content: stretched to a card the readout made
+   wider, or grown to the navigator canvas OpenSeadragon first drew at that width, it lost its
+   aspect. */
 .nav {
+  justify-self: start;
+  contain: size;
   height: min(var(--ov-h), 60dvh, 100dvh - 22rem);
   aspect-ratio: var(--ov-ar);
   max-width: 100%;
@@ -1067,24 +1072,21 @@
   background: var(--viewer-canvas);
 }
 
-/* Desktop: between the overview card and the zoom controls, so it covers neither. */
+/* Desktop: between the overview card and the zoom controls, so it covers neither. Both edges
+   are measured (Explore sets --ov-right and --controls-room); a tall image's overview sits at
+   the top right, out of the way. */
 .compareBar {
-  --ov-w: 16.75rem;
   position: absolute;
   bottom: var(--bottom);
-  left: calc(var(--left) + var(--ov-w) + var(--space-3));
-  right: calc(var(--edge) + var(--target) + var(--space-3));
+  left: calc(max(var(--left), var(--ov-right, 17rem)) + var(--space-3));
+  right: calc(max(var(--edge), var(--controls-room, 3.5rem)) + var(--space-3));
   display: flex;
   justify-content: center;
   pointer-events: none;
 }
 
-.root[data-shape="wide"] .compareBar {
-  --ov-w: 23.25rem;
-}
-
 .root[data-shape="tall"] .compareBar {
-  --ov-w: 0rem;
+  left: var(--left);
 }
 
 .sheetCreditLine {

@@ -1,0 +1,27 @@
+{
+  "id": "sun-sdo-2024-05-10-aia-94",
+  "title": "The Sun, SDO AIA 94 Å, 2024-05-10 12:00 UTC",
+  "pageUrl": "https://sdo.gsfc.nasa.gov/data/rules.php",
+  "fileUrl": "https://api.helioviewer.org/v2/downloadImage/?id=156611806&type=jpg",
+  "releaseId": null,
+  "releasedAt": "2024-05-10",
+  "credit": "Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams.",
+  "terms": {
+    "name": "SDO data and image rules of the road",
+    "url": "https://sdo.gsfc.nasa.gov/data/rules.php"
+  },
+  "retrievedAt": "2026-11-17",
+  "file": {
+    "format": "jpg",
+    "bytes": 3372967,
+    "sha256": "35959b29a52296ddf063a4ef8ef9dbf08441f7f64b9483bba1a6374c688ba5d0",
+    "width": 4096,
+    "height": 4096
+  },
+  "validation": {
+    "status": "draft",
+    "date": null,
+    "notes": "Draft for science review (G-02). Facts and their status: docs/science/sun-sdo.md."
+  },
+  "mock": false
+}

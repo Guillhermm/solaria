@@ -40,11 +40,29 @@ describe("the real data directory", () => {
     expect(() => loadContent({ root: process.cwd(), mode: "production" })).not.toThrow();
   });
 
-  it("loads the mock and the Hubble pairs and the mock band set in development", () => {
+  it("loads the mock and the Hubble pairs, the mock band set and the staged SDO set in development", () => {
     const c = loadContent({ root: process.cwd(), mode: "development" });
     expect(c.pairs.map((p) => p.id)).toEqual(["pillars-hubble-1995-2014", "mock-compare"]);
-    expect(c.bandSets.map((b) => b.id)).toEqual(["mock-light"]);
-    expect(c.bandSets.every((g) => g.mock)).toBe(true);
+    expect(c.bandSets.map((b) => [b.id, b.mock, b.validation.status])).toEqual([
+      ["mock-light", true, "draft"],
+      ["sun-sdo-2024-05-10", false, "draft"],
+    ]);
+  });
+
+  // G-02: drafts only; every note and caption waits for G-03.
+  it("stages the SDO set with no note, caveat or band region written", () => {
+    const c = loadContent({ root: process.cwd(), mode: "development" });
+    const sun = c.bandSets.find((b) => b.id === "sun-sdo-2024-05-10")!;
+    expect(sun.whatDiffers).toBe("");
+    expect(sun.registration).toMatchObject({ transform: "none", residualPx: 2.05 });
+    const images = sun.imageIds.map((id) => c.images.find((i) => i.id === id)!);
+    expect(images.map((i) => i.bands.value[0].wavelength?.value)).toEqual([94, 171, 193, 211, 304, 1700, 6173]);
+    for (const i of images) {
+      expect(i.caveats).toBeUndefined();
+      expect(i.bands.value[0].region).toBeUndefined();
+      expect([i.tiles.width, i.tiles.height]).toEqual([4096, 4096]);
+      expect(c.sources.find((s) => s.id === i.sourceId)!.credit).toBe("Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams.");
+    }
   });
 
   it("publishes the approved Hubble pair and its images", () => {

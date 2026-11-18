@@ -434,12 +434,15 @@ const registration = (c: Ctx, v: unknown): Registration | undefined => {
   }
   const n = c.errors.length;
   if (transform === "none") {
-    const r = object(c, v, "registration", ["method", "transform", "residualPx"]);
-    return r && finish<Registration>(c, n, {
+    const r = object(c, v, "registration", ["method", "transform", "residualPx"], ["notes"]);
+    const value = r && finish<Extract<Registration, { transform: "none" }>>(c, n, {
       method: str(c, r.method, "registration.method"),
       transform,
-      residualPx: literal(c, r.residualPx, "registration.residualPx", 0),
+      residualPx: nonNegative(c, r.residualPx, "registration.residualPx"),
+      notes: "notes" in r ? str(c, r.notes, "registration.notes") : undefined,
     });
+    if (value && value.notes === undefined) delete value.notes;
+    return value;
   }
   const r = object(c, v, "registration", ["method", "transform", "controlPoints", "similarity", "residualPx", "maxResidualPx"], ["notes"]);
   if (!r) return undefined;
@@ -472,7 +475,8 @@ const group = (c: Ctx, o: Record<string, unknown>, ids: (v: unknown, p: string) 
     imageIds: ids(o.imageIds, "imageIds"),
     differs,
     registration: registration(c, o.registration),
-    whatDiffers: str(c, o.whatDiffers, "whatDiffers"),
+    // Empty while the note waits to be written; the gate refuses to publish it so.
+    whatDiffers: str(c, o.whatDiffers, "whatDiffers", true),
     validation: validation(c, o.validation, "validation"),
     mock: bool(c, o.mock, "mock"),
   };

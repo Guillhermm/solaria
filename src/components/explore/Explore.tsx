@@ -173,6 +173,8 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   const rootRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
+  const overviewRef = useRef<HTMLDivElement>(null);
+  const controlsRef = useRef<HTMLDivElement>(null);
   const rulerTopRef = useRef<HTMLCanvasElement>(null);
   const rulerLeftRef = useRef<HTMLCanvasElement>(null);
   const xRef = useRef<HTMLSpanElement>(null);
@@ -664,6 +666,24 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     };
   }, []);
 
+  // The compare and light bars sit between the overview card and the zoom controls; both are
+  // measured, since the card's width follows the image's shape and the readout.
+  useEffect(() => {
+    const root = rootRef.current;
+    const overview = overviewRef.current;
+    const controls = controlsRef.current;
+    if (!root || !overview || !controls) return;
+    const measure = () => {
+      const r = root.getBoundingClientRect();
+      root.style.setProperty("--ov-right", `${overview.getBoundingClientRect().right - r.left}px`);
+      root.style.setProperty("--controls-room", `${r.right - controls.getBoundingClientRect().left}px`);
+    };
+    const observer = new ResizeObserver(measure);
+    for (const el of [root, overview, controls]) observer.observe(el);
+    measure();
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     const onChange = () => setFullscreen(document.fullscreenElement === rootRef.current);
     document.addEventListener("fullscreenchange", onChange);
@@ -1136,7 +1156,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           )}
         </div>
 
-        <div className={`${styles.controls} ${styles.glass} ${styles.dim}`} role="group" aria-label="View controls">
+        <div ref={controlsRef} className={`${styles.controls} ${styles.glass} ${styles.dim}`} role="group" aria-label="View controls">
           <button type="button" className={styles.iconButton} onClick={() => zoomBy(2)} aria-label="Zoom in">
             <LuPlus aria-hidden />
           </button>
@@ -1158,7 +1178,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           )}
         </div>
 
-        <div className={`${styles.overview} ${styles.glass} ${styles.fade}`}>
+        <div ref={overviewRef} className={`${styles.overview} ${styles.glass} ${styles.fade}`}>
           <p className={styles.overviewHead}>
             <span>Overview</span>
             <span className={styles.size}>

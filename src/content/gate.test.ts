@@ -96,5 +96,11 @@ describe("publishProblems", () => {
         'band set demo-bands: image "demo-b" is not approved',
       ]);
     });
+
+    it("flags a group whose note is still empty", () => {
+      const c = withGroups();
+      c.bandSets[0].whatDiffers = " ";
+      expect(publishProblems(c)).toEqual(["band set demo-bands: whatDiffers is empty"]);
+    });
   });
 });

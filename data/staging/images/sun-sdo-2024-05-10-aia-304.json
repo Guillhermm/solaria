@@ -1,0 +1,100 @@
+{
+  "id": "sun-sdo-2024-05-10-aia-304",
+  "sourceId": "sun-sdo-2024-05-10-aia-304",
+  "title": "The Sun, SDO AIA 304 Å, 2024-05-10 12:00 UTC",
+  "target": {
+    "value": {
+      "name": "Sun",
+      "type": "star"
+    },
+    "source": "docs/science/sun-sdo.md#1",
+    "status": "unverified"
+  },
+  "observatory": {
+    "value": "SDO",
+    "source": "docs/science/sun-sdo.md#1",
+    "status": "unverified"
+  },
+  "instruments": {
+    "value": [
+      "AIA"
+    ],
+    "source": "docs/science/sun-sdo.md#1",
+    "status": "unverified"
+  },
+  "bands": {
+    "value": [
+      {
+        "id": "AIA 304",
+        "wavelength": {
+          "value": 304,
+          "unit": "Å"
+        }
+      }
+    ],
+    "source": "docs/science/sun-sdo.md#1",
+    "status": "unverified"
+  },
+  "colorMapping": {
+    "value": {
+      "kind": "standard-colortable",
+      "name": "SDO_AIA_304"
+    },
+    "source": "docs/science/sun-sdo.md#2",
+    "status": "unverified"
+  },
+  "releasedAt": {
+    "value": "2024-05-10",
+    "source": "docs/science/sun-sdo.md#5",
+    "status": "unverified"
+  },
+  "productType": {
+    "value": "single exposure",
+    "source": "docs/science/sun-sdo.md#1",
+    "status": "unverified"
+  },
+  "observedAt": {
+    "value": {
+      "start": "2024-05-10",
+      "end": "2024-05-10"
+    },
+    "source": "docs/science/sun-sdo.md#1",
+    "status": "unverified"
+  },
+  "pixelScale": {
+    "value": {
+      "value": 0.6,
+      "unit": "arcsec/px"
+    },
+    "source": "docs/science/sun-sdo.md#3",
+    "status": "unverified"
+  },
+  "orientation": {
+    "value": "Solar north up, west right",
+    "source": "docs/science/sun-sdo.md#3",
+    "status": "unverified"
+  },
+  "tiles": {
+    "format": "jpg",
+    "tileSize": 256,
+    "overlap": 0,
+    "width": 4096,
+    "height": 4096,
+    "minLevel": 0,
+    "maxLevel": 6,
+    "thumbnail": {
+      "width": 512,
+      "height": 512
+    },
+    "preview": {
+      "width": 2048,
+      "height": 2048
+    }
+  },
+  "validation": {
+    "status": "draft",
+    "date": null,
+    "notes": "Draft for science review (G-02). Facts and their status: docs/science/sun-sdo.md."
+  },
+  "mock": false
+}

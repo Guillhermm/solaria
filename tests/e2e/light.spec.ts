@@ -217,3 +217,43 @@ test.describe("phone", () => {
     await expect(rail(page)).toHaveAttribute("aria-valuenow", "2");
   });
 });
+
+// The Sun from SDO (G-02): staged drafts, in the end-to-end build only.
+test.describe("the SDO band set", () => {
+  test.use({ viewport: { width: 1280, height: 800 } });
+  const sun = read("data/staging/band-sets/sun-sdo-2024-05-10.json");
+  const SUN = `/${sun.imageIds[0]}/`;
+  const sunSource = read(`data/staging/sources/${sun.imageIds[0]}.json`);
+
+  test("seven stops in wavelength order, read as the manifests state them, with every band's tiles", async ({ page }) => {
+    await page.goto(`${SUN}?mode=light`);
+    await ready(page);
+    const labels = sun.imageIds.map((id: string) => {
+      const w = read(`data/staging/images/${id}.json`).bands.value[0].wavelength;
+      return `${w.value} ${w.unit}`;
+    });
+    expect(labels).toEqual(["94 Å", "171 Å", "193 Å", "211 Å", "304 Å", "1700 Å", "6173 Å"]);
+    await expect(page.getByTestId("light-rail").locator("li")).toHaveText(labels);
+    await expect(rail(page)).toHaveAttribute("aria-valuetext", "94 angstroms");
+    // No note is written yet, so none is offered; the draft says so.
+    await expect(page.getByRole("button", { name: "What differs?" })).toHaveCount(0);
+    await expect(page.getByTestId("light-showing").getByText("Draft", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("light-bar").getByRole("listitem").last()).toHaveText(sunSource.credit);
+    const hmi = page.waitForResponse((r) => r.url().includes(`/tiles/${sun.imageIds[6]}/`));
+    await rail(page).focus();
+    await page.keyboard.press("End");
+    await expect(rail(page)).toHaveAttribute("aria-valuetext", "6173 angstroms");
+    expect((await hmi).status()).toBe(200);
+  });
+
+  test("a square image: the overview keeps its aspect and the bar clears it and the zoom controls", async ({ page }) => {
+    await page.goto(`${SUN}?mode=light`);
+    await ready(page);
+    const nav = await box(page.getByTestId("overview-image"));
+    expect(Math.abs(nav.width - nav.height)).toBeLessThanOrEqual(1);
+    const bar = await box(page.getByTestId("light-bar"));
+    for (const o of [page.getByRole("group", { name: "View controls" }), page.locator("[data-testid='overview-image']").locator("xpath=../..")]) {
+      expect(overlaps(bar, await box(o))).toBe(false);
+    }
+  });
+});

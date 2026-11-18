@@ -55,7 +55,7 @@ export interface ControlPoint {
 export interface Similarity { scale: number; rotationDeg: number; tx: number; ty: number }
 
 export type Registration =
-  | { method: string; transform: "none"; residualPx: 0 }
+  | { method: string; transform: "none"; residualPx: 0 } // Sprint 8: a measured residual and notes, docs/architecture.md section 13
   | {
       method: string; // "similarity, least squares on star control points"
       transform: "similarity";

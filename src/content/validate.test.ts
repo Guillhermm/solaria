@@ -233,6 +233,15 @@ describe("pairs and band sets", () => {
     expect(run("pair", () => {})).toEqual([]);
     expect(run("set", () => {})).toEqual([]);
   });
+  it("keep a measured residual and its notes on a shared grid", () => {
+    const r = validateBandSet({ ...fx.bandSet(), registration: { method: "shared grid, checked by limb fit", transform: "none", residualPx: 2.05, notes: "15 sunspots." } }, "data/band-sets/demo-bands.json");
+    expect(r.ok && r.value.registration).toEqual({ method: "shared grid, checked by limb fit", transform: "none", residualPx: 2.05, notes: "15 sunspots." });
+    expect(run("set", (g) => (g.registration.residualPx = -0.5))[0]).toContain("registration.residualPx: expected a number of zero or more");
+    expect(run("set", (g) => (g.registration.notes = ""))[0]).toContain("registration.notes: expected a non-empty string");
+  });
+  it("accept an empty note while the record is a draft (the gate refuses to publish it)", () => {
+    expect(run("set", (g) => (g.whatDiffers = ""))).toEqual([]);
+  });
   it("accept a zero residual", () => {
     expect(run("pair", (g) => (g.registration.residualPx = 0))).toEqual([]);
   });
@@ -243,9 +252,6 @@ describe("pairs and band sets", () => {
     expect(run("pair", (g) => delete g.differs.geometry)).toEqual(["data/pairs/demo-pair.json: differs.geometry: missing"]);
     expect(run("pair", (g) => (g.registration.transform = "warp"))[0]).toContain("registration.transform: expected one of none, similarity");
     expect(run("pair", (g) => (g.registration.transform = "affine"))[0]).toContain("registration.transform: expected one of none, similarity");
-  });
-  it("need a zero residual when nothing was registered", () => {
-    expect(run("set", (g) => (g.registration.residualPx = 0.5))).toEqual(["data/band-sets/demo-bands.json: registration.residualPx: expected 0, got 0.5"]);
   });
   it("need at least 6 control points", () => {
     const e = run("pair", (g) => {
@@ -282,8 +288,7 @@ describe("pairs and band sets", () => {
     expect(run("pair", (g) => (g.labels[1].short = "")))
       .toEqual(['data/pairs/demo-pair.json: labels[1].short: expected a non-empty string, got ""']);
   });
-  it("reject an empty or missing note", () => {
-    expect(run("pair", (g) => (g.whatDiffers = " "))[0]).toContain("whatDiffers: expected a non-empty string");
+  it("reject a missing note", () => {
     expect(run("pair", (g) => delete g.whatDiffers)).toEqual(["data/pairs/demo-pair.json: whatDiffers: missing"]);
     expect(run("set", (g) => delete g.whatDiffers)).toEqual(["data/band-sets/demo-bands.json: whatDiffers: missing"]);
   });
