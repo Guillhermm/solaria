@@ -1,9 +1,10 @@
-import { readdirSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import robots from "./robots";
 import sitemap from "./sitemap";
 
-const ids = (dir: string) => readdirSync(dir).filter((n) => n.endsWith(".json")).map((n) => n.slice(0, -".json".length));
+// git keeps no empty folder, so data/staging/* may be missing on a fresh clone (CI).
+const ids = (dir: string) => (existsSync(dir) ? readdirSync(dir) : []).filter((n) => n.endsWith(".json")).map((n) => n.slice(0, -".json".length));
 
 describe("sitemap.xml", () => {
   it("lists exactly the published pages, even in a build with mock and staged content", () => {
