@@ -23,8 +23,10 @@ in [docs/science/](docs/science/).
   toggles fullscreen, Esc closes the panel; a live region announces the zoom once it
   settles. A progress line shows while tiles load, a note appears when they are slow or
   when ten of them fail (with Retry), a full-screen message with Retry replaces the viewer
-  if it cannot load at all, and an unknown address shows a 404 page. Overlays fade after
-  3 s without input on pointer devices. On a phone the rulers go and a bottom sheet holds
+  if it cannot load at all, and an unknown address shows a 404 page. After 5 s without input
+  the chrome fades on pointer devices and the rulers and zoom buttons dim (on phones only
+  the zoom buttons dim); nothing fades while a panel is open or the pointer or focus is in
+  the chrome, and the credit never fades. On phones the full credit line stays in the sheet. On a phone the rulers go and a bottom sheet holds
   the overview with its readout: drag its handle up for About this image (credit included)
   or down to minimize it, or use its buttons instead of dragging; pinch, drag and double tap work
   on the image.

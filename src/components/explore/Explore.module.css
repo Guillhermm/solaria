@@ -192,11 +192,13 @@
   color: var(--text-muted);
 }
 
+/* Painted under the About panel and every control that follows it, so a note never covers
+   one. */
 .topLeft {
   position: absolute;
   top: var(--below-bar);
   left: var(--left);
-  z-index: 2;
+  z-index: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -519,12 +521,19 @@
   white-space: nowrap;
 }
 
-.fade {
+.fade,
+.dim {
   transition: opacity var(--dur-panel) var(--ease-standard);
 }
 
-/* Only where a pointer can bring them back by moving; never while focused or hovered. */
-@media (hover: hover) and (pointer: fine) {
+/* Rulers and zoom buttons only dim, on every device, so the instrument stays readable. */
+.root[data-idle]:not([data-info]) .dim:not(:focus-within, :hover) {
+  opacity: 0.4;
+}
+
+/* The rest of the chrome goes only where a pointer can bring it back by moving. Phones keep
+   their header buttons and sheet. */
+@media (hover: hover) and (pointer: fine) and (min-width: 40.0625rem) {
   .root[data-idle]:not([data-info]) .fade:not(:focus-within, :hover) {
     opacity: 0;
   }
@@ -538,6 +547,7 @@
   }
 
   .fade,
+  .dim,
   .progress {
     transition: none;
   }
@@ -562,7 +572,8 @@
   }
 }
 
-.grip {
+.grip,
+.sheetCredit {
   display: none;
 }
 
@@ -616,9 +627,10 @@
     z-index: 1;
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
+    /* Tight spacing keeps peek, credit included, within a quarter of the screen. */
+    gap: var(--space-1);
     max-height: 85dvh;
-    padding: 0 var(--edge) var(--bottom);
+    padding: 0 var(--edge) calc(var(--inset-bottom) + var(--space-2));
     border-top: 1px solid var(--hairline);
     border-radius: var(--radius-panel) var(--radius-panel) 0 0;
     transition: transform var(--dur-panel) var(--ease-standard);
@@ -690,7 +702,7 @@
   /* Inside the sheet the card drops its own glass: one surface, not a card on a card. */
   .overview {
     flex: none;
-    gap: var(--space-2);
+    gap: var(--space-1);
     padding: 0;
     background: none;
     border: none;
@@ -728,9 +740,22 @@
     display: none;
   }
 
-  /* The sheet is the main way in on a phone; it never fades. */
-  .sheet .fade {
-    opacity: 1 !important;
+  .sheetCredit {
+    display: block;
+    flex: none;
+    padding: 0;
+    font: inherit;
+    font-size: 0.75rem;
+    line-height: 1.35;
+    text-align: start;
+    color: var(--text-2);
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .overviewHead {
+    display: none;
   }
 }
 

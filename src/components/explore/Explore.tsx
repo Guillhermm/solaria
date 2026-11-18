@@ -51,6 +51,7 @@ const SLOW: Toast = { text: "Still loading the detail. You can start moving arou
 const TILE_ERRORS: Toast = { text: "Some detail could not load.", retry: true, sticky: true };
 // design.md 5.8: missing tiles stay at the lower level; only after this many does the user hear of it.
 const TILE_ERROR_LIMIT = 10;
+const IDLE_MS = 5000;
 
 // The settled view (OpenSeadragon's target, not the frame in flight).
 const settledView = (viewer: OpenSeadragon.Viewer, size: Size) => {
@@ -131,7 +132,8 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
     };
     setLoading(true);
     const slowTimer = window.setTimeout(() => {
-      if (root.hasAttribute("data-loading")) setToast(SLOW);
+      // Never in place of a note that is already up (the tile error carries Retry).
+      if (root.hasAttribute("data-loading")) setToast((t) => t ?? SLOW);
     }, 4000);
     let viewer: OpenSeadragon.Viewer | undefined;
     let themeObserver: MutationObserver | undefined;
@@ -297,23 +299,37 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
     };
   }, [image, tileBaseUrl, navId, toggleFullscreen, attempt]);
 
-  // design.md 5.5: overlays fade after 3 s without input on pointer devices (CSS decides
-  // which, and keeps anything focused or hovered visible).
+  // design.md 5.5: the chrome fades after 5 s without input (CSS decides how far, per part
+  // and per device). It stays while a panel is open, or while focus or the pointer is in it.
   useEffect(() => {
     const root = rootRef.current;
-    if (!root) return;
+    const canvas = canvasRef.current;
+    if (!root || !canvas) return;
     let timer = 0;
+    const busy = () => {
+      const active = document.activeElement;
+      const focusInChrome = !!active && root.contains(active) && !canvas.contains(active);
+      const hoverInChrome = !!root.querySelector(`.${styles.fade}:hover, .${styles.dim}:hover`);
+      return focusInChrome || hoverInChrome || root.hasAttribute("data-info");
+    };
+    const arm = () => {
+      clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (busy()) arm();
+        else root.setAttribute("data-idle", "");
+      }, IDLE_MS);
+    };
     const wake = () => {
       root.removeAttribute("data-idle");
-      clearTimeout(timer);
-      timer = window.setTimeout(() => root.setAttribute("data-idle", ""), 3000);
+      arm();
     };
-    const events = ["pointermove", "pointerdown", "keydown", "wheel"] as const;
-    for (const name of events) root.addEventListener(name, wake, { passive: true });
+    const events = ["pointermove", "pointerdown", "keydown", "wheel", "scroll", "focusin"] as const;
+    // Scroll does not bubble, so every listener captures.
+    for (const name of events) root.addEventListener(name, wake, { passive: true, capture: true });
     wake();
     return () => {
       clearTimeout(timer);
-      for (const name of events) root.removeEventListener(name, wake);
+      for (const name of events) root.removeEventListener(name, wake, { capture: true });
     };
   }, []);
 
@@ -350,6 +366,8 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
 
   const openInfo = useCallback(() => {
     setSheet("full");
+    // A note would sit over the panel's header; the panel is what the user asked for.
+    setToast(null);
     // The panel is hidden until this render commits, so focus waits a frame.
     requestAnimationFrame(() => infoTitleRef.current?.focus());
   }, []);
@@ -364,7 +382,13 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
   const tapHandle = useCallback(() => {
     if (drag.wasDrag()) return;
     setSheet((s) => (s === "peek" ? "full" : "peek"));
+    setToast(null);
   }, [drag]);
+
+  const openFromCredit = useCallback(() => {
+    setSheet("full");
+    setToast(null);
+  }, []);
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -412,7 +436,7 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
     >
       <div ref={canvasRef} className={styles.canvas} data-theme="dark" data-testid="viewer" />
 
-      <div className={styles.rulers} aria-hidden>
+      <div className={`${styles.rulers} ${styles.dim}`} aria-hidden>
         <canvas ref={rulerTopRef} className={styles.rulerTop} />
         <canvas ref={rulerLeftRef} className={styles.rulerLeft} />
       </div>
@@ -456,7 +480,8 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
 
       {/* Credit and notes stack under the top bar, clear of the overview in every shape. */}
       <div className={styles.topLeft}>
-        <p className={`${styles.credit} ${styles.glass} ${styles.fade}`}>{info.credit}</p>
+        {/* The credit never fades: the license asks that every user can see it. */}
+        <p className={`${styles.credit} ${styles.glass}`}>{info.credit}</p>
         <div className={styles.toasts} role="status">
           {toast && (
             <div className={`${styles.toast} ${styles.glass}`}>
@@ -507,7 +532,7 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
           )}
         </div>
 
-        <div className={`${styles.controls} ${styles.glass} ${styles.fade}`} role="group" aria-label="View controls">
+        <div className={`${styles.controls} ${styles.glass} ${styles.dim}`} role="group" aria-label="View controls">
           <button type="button" className={styles.iconButton} onClick={() => zoomBy(2)} aria-label="Zoom in">
             <LuPlus aria-hidden />
           </button>
@@ -553,6 +578,13 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
           <span ref={zRef} className={styles.zoom}>{formatZoom(home.z)}</span>
           </p>
         </div>
+        {/* Phones: the full validated credit stays in the sheet; a tap opens About. */}
+        {!infoOpen && (
+          <button type="button" className={styles.sheetCredit} onClick={openFromCredit}>
+            {info.credit}
+          </button>
+        )}
+
         <div className={`${styles.info} ${styles.glass}`} hidden={!infoOpen}>
           <InfoPanel id={infoId} info={info} onClose={closeInfo} titleRef={infoTitleRef} />
         </div>

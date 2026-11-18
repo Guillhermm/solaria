@@ -263,6 +263,30 @@ test.describe("phone, 390 px wide", () => {
     expect(shownTitles).toEqual(["Andromeda Galaxy"]);
   });
 
+  test("the full credit line stays visible in peek and min, and a tap on it opens About", async ({ page }) => {
+    const source = JSON.parse(readFileSync("data/sources/andromeda-phat-phast-2025.json", "utf8"));
+    await page.goto(PATH);
+    await ready(page);
+    const credit = page.getByRole("button", { name: source.credit, exact: true });
+    await expect(credit).toBeInViewport({ ratio: 1 });
+    expect(await credit.evaluate((el) => getComputedStyle(el).fontSize)).toBe("12px");
+    await page.getByRole("button", { name: "Minimize the panel" }).tap();
+    await expect(credit).toBeInViewport({ ratio: 1 });
+    await page.getByRole("button", { name: "Show overview" }).tap();
+    await credit.tap();
+    await expect(page.getByRole("region", { name: /Andromeda Galaxy/ })).toBeVisible();
+  });
+
+  test("on a phone only the zoom buttons dim when idle", async ({ page }) => {
+    await page.goto(PATH);
+    await ready(page);
+    await expect(page.locator("main[data-idle]")).toHaveCount(1, { timeout: 8000 });
+    const opacity = (loc: import("@playwright/test").Locator) => loc.evaluate((el) => getComputedStyle(el).opacity);
+    await expect.poll(() => opacity(page.getByRole("group", { name: "View controls" }))).toBe("0.4");
+    expect(await opacity(page.locator("header > div").first())).toBe("1");
+    expect(await opacity(page.getByTestId("sheet"))).toBe("1");
+  });
+
   test("dragging the sheet down minimizes it and dragging up brings it back", async ({ page }) => {
     await page.goto(PATH);
     await ready(page);
@@ -327,4 +351,48 @@ test("in the light theme every overlay shares one glass, and the rulers are opaq
   }
   // The image canvas stays dark.
   expect(await page.getByTestId("viewer").evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(7, 9, 13)");
+});
+
+test("opening About dismisses the loading note, and no note sits over its controls", async ({ page }) => {
+  await page.route(/\/tiles\//, async (route) => {
+    await new Promise((r) => setTimeout(r, 6000));
+    await route.continue().catch(() => {});
+  });
+  await page.goto(PATH);
+  const note = page.getByRole("status").filter({ hasText: "Still loading the detail." });
+  await expect(note).toBeVisible({ timeout: 8000 });
+  await page.getByRole("button", { name: "About this image" }).click();
+  await expect(note).toHaveCount(0);
+  const close = page.getByRole("region", { name: /Andromeda Galaxy/ }).getByRole("button", { name: "Close details" });
+  const box = (await close.boundingBox())!;
+  const onTop = await page.evaluate(
+    ([x, y]) => document.elementFromPoint(x, y)?.closest("button")?.getAttribute("aria-label"),
+    [box.x + box.width / 2, box.y + box.height / 2],
+  );
+  expect(onTop).toBe("Close details");
+});
+
+test("after 5 s idle the chrome fades, rulers and zoom dim, and the credit stays", async ({ page }) => {
+  await page.goto(PATH);
+  await ready(page);
+  await page.mouse.move(700, 450);
+  const opacity = (selector: string) => page.locator(selector).first().evaluate((el) => getComputedStyle(el).opacity);
+  await page.waitForTimeout(4000);
+  expect(await opacity("header > div")).toBe("1");
+  await expect(page.locator("main[data-idle]")).toHaveCount(1, { timeout: 3000 });
+  await expect.poll(() => opacity("header > div")).toBe("0");
+  await expect.poll(() => opacity('[role="group"][aria-label="View controls"]')).toBe("0.4");
+  expect(await page.getByText(/^NASA, ESA, Benjamin Williams/).first().evaluate((el) => getComputedStyle(el).opacity)).toBe("1");
+  await page.mouse.move(600, 400);
+  await expect.poll(() => opacity("header > div")).toBe("1");
+});
+
+test("nothing fades while About is open", async ({ page }) => {
+  await page.goto(PATH);
+  await ready(page);
+  await page.getByRole("button", { name: "About this image" }).click();
+  await page.mouse.move(700, 450);
+  await page.waitForTimeout(5800);
+  await expect(page.locator("main[data-idle]")).toHaveCount(0);
+  expect(await page.locator("header > div").first().evaluate((el) => getComputedStyle(el).opacity)).toBe("1");
 });
