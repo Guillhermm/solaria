@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -H 127.0.0.1 -p 8434",
     "build": "next build",
+    "postbuild": "tsx scripts/strip-mock-tiles.ts out",
     "start": "tsx scripts/serve-static.ts out 8434",
     "lint": "eslint",
     "validate": "tsx scripts/validate-content.ts",

@@ -20,7 +20,8 @@ in [docs/science/](docs/science/).
   runs them too and fails on any draft, mock or unverified content.
   `npm run generate-mock` rewrites the synthetic mock content in `data/mock/` (one Compare
   pair, one Light band set, flagged `mock: true`, tiles in `public/tiles/mock-*`); `next dev`
-  loads it, production builds never read it and the gate rejects a leaked mock.
+  loads it, production builds never read it, `postbuild` drops its tiles from `out/`, and the
+  gate rejects a leaked mock.
   `npm run sync-r2` pushes `public/tiles/` to a Cloudflare R2 bucket: a dry run by default
   (it lists what it would upload), `--apply` to upload, skipping objects whose size and MD5
   already match. It reads `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` and

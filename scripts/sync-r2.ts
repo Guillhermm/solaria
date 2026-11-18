@@ -4,6 +4,7 @@ import { join, relative, sep } from "node:path";
 
 const REGION = "auto";
 const SERVICE = "s3";
+// Safe only because a changed tile tree gets a new image id, so its keys change too.
 const IMMUTABLE = "public, max-age=31536000, immutable";
 const CONCURRENCY = 8;
 

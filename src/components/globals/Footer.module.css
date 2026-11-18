@@ -6,7 +6,7 @@
   gap: var(--space-5) var(--space-7);
   padding-block: var(--space-6) calc(var(--space-6) + env(safe-area-inset-bottom, 0rem));
   padding-inline: var(--space-4);
-  border-top: 1px solid var(--hairline);
+  border-top: 1px solid var(--hairline-soft);
 }
 
 .credits {
@@ -69,7 +69,7 @@
 @media (min-width: 48rem) {
   .footer {
     padding-block: var(--space-6) 2.5rem;
-    padding-inline: var(--space-8);
+    padding-inline: 2.5rem;
   }
 
   .links {

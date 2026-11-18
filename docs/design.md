@@ -360,6 +360,7 @@ contrast over bright image areas still to be judged on the final mockup.
   --text-muted:    #5A6272;                /* 5.7:1 */
   --accent:        #8F5200;                /* 5.8:1 on ground; white on it 6.2:1 */
   --accent-press:  #6F3F00;
+  --danger:        #B3261E;
   color-scheme: light;
 }
 ```

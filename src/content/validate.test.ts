@@ -216,8 +216,10 @@ describe("pairs and band sets", () => {
     expect(run("pair", (g) => delete g.differs.geometry)).toEqual(["data/pairs/demo-pair.json: differs.geometry: missing"]);
     expect(run("pair", (g) => (g.registration.transform = "warp"))[0]).toContain("registration.transform: expected one of");
   });
-  it("reject an empty note", () => {
+  it("reject an empty or missing note", () => {
     expect(run("pair", (g) => (g.whatDiffers = " "))[0]).toContain("whatDiffers: expected a non-empty string");
+    expect(run("pair", (g) => delete g.whatDiffers)).toEqual(["data/pairs/demo-pair.json: whatDiffers: missing"]);
+    expect(run("set", (g) => delete g.whatDiffers)).toEqual(["data/band-sets/demo-bands.json: whatDiffers: missing"]);
   });
   it("need exactly two distinct images in a pair", () => {
     expect(run("pair", (g) => (g.imageIds = ["demo"]))[0]).toContain("imageIds: expected exactly two image ids");

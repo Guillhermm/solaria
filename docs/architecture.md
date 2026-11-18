@@ -19,6 +19,7 @@ scripts/                  pipeline, Node only, never imported by the app
   generate-tiles.ts       pyramid, thumbnail, preview, `tiles` block
   validate-content.ts     same checks the build runs, for fast feedback and CI
   generate-mock.ts        writes the synthetic mock images, tiles, pair and band set (D-09)
+  strip-mock-tiles.ts     postbuild: removes out/tiles/mock-* from the production output
   sync-r2.ts              pushes public/tiles to a Cloudflare R2 bucket (D-08)
   serve-static.ts         serves out/ on 127.0.0.1 for `npm start` and end-to-end tests
 src/content/              no React, no browser
@@ -345,6 +346,9 @@ tsx scripts/generate-tiles.ts <input> <imageId> [--no-pyramid]
 - `--no-pyramid` writes `thumbnail.jpg`, `preview.jpg` and the `tiles` block without
   touching the pyramid. It exists for Andromeda: regenerating 181 MB of tiles would add
   every blob to git again for no visible change.
+- Tiles are served with immutable caching (section 12), so a changed tile tree needs a new
+  image id. Regenerating the pyramid under an existing id leaves visitors on stale tiles
+  until the bucket's cache is purged.
 
 ## 7. TILE_BASE_URL in a static build (D-07)
 
@@ -414,8 +418,9 @@ Light band set `mock-light` (three bands), each over synthetic 1024 x 512 grids 
 flagged `mock: true`, status `draft`, claims `unverified`, credit "Not NASA data".
 `npm run generate-mock` rewrites them and their tile trees under `public/tiles/mock-*`
 (about 600 KB). `next dev` shows them; production never reads `data/mock/`, and the gate
-rejects a mock that leaks into `data/`. The mock tiles are inert files in `public/` and do
-show up in `out/tiles`; the R2 sync skips `mock-*` directories (section 12).
+rejects a mock that leaks into `data/`. `next build` copies `public/` into `out/`, so a
+`postbuild` step (`scripts/strip-mock-tiles.ts`) removes `out/tiles/mock-*`; the R2 sync
+skips `mock-*` directories too (section 12).
 
 ## 10. Slices in build order
 

@@ -36,6 +36,8 @@ const pairs: [fg: string, bg: string, min: number][] = [
   ["on-accent", "accent-press", TEXT],
   ["text", "glass", TEXT],
   ["text-muted", "glass", TEXT],
+  ["danger", "ground", TEXT],
+  ["danger", "surface", TEXT],
   ["tick-major", "ground", NON_TEXT],
 ];
 
