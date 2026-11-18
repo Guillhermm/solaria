@@ -2,7 +2,8 @@ import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import Vips from "wasm-vips";
-import type { BandSet, ComparePair, ImageManifest, Source } from "../src/content/types";
+import { applySimilarity, fitSimilarity, invertSimilarity, residuals } from "../src/content/registration";
+import type { BandSet, ComparePair, ImageManifest, Similarity, Source } from "../src/content/types";
 import { cutPyramid, tilesBlock, writeThumbnails } from "./generate-tiles";
 
 const W = 1024;
@@ -41,11 +42,103 @@ interface Spec {
   tint: [number, number, number];
   band: string;
   color: string;
+  width?: number; // default W x H
+  height?: number;
 }
 
+// The Compare mock mirrors the Hubble pair's geometry: the moving image has coarser pixels
+// (scale 2), is turned 7.3 degrees, and misses a stepped corner, as the WFPC2 mosaic does.
+// It also reaches past the top and bottom of the reference frame, as Webb will.
+export const MOVING = { width: 400, height: 240 };
+const MOVING_CENTER_ON_REFERENCE = { x: 560, y: 250 };
+const ROTATION = 7.3;
+const SCALE = 2;
+const turn = applySimilarity({ scale: SCALE, rotationDeg: ROTATION, tx: 0, ty: 0 }, { x: MOVING.width / 2, y: MOVING.height / 2 });
+export const MOCK_SIMILARITY: Similarity = {
+  scale: SCALE,
+  rotationDeg: ROTATION,
+  tx: MOVING_CENTER_ON_REFERENCE.x - turn.x,
+  ty: MOVING_CENTER_ON_REFERENCE.y - turn.y,
+};
+
+// The empty corner, stepped: the moving image is black where x >= from and y < depth.
+const NOTCH = [
+  { from: 200, depth: 60 },
+  { from: 270, depth: 90 },
+  { from: 340, depth: 120 },
+];
+const inNotch = (x: number, y: number) => NOTCH.some((n) => x >= n.from && y < n.depth);
+
+// The data area, inset 2 px from the black, in moving pixels.
+export const MOCK_FOOTPRINT = [[
+  { x: 2, y: 2 }, { x: 198, y: 2 }, { x: 198, y: 62 }, { x: 268, y: 62 }, { x: 268, y: 92 },
+  { x: 338, y: 92 }, { x: 338, y: 122 }, { x: MOVING.width - 2, y: 122 },
+  { x: MOVING.width - 2, y: MOVING.height - 2 }, { x: 2, y: MOVING.height - 2 },
+]];
+
+// Stars in reference pixels; every one lands inside the moving image's data area.
+const STARS = [
+  { x: 260, y: 120 }, { x: 330, y: 360 }, { x: 470, y: 90 }, { x: 520, y: 400 },
+  { x: 640, y: 300 }, { x: 730, y: 300 }, { x: 820, y: 380 }, { x: 410, y: 250 },
+];
+const STAR_R = 5;
+
+// The sky both images show, in reference pixels: a gradient, a 3 px grid, stars and a disc.
+export const scene = (x: number, y: number, disc: Disc) => {
+  if (STARS.some((s) => (x - s.x) ** 2 + (y - s.y) ** 2 <= STAR_R ** 2)) return 255;
+  if ((x - disc.x) ** 2 + (y - disc.y) ** 2 <= disc.r ** 2) return disc.value;
+  const mod = (v: number) => ((v % 64) + 64) % 64;
+  if (mod(x) < 3 || mod(y) < 3) return 110;
+  return 30 + Math.round((x / W) * 20);
+};
+
+const BEFORE_DISC: Disc = { x: 400, y: 250, r: 110, value: 200 };
+const AFTER_DISC: Disc = { x: 470, y: 280, r: 150, value: 240 };
+// Warm reference, cool moving image: a pixel probe tells them apart by color.
+const WARM: [number, number, number] = [255, 235, 210];
+const COOL: [number, number, number] = [140, 190, 255];
+
+const tinted = (px: Uint8Array, o: number, v: number, tint: [number, number, number]) => {
+  for (let k = 0; k < 3; k++) px[o + k] = Math.round((v * tint[k]) / 255);
+};
+
+export const referencePixels = () => {
+  const px = new Uint8Array(W * H * 3);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) tinted(px, (y * W + x) * 3, scene(x + 0.5, y + 0.5, BEFORE_DISC), WARM);
+  return px;
+};
+
+// Each moving pixel averages 3 x 3 samples of the scene where the similarity puts it.
+export const movingPixels = () => {
+  const { width, height } = MOVING;
+  const px = new Uint8Array(width * height * 3);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (inNotch(x, y)) continue;
+      let sum = 0;
+      for (let j = 0; j < 3; j++) {
+        for (let i = 0; i < 3; i++) {
+          const q = applySimilarity(MOCK_SIMILARITY, { x: x + (i + 0.5) / 3, y: y + (j + 0.5) / 3 });
+          sum += scene(q.x, q.y, AFTER_DISC);
+        }
+      }
+      tinted(px, (y * width + x) * 3, sum / 9, COOL);
+    }
+  }
+  return px;
+};
+
+export const mockControlPoints = () => {
+  const back = invertSimilarity(MOCK_SIMILARITY);
+  return STARS.map((s, i) => ({ label: `star ${String.fromCharCode(65 + i)}`, moving: applySimilarity(back, s), reference: { ...s } }));
+};
+
+export const COMPARE_SPECS: Spec[] = [
+  { id: "mock-compare-before", title: "Mock Compare, before", disc: BEFORE_DISC, tint: WARM, band: "mock-gray", color: "gray" },
+  { id: "mock-compare-after", title: "Mock Compare, after", disc: AFTER_DISC, tint: COOL, band: "mock-gray", color: "gray", ...MOVING },
+];
+
 export const SPECS: Spec[] = [
-  { id: "mock-compare-before", title: "Mock Compare, before", disc: { x: 400, y: 250, r: 110, value: 200 }, tint: [255, 255, 255], band: "mock-gray", color: "gray" },
-  { id: "mock-compare-after", title: "Mock Compare, after", disc: { x: 470, y: 280, r: 150, value: 240 }, tint: [255, 255, 255], band: "mock-gray", color: "gray" },
   { id: "mock-light-a", title: "Mock Light, band A", disc: { x: 512, y: 256, r: 60, value: 230 }, tint: [255, 80, 80], band: "mock-a", color: "red" },
   { id: "mock-light-b", title: "Mock Light, band B", disc: { x: 512, y: 256, r: 130, value: 230 }, tint: [80, 255, 80], band: "mock-b", color: "green" },
   { id: "mock-light-c", title: "Mock Light, band C", disc: { x: 512, y: 256, r: 200, value: 230 }, tint: [80, 80, 255], band: "mock-c", color: "blue" },
@@ -64,7 +157,7 @@ export const mockSource = (spec: Spec, file: { bytes: number; sha256: string }):
   credit: "Synthetic test image generated by scripts/generate-mock.ts. Not NASA data.",
   terms: { name: "Not for publication", url: "https://example.org/mock" },
   retrievedAt: "2026-11-17",
-  file: { format: "png", ...file, width: W, height: H },
+  file: { format: "png", ...file, width: spec.width ?? W, height: spec.height ?? H },
   validation: { ...DRAFT },
   mock: true,
 });
@@ -81,6 +174,7 @@ export const mockImage = (spec: Spec, tiles: ImageManifest["tiles"]): ImageManif
   releasedAt: claim("2026-11-17"),
   productType: claim("single exposure" as const),
   caveats: ["Synthetic test pattern. It shows nothing about the sky."],
+  ...(spec.id === "mock-compare-after" ? { footprint: MOCK_FOOTPRINT } : {}),
   tiles,
   validation: { ...DRAFT },
   mock: true,
@@ -88,15 +182,30 @@ export const mockImage = (spec: Spec, tiles: ImageManifest["tiles"]): ImageManif
 
 const registration = { method: "none, same synthetic grid", transform: "none" as const, residualPx: 0 as const };
 
+const mockRegistration = (): ComparePair["registration"] => {
+  const controlPoints = mockControlPoints();
+  const similarity = fitSimilarity(controlPoints);
+  const r = residuals(similarity, controlPoints);
+  return {
+    method: "similarity, least squares on exact synthetic star positions",
+    transform: "similarity",
+    controlPoints,
+    similarity,
+    residualPx: r.rms,
+    maxResidualPx: r.max,
+  };
+};
+
 export const MOCK_PAIR: ComparePair = {
   id: "mock-compare",
   title: "Mock Compare pair",
   imageIds: ["mock-compare-before", "mock-compare-after"],
   reference: "mock-compare-before",
   headline: "Synthetic: the disc grows",
-  differs: { instrument: false, band: false, date: true, illumination: false, geometry: false, processing: false },
-  registration,
-  whatDiffers: "Synthetic. The disc is larger and shifted in the second image; nothing else changes.",
+  differs: { instrument: false, band: false, date: true, illumination: false, geometry: true, processing: false },
+  registration: mockRegistration(),
+  whatDiffers:
+    "Synthetic. The second image has pixels twice as coarse, is turned 7.3 degrees and misses a stepped corner. The disc is larger and shifted; the stars and the grid do not move.",
   validation: { ...DRAFT },
   mock: true,
 };
@@ -119,15 +228,19 @@ const writeJson = (path: string, value: unknown) => {
 
 const main = async () => {
   const vips = await Vips();
-  for (const spec of SPECS) {
-    const image = vips.Image.newFromMemory(synthPixels(spec.disc, spec.tint), W, H, 3, vips.BandFormat.uchar);
+  const pixels = (spec: Spec) =>
+    spec.id === "mock-compare-before" ? referencePixels() : spec.id === "mock-compare-after" ? movingPixels() : synthPixels(spec.disc, spec.tint);
+  for (const spec of [...COMPARE_SPECS, ...SPECS]) {
+    const width = spec.width ?? W;
+    const height = spec.height ?? H;
+    const image = vips.Image.newFromMemory(pixels(spec), width, height, 3, vips.BandFormat.uchar);
     const png = Buffer.from(image.writeToBuffer(".png"));
     const outDir = join("public", "tiles", spec.id);
     await cutPyramid(image, outDir, { tileSize: TILE, maxLevel: MAX_LEVEL });
     const sizes = await writeThumbnails(image, outDir);
     const sha256 = createHash("sha256").update(png).digest("hex");
     writeJson(join("data", "mock", "sources", `${spec.id}.json`), mockSource(spec, { bytes: png.length, sha256 }));
-    writeJson(join("data", "mock", "images", `${spec.id}.json`), mockImage(spec, tilesBlock(W, H, TILE, MAX_LEVEL, sizes)));
+    writeJson(join("data", "mock", "images", `${spec.id}.json`), mockImage(spec, tilesBlock(width, height, TILE, MAX_LEVEL, sizes)));
   }
   writeJson(join("data", "mock", "pairs", `${MOCK_PAIR.id}.json`), MOCK_PAIR);
   writeJson(join("data", "mock", "band-sets", `${MOCK_BAND_SET.id}.json`), MOCK_BAND_SET);

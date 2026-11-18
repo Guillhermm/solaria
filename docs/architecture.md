@@ -445,8 +445,11 @@ failure reads as a content error rather than a prerender stack. Mock files live 
 leaks into the real directories.
 
 Mock content (D-09, built): `data/mock/` holds a Compare pair `mock-compare` (two images) and a
-Light band set `mock-light` (three bands), each over synthetic 1024 x 512 grids with a disc,
-flagged `mock: true`, status `draft`, claims `unverified`, credit "Not NASA data".
+Light band set `mock-light` (three bands), synthetic grids with a disc,
+flagged `mock: true`, status `draft`, claims `unverified`, credit "Not NASA data". Since
+Sprint 7 the pair has real geometry: the moving image (400 x 240) is drawn from the reference
+scene at scale 2, turned 7.3 degrees, with a stepped black corner, a footprint polygon and
+eight exact star control points (refit residual below 1e-6 px).
 `npm run generate-mock` rewrites them and their tile trees under `public/tiles/mock-*`
 (about 600 KB). `next dev` shows them; production never reads `data/mock/`, and the gate
 rejects a mock that leaks into `data/`. `next build` copies `public/` into `out/`, so a

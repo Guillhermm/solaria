@@ -57,21 +57,65 @@
   "caveats": [
     "Synthetic test pattern. It shows nothing about the sky."
   ],
+  "footprint": [
+    [
+      {
+        "x": 2,
+        "y": 2
+      },
+      {
+        "x": 198,
+        "y": 2
+      },
+      {
+        "x": 198,
+        "y": 62
+      },
+      {
+        "x": 268,
+        "y": 62
+      },
+      {
+        "x": 268,
+        "y": 92
+      },
+      {
+        "x": 338,
+        "y": 92
+      },
+      {
+        "x": 338,
+        "y": 122
+      },
+      {
+        "x": 398,
+        "y": 122
+      },
+      {
+        "x": 398,
+        "y": 238
+      },
+      {
+        "x": 2,
+        "y": 238
+      }
+    ]
+  ],
   "tiles": {
     "format": "jpg",
     "tileSize": 256,
     "overlap": 0,
-    "width": 1024,
-    "height": 512,
+    "width": 400,
+    "height": 240,
     "minLevel": 0,
     "maxLevel": 2,
     "thumbnail": {
-      "width": 512,
-      "height": 256
+      "width": 400,
+      "height": 240
     },
     "preview": {
-      "width": 1024,
-      "height": 512
+      "width": 400,
+      "height": 240
     }
   },
   "validation": {

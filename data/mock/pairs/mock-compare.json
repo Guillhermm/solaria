@@ -12,15 +12,112 @@
     "band": false,
     "date": true,
     "illumination": false,
-    "geometry": false,
+    "geometry": true,
     "processing": false
   },
   "registration": {
-    "method": "none, same synthetic grid",
-    "transform": "none",
-    "residualPx": 0
+    "method": "similarity, least squares on exact synthetic star positions",
+    "transform": "similarity",
+    "controlPoints": [
+      {
+        "label": "star A",
+        "moving": {
+          "x": 42.95663405240779,
+          "y": 74.58655252185066
+        },
+        "reference": {
+          "x": 260,
+          "y": 120
+        }
+      },
+      {
+        "label": "star B",
+        "moving": {
+          "x": 92.92069257522087,
+          "y": 189.16662433160695
+        },
+        "reference": {
+          "x": 330,
+          "y": 360
+        }
+      },
+      {
+        "label": "star C",
+        "moving": {
+          "x": 145.19958139534063,
+          "y": 46.36635197985842
+        },
+        "reference": {
+          "x": 470,
+          "y": 90
+        }
+      },
+      {
+        "label": "star D",
+        "moving": {
+          "x": 189.69195679330073,
+          "y": 196.93337536627925
+        },
+        "reference": {
+          "x": 520,
+          "y": 400
+        }
+      },
+      {
+        "label": "star E",
+        "moving": {
+          "x": 242.85239291863496,
+          "y": 139.71477672069673
+        },
+        "reference": {
+          "x": 640,
+          "y": 300
+        }
+      },
+      {
+        "label": "star F",
+        "moving": {
+          "x": 287.4876428351863,
+          "y": 133.99686933363597
+        },
+        "reference": {
+          "x": 730,
+          "y": 300
+        }
+      },
+      {
+        "label": "star G",
+        "moving": {
+          "x": 337.20547709579165,
+          "y": 167.95473965017638
+        },
+        "reference": {
+          "x": 820,
+          "y": 380
+        }
+      },
+      {
+        "label": "star H",
+        "moving": {
+          "x": 125.6079168057478,
+          "y": 129.52984564510132
+        },
+        "reference": {
+          "x": 410,
+          "y": 250
+        }
+      }
+    ],
+    "similarity": {
+      "scale": 2,
+      "rotationDeg": 7.3000000000000025,
+      "tx": 193.73772902831223,
+      "ty": -38.88050966214735
+    },
+    "residualPx": 3.014577520672848e-14,
+    "maxResidualPx": 5.684341886080802e-14
   },
-  "whatDiffers": "Synthetic. The disc is larger and shifted in the second image; nothing else changes.",
+  "whatDiffers": "Synthetic. The second image has pixels twice as coarse, is turned 7.3 degrees and misses a stepped corner. The disc is larger and shifted; the stars and the grid do not move.",
   "validation": {
     "status": "draft",
     "date": null,
