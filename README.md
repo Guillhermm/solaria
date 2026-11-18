@@ -2,7 +2,10 @@
 
 Solaria is a web app for exploring very large NASA images in the browser. It began as an
 entry to the NASA Space Apps Challenge 2025 ("Embiggen Your Eyes!") and is being relaunched
-as a guided, shareable way to zoom into one giant image at a time. The plan is in
+as a guided, shareable way to zoom into one giant image at a time. The original challenge
+repository is archived, read-only, at
+[Guillhermm/nasa-2025-solaria](https://github.com/Guillhermm/nasa-2025-solaria); this one
+carries its full history forward. The plan is in
 [docs/vision.md](docs/vision.md), the design direction in [docs/design.md](docs/design.md),
 the work items in [docs/roadmap.md](docs/roadmap.md) and the checked facts about the images
 in [docs/science/](docs/science/).
@@ -45,7 +48,8 @@ in [docs/science/](docs/science/).
   `npm run sync-r2` pushes `public/tiles/` to a Cloudflare R2 bucket: a dry run by default
   (it lists what it would upload), `--apply` to upload, skipping objects whose size and MD5
   already match. It reads `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` and
-  `R2_BUCKET` from the environment and has no dependency. Ready and unit-tested with a mocked
+  `R2_BUCKET` from the environment, or from a `.env` file in the repository root when one
+  exists (copy `.env.example`), and has no dependency. Ready and unit-tested with a mocked
   `fetch`, but not yet run against a real bucket (the bucket is roadmap item R-01).
   `TILE_BASE_URL` (a root-relative path or an https URL, default `/tiles`) is read at build
   time and sets where the viewer loads tiles from; a build serves one base.
