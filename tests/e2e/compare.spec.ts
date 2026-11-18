@@ -341,4 +341,20 @@ test.describe("the Hubble 1995 and 2014 pair", () => {
     await expect(note.getByRole("listitem").first()).toHaveText(hubble.caveats[0]);
     await expect(note).toContainText("Differs Instrument, Band, Date, Processing");
   });
+
+  test("the note, labels and credits equal the manifests exactly", async ({ page }) => {
+    await page.goto("/pillars-hubble-2014/?mode=compare");
+    await ready(page);
+    const ref = hubble.imageIds.indexOf(hubble.reference);
+    const [left, right] = [hubble.labels[ref], hubble.labels[1 - ref]];
+    await expect(page.getByTestId("divider").getByText(left.full)).toBeVisible();
+    await expect(page.getByTestId("divider").getByText(right.full)).toBeVisible();
+    await page.getByRole("button", { name: "What differs?" }).click();
+    const note = page.getByRole("dialog", { name: /What differs\?/ });
+    await expect(note.getByRole("listitem")).toHaveText([...hubble.caveats, ...[hubble.reference, hubble.imageIds.find((i: string) => i !== hubble.reference)].flatMap((id) => read(`data/images/${id}.json`).caveats)]);
+    await page.keyboard.press("Escape");
+    const credits = page.getByTestId("compare-bar").getByRole("list", { name: "Credits" }).getByRole("listitem");
+    await expect(credits.nth(0)).toContainText(`Left, ${left.short}: `);
+    await expect(credits.nth(1)).toContainText(`Right, ${right.short}: `);
+  });
 });
