@@ -1,4 +1,5 @@
-import type { BandSet, ComparePair, ImageManifest, Journey, Source, Stop } from "../types";
+import { applySimilarity, fitSimilarity, residuals } from "../registration";
+import type { BandSet, ComparePair, ControlPoint, ImageManifest, Journey, Registration, Source, Stop } from "../types";
 
 const approved = { status: "approved", date: "2026-11-17", notes: "fixture" } as const;
 const SHA = "a".repeat(64);
@@ -65,9 +66,25 @@ export const journey = (): Journey => ({
   mock: false,
 });
 
+// demo-b, 1000 x 300 like demo, lands on demo at half scale turned 10 degrees.
+export const DEMO_SIMILARITY = { scale: 0.5, rotationDeg: 10, tx: 300, ty: 40 };
+
+export const controlPoints = (): ControlPoint[] =>
+  [[100, 50], [900, 50], [500, 150], [100, 250], [900, 250], [300, 200]].map(([x, y], i) => ({
+    label: `star ${i + 1}`,
+    moving: { x, y },
+    reference: applySimilarity(DEMO_SIMILARITY, { x, y }),
+  }));
+
+export const similarityRegistration = (points = controlPoints()): Registration => {
+  const similarity = fitSimilarity(points);
+  const r = residuals(similarity, points);
+  return { method: "similarity, least squares on star control points", transform: "similarity", controlPoints: points, similarity, residualPx: r.rms, maxResidualPx: r.max };
+};
+
 const group = () => ({
   differs: { instrument: false, band: false, date: true, illumination: false, geometry: false, processing: false },
-  registration: { method: "star control points", transform: "similarity" as const, residualPx: 0.5 },
+  registration: { method: "none, same grid", transform: "none", residualPx: 0 } as Registration,
   whatDiffers: "Only the date differs.",
   validation: { ...approved },
   mock: false,
@@ -77,7 +94,10 @@ export const pair = (): ComparePair => ({
   id: "demo-pair",
   title: "Demo pair",
   imageIds: ["demo", "demo-b"],
+  reference: "demo",
+  headline: "Same field, years apart",
   ...group(),
+  registration: similarityRegistration(),
 });
 
 export const bandSet = (): BandSet => ({

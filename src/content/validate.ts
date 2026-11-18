@@ -18,6 +18,7 @@ import {
 import type {
   Band,
   BandSet,
+  ControlPoint,
   Claim,
   ClaimStatus,
   ColorMapping,
@@ -28,11 +29,13 @@ import type {
   Journey,
   ProductType,
   Registration,
+  Similarity,
   Source,
   Stop,
   TilePyramid,
   Validation,
 } from "./types";
+import { MIN_CONTROL_POINTS, fitSimilarity, residuals } from "./registration";
 
 export type Result<T> = { ok: true; value: T } | { ok: false; errors: string[] };
 
@@ -242,6 +245,12 @@ const observedRange = (c: Ctx, v: unknown, path: string) => {
   return range;
 };
 
+const point = (c: Ctx, v: unknown, path: string) => {
+  const n = c.errors.length;
+  const o = object(c, v, path, ["x", "y"]);
+  return o && finish<{ x: number; y: number }>(c, n, { x: num(c, o.x, `${path}.x`), y: num(c, o.y, `${path}.y`) });
+};
+
 export const validateImage = (raw: unknown, file: string): Result<ImageManifest> => {
   const c = newCtx(file);
   const o = object(
@@ -252,7 +261,7 @@ export const validateImage = (raw: unknown, file: string): Result<ImageManifest>
       "id", "sourceId", "title", "target", "observatory", "instruments", "bands", "colorMapping",
       "releasedAt", "productType", "tiles", "validation", "mock",
     ],
-    ["observedAt", "processing", "pixelScale", "fieldOfView", "orientation", "caveats"],
+    ["observedAt", "processing", "pixelScale", "fieldOfView", "orientation", "caveats", "footprint"],
   );
   if (!o) return bad(c);
   const n = c.errors.length;
@@ -285,12 +294,19 @@ export const validateImage = (raw: unknown, file: string): Result<ImageManifest>
     fieldOfView: optionalClaim(c, o, "fieldOfView", (v, p) => str(c, v, p)),
     orientation: optionalClaim(c, o, "orientation", (v, p) => str(c, v, p)),
     caveats: "caveats" in o ? arrayOf(c, o.caveats, "caveats", (x, q) => str(c, x, q)) : undefined,
+    footprint:
+      "footprint" in o
+        ? arrayOf(c, o.footprint, "footprint", (poly, p) => {
+            const pts = arrayOf(c, poly, p, (pt, q) => point(c, pt, q));
+            return pts && pts.length < 3 ? fail(c, p, "a polygon of at least 3 points", poly) : pts;
+          }, true)
+        : undefined,
     tiles: tiles(c, o.tiles, "tiles"),
     validation: validation(c, o.validation, "validation"),
     mock: bool(c, o.mock, "mock"),
   });
   if (value) {
-    for (const k of ["observedAt", "processing", "pixelScale", "fieldOfView", "orientation", "caveats"] as const) {
+    for (const k of ["observedAt", "processing", "pixelScale", "fieldOfView", "orientation", "caveats", "footprint"] as const) {
       if (value[k] === undefined) delete value[k];
     }
   }
@@ -360,26 +376,92 @@ export const validateJourney = (raw: unknown, file: string): Result<Journey> => 
 
 const differences = ["instrument", "band", "date", "illumination", "geometry", "processing"] as const;
 
+const controlPoint = (c: Ctx, v: unknown, path: string) => {
+  const n = c.errors.length;
+  const o = object(c, v, path, ["label", "moving", "reference"]);
+  return o && finish<ControlPoint>(c, n, {
+    label: str(c, o.label, `${path}.label`),
+    moving: point(c, o.moving, `${path}.moving`),
+    reference: point(c, o.reference, `${path}.reference`),
+  });
+};
+
+const similarity = (c: Ctx, v: unknown, path: string) => {
+  const n = c.errors.length;
+  const o = object(c, v, path, ["scale", "rotationDeg", "tx", "ty"]);
+  return o && finish<Similarity>(c, n, {
+    scale: num(c, o.scale, `${path}.scale`, true),
+    rotationDeg: num(c, o.rotationDeg, `${path}.rotationDeg`),
+    tx: num(c, o.tx, `${path}.tx`),
+    ty: num(c, o.ty, `${path}.ty`),
+  });
+};
+
+const close = (a: number, b: number, tol: number) => Math.abs(a - b) <= tol * Math.max(1, Math.abs(b));
+
+// The stored transform and residuals must be what the control points give, so the file
+// cannot drift from its points (docs/architecture-compare.md, section 2).
+const checkRefit = (c: Ctx, r: Extract<Registration, { transform: "similarity" }>) => {
+  const fit = fitSimilarity(r.controlPoints);
+  const res = residuals(fit, r.controlPoints);
+  for (const k of ["scale", "rotationDeg", "tx", "ty"] as const) {
+    if (!close(r.similarity[k], fit[k], 1e-9)) {
+      c.errors.push(`${c.file}: registration.similarity.${k}: ${r.similarity[k]} does not match the refit ${fit[k]}; run scripts/register-pair.ts`);
+    }
+  }
+  if (Math.abs(r.residualPx - res.rms) > 1e-3) {
+    c.errors.push(`${c.file}: registration.residualPx: ${r.residualPx} does not match the refit ${res.rms}; run scripts/register-pair.ts`);
+  }
+  if (Math.abs(r.maxResidualPx - res.max) > 1e-3) {
+    c.errors.push(`${c.file}: registration.maxResidualPx: ${r.maxResidualPx} does not match the refit ${res.max}; run scripts/register-pair.ts`);
+  }
+};
+
+const registration = (c: Ctx, v: unknown): Registration | undefined => {
+  if (typeof v !== "object" || v === null || Array.isArray(v)) return fail(c, "registration", "an object", v);
+  const transform = oneOf(c, (v as Record<string, unknown>).transform, "registration.transform", ["none", "similarity"]);
+  if (transform === undefined) {
+    if (!("transform" in v)) c.errors.push(`${c.file}: registration.transform: missing`);
+    return undefined;
+  }
+  const n = c.errors.length;
+  if (transform === "none") {
+    const r = object(c, v, "registration", ["method", "transform", "residualPx"]);
+    return r && finish<Registration>(c, n, {
+      method: str(c, r.method, "registration.method"),
+      transform,
+      residualPx: literal(c, r.residualPx, "registration.residualPx", 0),
+    });
+  }
+  const r = object(c, v, "registration", ["method", "transform", "controlPoints", "similarity", "residualPx", "maxResidualPx"]);
+  if (!r) return undefined;
+  const points = arrayOf(c, r.controlPoints, "registration.controlPoints", (x, p) => controlPoint(c, x, p));
+  if (points && points.length < MIN_CONTROL_POINTS) {
+    fail(c, "registration.controlPoints", `at least ${MIN_CONTROL_POINTS} control points`, `${points.length} points`);
+  }
+  const value = finish<Extract<Registration, { transform: "similarity" }>>(c, n, {
+    method: str(c, r.method, "registration.method"),
+    transform,
+    controlPoints: points,
+    similarity: similarity(c, r.similarity, "registration.similarity"),
+    residualPx: nonNegative(c, r.residualPx, "registration.residualPx"),
+    maxResidualPx: nonNegative(c, r.maxResidualPx, "registration.maxResidualPx"),
+  });
+  if (value) checkRefit(c, value);
+  return value;
+};
+
 const group = (c: Ctx, o: Record<string, unknown>, ids: (v: unknown, p: string) => string[] | undefined) => {
   const dn = c.errors.length;
   const d = object(c, o.differs, "differs", differences);
   const differs =
     d && finish<Record<Difference, boolean>>(c, dn, Object.fromEntries(differences.map((k) => [k, bool(c, d[k], `differs.${k}`)])) as Draft<Record<Difference, boolean>>);
-  const rn = c.errors.length;
-  const r = object(c, o.registration, "registration", ["method", "transform", "residualPx"]);
-  const registration =
-    r &&
-    finish<Registration>(c, rn, {
-      method: str(c, r.method, "registration.method"),
-      transform: oneOf(c, r.transform, "registration.transform", ["none", "similarity", "affine"]),
-      residualPx: nonNegative(c, r.residualPx, "registration.residualPx"),
-    });
   return {
     id: str(c, o.id, "id"),
     title: str(c, o.title, "title"),
     imageIds: ids(o.imageIds, "imageIds"),
     differs,
-    registration,
+    registration: registration(c, o.registration),
     whatDiffers: str(c, o.whatDiffers, "whatDiffers"),
     validation: validation(c, o.validation, "validation"),
     mock: bool(c, o.mock, "mock"),
@@ -400,18 +482,19 @@ const distinct = (c: Ctx, ids: string[] | undefined, path: string) => {
 
 export const validatePair = (raw: unknown, file: string): Result<ComparePair> => {
   const c = newCtx(file);
-  const o = object(c, raw, "", GROUP_KEYS);
+  const o = object(c, raw, "", [...GROUP_KEYS, "reference", "headline"]);
   if (!o) return bad(c);
   const n = c.errors.length;
-  const value = finish<ComparePair>(
-    c,
-    n,
-    group(c, o, (v, p) => {
-      const ids = arrayOf(c, v, p, (x, q) => str(c, x, q), true);
-      if (ids && ids.length !== 2) return fail(c, p, "exactly two image ids", ids);
-      return distinct(c, ids, p);
-    }) as Draft<ComparePair>,
-  );
+  const g = group(c, o, (v, p) => {
+    const ids = arrayOf(c, v, p, (x, q) => str(c, x, q), true);
+    if (ids && ids.length !== 2) return fail(c, p, "exactly two image ids", ids);
+    return distinct(c, ids, p);
+  });
+  let reference = str(c, o.reference, "reference");
+  if (reference !== undefined && g.imageIds && !g.imageIds.includes(reference)) {
+    reference = fail(c, "reference", `one of imageIds (${g.imageIds.join(", ")})`, reference);
+  }
+  const value = finish<ComparePair>(c, n, { ...g, reference, headline: str(c, o.headline, "headline") } as Draft<ComparePair>);
   return result(c, value);
 };
 
@@ -511,10 +594,35 @@ export const validateContent = (files: { path: string; raw: unknown }[]): Result
     });
   }
 
+  const outside = (p: { x: number; y: number }, img: ImageManifest) =>
+    p.x < 0 || p.x > img.tiles.width || p.y < 0 || p.y > img.tiles.height;
+
+  for (const img of content.images) {
+    img.footprint?.forEach((poly, i) =>
+      poly.forEach((p, k) => {
+        if (outside(p, img)) {
+          errors.push(`${fileOf.get(img)}: footprint[${i}][${k}]: (${p.x}, ${p.y}) lies outside the image (${img.tiles.width} x ${img.tiles.height})`);
+        }
+      }),
+    );
+  }
+
   for (const g of [...content.pairs, ...content.bandSets]) {
     const file = fileOf.get(g)!;
     g.imageIds.forEach((id, i) => {
       if (!images.has(id)) errors.push(`${file}: imageIds[${i}]: no image "${id}" in data/images/`);
+    });
+  }
+
+  for (const pair of content.pairs) {
+    const reg = pair.registration;
+    if (reg.transform !== "similarity") continue;
+    const file = fileOf.get(pair)!;
+    const ref = images.get(pair.reference);
+    const mov = images.get(pair.imageIds.find((id) => id !== pair.reference)!);
+    reg.controlPoints.forEach((cp, i) => {
+      if (mov && outside(cp.moving, mov)) errors.push(`${file}: registration.controlPoints[${i}].moving: (${cp.moving.x}, ${cp.moving.y}) lies outside image "${mov.id}"`);
+      if (ref && outside(cp.reference, ref)) errors.push(`${file}: registration.controlPoints[${i}].reference: (${cp.reference.x}, ${cp.reference.y}) lies outside image "${ref.id}"`);
     });
   }
 

@@ -88,6 +88,9 @@ export interface ImageManifest {
   fieldOfView?: Claim<string>;
   orientation?: Claim<string>;
   caveats?: string[]; // what users must see beside the image, from the science review
+  // Polygons, in full-resolution pixels, around the part of the file that holds data. Absent:
+  // the whole image. The viewer crops to it, so a mosaic's empty corner never covers another image.
+  footprint?: { x: number; y: number }[][];
   tiles: TilePyramid;
   validation: Validation;
   mock: boolean;
@@ -124,11 +127,31 @@ export interface Journey {
 // What differs between the images of a pair or band set (compare-and-light.md, section 3, item 13).
 export type Difference = "instrument" | "band" | "date" | "illumination" | "geometry" | "processing";
 
-export interface Registration {
-  method: string; // e.g. "star control points"
-  transform: "none" | "similarity" | "affine";
-  residualPx: number; // RMS residual in pixels of the common frame
+export interface ControlPoint {
+  label: string; // e.g. "star A", to find it again
+  moving: { x: number; y: number }; // full-resolution pixels of the moving image
+  reference: { x: number; y: number }; // full-resolution pixels of the reference image
 }
+
+// q = scale * R(rotationDeg) * p + (tx, ty); p in moving pixels, q in reference pixels.
+// R is [[cos, -sin], [sin, cos]] with y down, the same sign as OpenSeadragon's degrees.
+export interface Similarity {
+  scale: number;
+  rotationDeg: number;
+  tx: number;
+  ty: number;
+}
+
+export type Registration =
+  | { method: string; transform: "none"; residualPx: 0 }
+  | {
+      method: string; // e.g. "similarity, least squares on star control points"
+      transform: "similarity";
+      controlPoints: ControlPoint[]; // at least 6
+      similarity: Similarity; // written by scripts/register-pair.ts
+      residualPx: number; // RMS, reference pixels, written by the script
+      maxResidualPx: number; // worst point, reference pixels, written by the script
+    };
 
 interface ImageGroup {
   id: string; // file name
@@ -143,6 +166,8 @@ interface ImageGroup {
 // Compare: two registered images of one target. `imageIds` is [before, after].
 export interface ComparePair extends ImageGroup {
   imageIds: [string, string];
+  reference: string; // one of imageIds: the unrotated frame; the other image moves onto it
+  headline: string; // a short validated label shown in the compare bar
 }
 
 // Light: the same field in several bands, in rail order (at least two).

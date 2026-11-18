@@ -86,12 +86,14 @@ export const mockImage = (spec: Spec, tiles: ImageManifest["tiles"]): ImageManif
   mock: true,
 });
 
-const registration = { method: "none, same synthetic grid", transform: "none" as const, residualPx: 0 };
+const registration = { method: "none, same synthetic grid", transform: "none" as const, residualPx: 0 as const };
 
 export const MOCK_PAIR: ComparePair = {
   id: "mock-compare",
   title: "Mock Compare pair",
   imageIds: ["mock-compare-before", "mock-compare-after"],
+  reference: "mock-compare-before",
+  headline: "Synthetic: the disc grows",
   differs: { instrument: false, band: false, date: true, illumination: false, geometry: false, processing: false },
   registration,
   whatDiffers: "Synthetic. The disc is larger and shifted in the second image; nothing else changes.",

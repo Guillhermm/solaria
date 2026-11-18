@@ -5,6 +5,8 @@
     "mock-compare-before",
     "mock-compare-after"
   ],
+  "reference": "mock-compare-before",
+  "headline": "Synthetic: the disc grows",
   "differs": {
     "instrument": false,
     "band": false,

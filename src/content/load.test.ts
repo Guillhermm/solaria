@@ -27,7 +27,7 @@ const mockFiles = () => {
     { path: "data/mock/sources/m.json", raw: s },
     { path: "data/mock/images/m.json", raw: i },
     { path: "data/mock/images/m2.json", raw: { ...i, id: "m2" } },
-    { path: "data/mock/pairs/mp.json", raw: { ...fx.pair(), id: "mp", imageIds: ["m", "m2"], mock: true } },
+    { path: "data/mock/pairs/mp.json", raw: { ...fx.pair(), id: "mp", imageIds: ["m", "m2"], reference: "m", mock: true } },
     { path: "data/mock/band-sets/mb.json", raw: { ...fx.bandSet(), id: "mb", imageIds: ["m", "m2"], mock: true } },
   ];
 };

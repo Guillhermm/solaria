@@ -27,6 +27,7 @@ src/content/              no React, no browser
   check.ts                small field checkers used by validate.ts
   validate.ts             unknown JSON -> typed value or a list of errors
   gate.ts                 production publish rules
+  registration.ts         similarity fit from control points (shared with register-pair)
   pyramid.ts              level sizes and tile counts (shared with generate-tiles)
   tiles.ts                tile base URL resolution, tile URL, OpenSeadragon tile source
   load.ts                 the only module that touches the file system
@@ -268,11 +269,9 @@ export interface Journey {
 // What differs inside a pair or band set (compare-and-light.md, section 3, item 13).
 export type Difference = "instrument" | "band" | "date" | "illumination" | "geometry" | "processing";
 
-export interface Registration {
-  method: string; // e.g. "star control points"
-  transform: "none" | "similarity" | "affine";
-  residualPx: number; // RMS residual in pixels of the common frame, zero or more
-}
+// Superseded in Sprint 7: Registration is a union of "none" and "similarity" with control
+// points, and a pair names its `reference` and a `headline`; see docs/architecture-compare.md
+// section 2. Images gain an optional `footprint`.
 
 interface ImageGroup {
   id: string; // file name
@@ -286,6 +285,8 @@ interface ImageGroup {
 
 export interface ComparePair extends ImageGroup {
   imageIds: [string, string]; // [before, after]; two distinct ids
+  reference: string; // Sprint 7
+  headline: string; // Sprint 7
 }
 
 export interface BandSet extends ImageGroup {

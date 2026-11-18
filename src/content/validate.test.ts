@@ -25,6 +25,26 @@ describe("valid fixtures", () => {
   });
 });
 
+describe("footprint", () => {
+  const withFootprint = (footprint: unknown) => {
+    const f = fx.files();
+    (f[1].raw as Record<string, unknown>).footprint = footprint;
+    return errorsOf(validateContent(f));
+  };
+  it("accepts polygons inside the image", () => {
+    expect(withFootprint([[{ x: 0, y: 0 }, { x: 1000, y: 0 }, { x: 1000, y: 300 }, { x: 0, y: 300 }]])).toEqual([]);
+  });
+  it("rejects a vertex outside the image, with its path", () => {
+    expect(withFootprint([[{ x: 0, y: 0 }, { x: 1001, y: 0 }, { x: 0, y: 300 }]])).toEqual([
+      "data/images/demo.json: footprint[0][1]: (1001, 0) lies outside the image (1000 x 300)",
+    ]);
+  });
+  it("rejects a polygon of fewer than 3 points and an empty list", () => {
+    expect(withFootprint([[{ x: 0, y: 0 }, { x: 1, y: 0 }]])[0]).toContain("footprint[0]: expected a polygon of at least 3 points");
+    expect(withFootprint([])[0]).toContain("footprint: expected a non-empty array");
+  });
+});
+
 describe("bands", () => {
   it("accept a filter id with no wavelength or kind", () => {
     const img = clone(fx.image()) as unknown as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -221,7 +241,33 @@ describe("pairs and band sets", () => {
   });
   it("reject a missing differs flag and an unknown transform", () => {
     expect(run("pair", (g) => delete g.differs.geometry)).toEqual(["data/pairs/demo-pair.json: differs.geometry: missing"]);
-    expect(run("pair", (g) => (g.registration.transform = "warp"))[0]).toContain("registration.transform: expected one of");
+    expect(run("pair", (g) => (g.registration.transform = "warp"))[0]).toContain("registration.transform: expected one of none, similarity");
+    expect(run("pair", (g) => (g.registration.transform = "affine"))[0]).toContain("registration.transform: expected one of none, similarity");
+  });
+  it("need a zero residual when nothing was registered", () => {
+    expect(run("set", (g) => (g.registration.residualPx = 0.5))).toEqual(["data/band-sets/demo-bands.json: registration.residualPx: expected 0, got 0.5"]);
+  });
+  it("need at least 6 control points", () => {
+    const e = run("pair", (g) => {
+      g.registration = fx.similarityRegistration(fx.controlPoints().slice(0, 5));
+    });
+    expect(e).toEqual(['data/pairs/demo-pair.json: registration.controlPoints: expected at least 6 control points, got "5 points"']);
+  });
+  it("reject a stored transform or residual that the points do not give", () => {
+    expect(run("pair", (g) => (g.registration.similarity.rotationDeg += 1e-6))[0]).toMatch(
+      /registration\.similarity\.rotationDeg: .* does not match the refit .*; run scripts\/register-pair\.ts/,
+    );
+    expect(run("pair", (g) => (g.registration.residualPx = 0.01))[0]).toContain("registration.residualPx: 0.01 does not match the refit");
+    expect(run("pair", (g) => (g.registration.maxResidualPx = 0.01))[0]).toContain("registration.maxResidualPx: 0.01 does not match the refit");
+  });
+  it("accept a refit that differs only by rounding", () => {
+    expect(run("pair", (g) => (g.registration.similarity.tx *= 1 + 1e-12))).toEqual([]);
+  });
+  it("need a reference among the pair's images and a headline", () => {
+    expect(run("pair", (g) => (g.reference = "other"))).toEqual([
+      'data/pairs/demo-pair.json: reference: expected one of imageIds (demo, demo-b), got "other"',
+    ]);
+    expect(run("pair", (g) => delete g.headline)).toEqual(["data/pairs/demo-pair.json: headline: missing"]);
   });
   it("reject an empty or missing note", () => {
     expect(run("pair", (g) => (g.whatDiffers = " "))[0]).toContain("whatDiffers: expected a non-empty string");
@@ -261,6 +307,16 @@ describe("pairs and band sets", () => {
       const f = withGroups();
       (f[4].raw as ReturnType<typeof fx.pair>).imageIds = ["demo", "nope"];
       expect(errorsOf(validateContent(f))).toEqual(['data/pairs/demo-pair.json: imageIds[1]: no image "nope" in data/images/']);
+    });
+    it("keep control points inside their images", () => {
+      const f = withGroups();
+      const pair = f[4].raw as ReturnType<typeof fx.pair>;
+      const points = fx.controlPoints();
+      points[2] = { ...points[2], moving: { x: 1200, y: 10 } };
+      pair.registration = fx.similarityRegistration(points);
+      expect(errorsOf(validateContent(f))).toEqual([
+        'data/pairs/demo-pair.json: registration.controlPoints[2].moving: (1200, 10) lies outside image "demo-b"',
+      ]);
     });
     it("tie mock to data/mock/", () => {
       const f = withGroups();
