@@ -195,6 +195,7 @@ export interface Band {
   // Absent until a source states it; the filter name alone is not a source for a number.
   wavelength?: { value: number; unit: "Å" | "nm" | "µm" };
   kind?: "line" | "continuum" | "broadband";
+  region?: string; // e.g. "extreme ultraviolet", read on the Light rail; Sprint 8
 }
 
 // Never empty: an absent mapping would read as natural color.
@@ -557,4 +558,32 @@ npm run sync-r2 -- [--dir public/tiles] [--apply]
 - `mock-*` directories and dotfiles are skipped.
 - Uploads run eight at a time; a failure is reported and the exit code is 1, and a rerun
   uploads only what is missing.
+
+## 13. Light (G-01, Sprint 8)
+
+Light reuses the Compare layer pattern (`docs/architecture-compare.md`, sections 1 and 9).
+
+- **Where.** A band set is offered on the page of its first image, `imageIds[0]`, never on a
+  Journey. The page receives every band's manifest and credit (`LightView`), so the client
+  needs nothing else.
+- **One viewer, one grid.** The first band is the world's first image and keeps the home
+  bounds; the others are added at `x 0, y 0, width 1` with `setAutoRefigureSizes(false)` and
+  kept in rail order (`src/components/light/useLightLayer.ts`). Only `registration.transform`
+  `"none"` is drawn; the validator requires every image of such a set to have the same pixel size.
+- **Crossfade.** `crossfade(position, count)` in `src/viewer/light.ts`: the lower band of the
+  two around the position at opacity 1, the upper at the fraction, every other band at 0, so
+  the screen shows `(1 - t) A + t B`. OpenSeadragon neither draws nor loads an image at
+  opacity 0, so `preloaded()` keeps the bands within one stop of the position loading. The
+  navigator mirrors every band and copies its opacity, so the overview crossfades too; its
+  mirrors are put in the same order. A band shown again without a pan would keep the stale
+  "fully loaded" flag OpenSeadragon gave it while hidden and draw nothing, so the layer raises
+  the image's update flag when it becomes visible (5.0.1 internals, one line).
+- **Loading.** The page counts as loading while any image at non-zero opacity waits for
+  tiles (all modes), not only the first.
+- **Validation.** A band set's images carry one band each. Where every band states a
+  wavelength, `imageIds` must rise in wavelength (units converted for the comparison only).
+- **URL.** `?mode=light&set=<setId>&band=<imageId>&x=&y=&z=`; `set` and `band` are left out
+  at their defaults (the first set, the first band); an unknown value falls back to the
+  default. `x`, `y` and `z` are in the first band's pixels, the same for every band.
+- **Drawer.** Light pages use the canvas drawer, as Compare pages do.
 

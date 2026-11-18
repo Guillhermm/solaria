@@ -7,6 +7,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -31,6 +32,9 @@ import Divider from "@/components/compare/Divider";
 import WhatDiffers from "@/components/compare/WhatDiffers";
 import type { CompareView } from "@/components/compare/types";
 import { type Opened, useCompareLayer } from "@/components/compare/useCompareLayer";
+import LightBar from "@/components/light/LightBar";
+import type { LightView } from "@/components/light/types";
+import { useLightLayer } from "@/components/light/useLightLayer";
 import { tileSource } from "@/content/tiles";
 import type { ImageManifest, Journey, Viewport } from "@/content/types";
 import type { Info } from "@/viewer/info";
@@ -38,6 +42,7 @@ import { overviewHeightRem, shapeOf } from "@/viewer/overview";
 import { keyAction, zoomAnnouncement } from "@/viewer/keys";
 import { type SheetState, stepSheet } from "@/viewer/sheet";
 import { type CompareOptions, type CompareState, DEFAULT_SPLIT, type Layout, type Mode, LAYOUTS, parseCompareParams, parseViewerParams, serializeViewerParams } from "@/viewer/url";
+import { bandValueText, type LightOptions, type LightState, nearestStop, parseLightParams, wavelengthLabel } from "@/viewer/light";
 import { sides } from "@/viewer/compare";
 import { dividerValueText } from "@/viewer/divider";
 import { reticleSide } from "@/viewer/route";
@@ -56,6 +61,7 @@ interface ExploreProps {
   tileBaseUrl: string;
   journey?: Journey; // a Journey page: Story first, then Explore on the same image
   pairs?: CompareView[]; // Compare pairs this image is the reference of, the default first
+  bandSets?: LightView[]; // Light band sets this image opens, the default first
 }
 
 interface Camera {
@@ -88,11 +94,22 @@ const settledView = (viewer: OpenSeadragon.Viewer, size: Size) => {
   return viewFromOsd(vp.getCenter(), vp.getZoom(), vp.getHomeZoom(), size);
 };
 
-// The page's mode and compare state come along, so a view change never leaves Compare.
-const viewUrl = (viewer: OpenSeadragon.Viewer, size: Size, compare?: { state: CompareState; defaultPair: string }) =>
+// What a mode other than Explore adds to the URL.
+type ModeUrl =
+  | { mode: "compare"; state: CompareState; defaultPair: string }
+  | { mode: "light"; state: LightState; opts: LightOptions };
+
+// The page's mode and its state come along, so a view change never leaves Compare or Light.
+const viewUrl = (viewer: OpenSeadragon.Viewer, size: Size, m?: ModeUrl) =>
   `${window.location.pathname}${serializeViewerParams(
-    { mode: compare ? "compare" : "explore", view: settledView(viewer, size), compare: compare?.state },
-    compare?.defaultPair,
+    {
+      mode: m?.mode ?? "explore",
+      view: settledView(viewer, size),
+      compare: m?.mode === "compare" ? m.state : undefined,
+      light: m?.mode === "light" ? m.state : undefined,
+    },
+    m?.mode === "compare" ? m.defaultPair : undefined,
+    m?.mode === "light" ? m.opts : undefined,
   )}`;
 
 // The URL is the one record of the mode and the stop (design.md 2, "every view is a place").
@@ -124,22 +141,23 @@ const subscribeMedia = (onChange: () => void) => {
 };
 
 const STORY_MODES: readonly Mode[] = ["story", "explore"];
-const EXPLORE_MODES: readonly Mode[] = ["explore"];
-const COMPARE_MODES: readonly Mode[] = ["explore", "compare"];
 // design.md 5.6: Side by side is desktop only.
 const DESKTOP = "(min-width: 64rem)";
 
-const modesFor = (journey: Journey | undefined, compare: CompareOptions | undefined) =>
-  journey ? STORY_MODES : compare ? COMPARE_MODES : EXPLORE_MODES;
+const modesFor = (journey: Journey | undefined, compare: CompareOptions | undefined, light: LightOptions | undefined): Mode[] =>
+  journey ? [...STORY_MODES] : ["explore", ...(compare ? (["compare"] as const) : []), ...(light ? (["light"] as const) : [])];
 
-// "story:2", "explore" or "compare:<pair>:<layout>": only what the page renders from, so a
-// view or divider change alone does not re-render it.
-const routeKey = (search: string, journey: Journey | undefined, image: Size, compare: CompareOptions | undefined) => {
-  const state = parseViewerParams(search, image, modesFor(journey, compare), compare);
+// "story:2", "explore", "compare:<pair>:<layout>" or "light:<set>": only what the page renders
+// from, so a view, divider or band change alone does not re-render it.
+const routeKey = (search: string, journey: Journey | undefined, image: Size, compare: CompareOptions | undefined, light: LightOptions | undefined) => {
+  const state = parseViewerParams(search, image, modesFor(journey, compare, light), compare, light);
   if (state.mode === "story" && journey) return `story:${parseStop(search, journey.stops.length)}`;
   if (state.mode === "compare" && state.compare) return `compare:${state.compare.pair}:${state.compare.layout}`;
+  if (state.mode === "light" && state.light) return `light:${state.light.set}`;
   return state.mode;
 };
+
+const MODE_NAMES: Record<Mode, string> = { story: "Story", explore: "Explore", compare: "Compare", light: "Light" };
 
 // design.md 5.4: on a phone the camera frames each stop in the top 60 % of the screen.
 const PHONE_STORY_FRAME = 0.6;
@@ -148,9 +166,10 @@ const RETICLE_REM = 5.5;
 const REDUCED = "(prefers-reduced-motion: reduce)";
 
 const NO_PAIRS: CompareView[] = [];
+const NO_SETS: LightView[] = [];
 const BLINK_MS = 800;
 
-const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: ExploreProps) => {
+const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets = NO_SETS }: ExploreProps) => {
   const rootRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
@@ -175,12 +194,16 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
     (): CompareOptions | undefined => (pairIds ? { pairs: pairIds.split(" "), side: window.matchMedia(DESKTOP).matches } : undefined),
     [pairIds],
   );
+  const lightOptions = useMemo(
+    (): LightOptions | undefined => (bandSets.length ? { sets: bandSets.map((b) => ({ id: b.set.id, imageIds: b.set.imageIds })) } : undefined),
+    [bandSets],
+  );
   const route = useSyncExternalStore(
     subscribeUrl,
-    () => routeKey(window.location.search, journey, { width: imageWidth, height: imageHeight }, compareOptions()),
+    () => routeKey(window.location.search, journey, { width: imageWidth, height: imageHeight }, compareOptions(), lightOptions),
     () => (journey ? "story:0" : "explore"),
   );
-  const mode: Mode = route.startsWith("story") ? "story" : route.startsWith("compare") ? "compare" : "explore";
+  const mode = route.split(":")[0] as Mode;
   const [, routePair, routeLayout] = route.split(":");
   const comparing = mode === "compare";
   const active = comparing ? (pairs.find((p) => p.pair.id === routePair) ?? null) : null;
@@ -191,6 +214,15 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
     if (typeof window === "undefined" || !pairIds) return DEFAULT_SPLIT;
     return parseCompareParams(window.location.search, { pairs: pairIds.split(" "), side: false }).split;
   });
+  // Where the Light rail is, in bands from the first; whole at a stop. Like the divider, it
+  // starts where the link puts it.
+  const [position, setPosition] = useState(() =>
+    typeof window === "undefined" || !lightOptions ? 0 : parseLightParams(window.location.search, lightOptions).band,
+  );
+  const lighting = mode === "light";
+  const lightActive = lighting ? (bandSets.find((b) => b.set.id === routePair) ?? null) : null;
+  const bandCount = lightActive?.bands.length ?? 1;
+  const band = nearestStop(position, bandCount);
   const [opened, setOpened] = useState<Opened | null>(null);
   const [blinkPlaying, setBlinkPlaying] = useState(true);
   const [showMoving, setShowMoving] = useState(false);
@@ -223,10 +255,14 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
   const storyId = useId();
 
   const size = { width: image.tiles.width, height: image.tiles.height };
-  const compareUrl = active ? { state: { pair: active.pair.id, layout, split }, defaultPair: pairs[0].pair.id } : undefined;
-  const pageRef = useRef({ story, stop, paused, journey, compareUrl, split });
+  const modeUrl: ModeUrl | undefined = active
+    ? { mode: "compare", state: { pair: active.pair.id, layout, split }, defaultPair: pairs[0].pair.id }
+    : lightActive && lightOptions
+      ? { mode: "light", state: { set: lightActive.set.id, band }, opts: lightOptions }
+      : undefined;
+  const pageRef = useRef({ story, stop, paused, journey, modeUrl, split });
   useEffect(() => {
-    pageRef.current = { story, stop, paused, journey, compareUrl, split };
+    pageRef.current = { story, stop, paused, journey, modeUrl, split };
   });
   const home = homeView(size);
   const shape = shapeOf(size);
@@ -353,7 +389,8 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
         viewportMargins: margins,
         // Compare crops and clips the images on every frame; the WebGL drawer does that in a
         // second, Context2d pass, which cost more than the canvas drawer in the Sprint 7 spike.
-        ...(pairs.length ? { drawer: "canvas" } : {}),
+        // Light pages take the same drawer, so both modes read and draw the same way.
+        ...(pairs.length || bandSets.length ? { drawer: "canvas" } : {}),
         gestureSettingsMouse: { clickToZoom: false, dblClickToZoom: true },
       });
       viewerRef.current = viewer;
@@ -442,15 +479,27 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
         failuresRef.current += 1;
         if (failuresRef.current === TILE_ERROR_LIMIT) setToast(TILE_ERRORS);
       });
+      // Loading means an image on screen still waits for tiles; Light and Compare add images,
+      // and a band at zero opacity loads nothing.
+      const trackLoading = () => {
+        const w = opened.world;
+        const busy = Array.from({ length: w.getItemCount() }, (_, i) => w.getItemAt(i)).some((it) => it.getOpacity() > 0 && !it.getFullyLoaded());
+        setLoading(busy);
+        if (!busy) setToast((t) => (t === SLOW ? null : t));
+      };
+      const watchLoading = (item: OpenSeadragon.TiledImage) => {
+        item.addHandler("fully-loaded-change", trackLoading);
+        item.addHandler("opacity-change", trackLoading);
+      };
+      opened.world.addHandler("add-item", (e) => watchLoading(e.item));
+      opened.world.addHandler("remove-item", trackLoading);
       opened.addHandler("open", () => {
-        opened.world.getItemAt(0).addHandler("fully-loaded-change", (e) => {
-          setLoading(!e.fullyLoaded);
-          if (e.fullyLoaded) setToast((t) => (t === SLOW ? null : t));
-        });
+        watchLoading(opened.world.getItemAt(0));
         // A shared link restores its view; anything invalid in it was already clamped or dropped.
         // A Journey link opens on its stop.
         const compare = pairs.length ? { pairs: pairs.map((p) => p.pair.id), side: window.matchMedia(DESKTOP).matches } : undefined;
-        const { view, mode: asked } = parseViewerParams(window.location.search, { width, height }, modesFor(journey, compare), compare);
+        const light = bandSets.length ? { sets: bandSets.map((b) => ({ id: b.set.id, imageIds: b.set.imageIds })) } : undefined;
+        const { view, mode: asked } = parseViewerParams(window.location.search, { width, height }, modesFor(journey, compare, light), compare, light);
         fitOverlapRef.current = asked === "compare" && !view;
         syncMargins();
         if (journey && asked === "story") {
@@ -465,7 +514,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
         host.dataset.open = "";
         schedule();
         // design.md 5.8: Compare is hidden where the drawer cannot rotate an image.
-        if (pairs.length && opened.drawer.canRotate()) setOpened({ OSD, viewer: opened, margins: () => margins });
+        if (pairs.length || bandSets.length) setOpened({ OSD, viewer: opened, margins: () => margins, rotates: opened.drawer.canRotate() });
       });
       opened.addHandler("animation-finish", () => {
         if (nextLeg) {
@@ -477,7 +526,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
         // design.md 7.1: in Explore the URL follows the view 400 ms after it settles; in Story
         // it holds the stop.
         clearTimeout(urlTimer);
-        if (!pageRef.current.story) urlTimer = window.setTimeout(() => replaceUrl(viewUrl(opened, { width, height }, pageRef.current.compareUrl)), 400);
+        if (!pageRef.current.story) urlTimer = window.setTimeout(() => replaceUrl(viewUrl(opened, { width, height }, pageRef.current.modeUrl)), 400);
         // design.md 7.1: the zoom is announced once it settles, never per frame; a stop
         // announces its title instead, unless the user has taken the camera.
         clearTimeout(liveTimer);
@@ -513,10 +562,10 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
       cameraRef.current = null;
       navHost.replaceChildren();
     };
-  }, [image, tileBaseUrl, navId, toggleFullscreen, attempt, journey, pairs]);
+  }, [image, tileBaseUrl, navId, toggleFullscreen, attempt, journey, pairs, bandSets]);
 
   useCompareLayer({
-    opened,
+    opened: opened?.rotates ? opened : null,
     view: active,
     reference: size,
     layout,
@@ -527,16 +576,18 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
     fitOverlap: fitOverlapRef,
   });
 
-  // The divider is mirrored to the URL once it rests, like the view (design.md 7.1).
+  useLightLayer({ opened, view: lightActive, position, tileBaseUrl });
+
+  // The divider and the band are mirrored to the URL once they rest, like the view (design.md 7.1).
   useEffect(() => {
-    if (!comparing) return;
+    if (!comparing && !lighting) return;
     const timer = window.setTimeout(() => {
       const viewer = viewerRef.current;
-      const c = pageRef.current.compareUrl;
-      if (viewer && c) replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }, c));
+      const m = pageRef.current.modeUrl;
+      if (viewer && m) replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }, m));
     }, 400);
     return () => clearTimeout(timer);
-  }, [comparing, split, imageWidth, imageHeight]);
+  }, [comparing, lighting, split, band, imageWidth, imageHeight]);
 
   // design.md 5.6: Blink toggles every 800 ms, never under reduced motion, and can be paused.
   const reducedMotion = useSyncExternalStore(subscribeMedia, () => window.matchMedia(REDUCED).matches, () => false);
@@ -552,11 +603,26 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
       const viewer = viewerRef.current;
       if (!viewer || !pairs.length) return;
       const { mode: to = "compare", ...rest } = next;
-      const now = pageRef.current.compareUrl?.state ?? { pair: pairs[0].pair.id, layout: "wipe" as Layout, split: pageRef.current.split };
+      const m = pageRef.current.modeUrl;
+      const now = m?.mode === "compare" ? m.state : { pair: pairs[0].pair.id, layout: "wipe" as Layout, split: pageRef.current.split };
       const state = { ...now, ...rest };
-      replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }, to === "compare" ? { state, defaultPair: pairs[0].pair.id } : undefined));
+      replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }, to === "compare" ? { mode: "compare", state, defaultPair: pairs[0].pair.id } : undefined));
     },
     [pairs, imageWidth, imageHeight],
+  );
+
+  // Every mode switch of an image page (Explore, Compare, Light) lands here.
+  const switchMode = useCallback(
+    (to: Mode) => {
+      const viewer = viewerRef.current;
+      if (!viewer) return;
+      if (to === "compare") setCompare({ mode: "compare" });
+      else if (to === "light" && lightOptions) {
+        const set = lightOptions.sets[0];
+        replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }, { mode: "light", state: { set: set.id, band: nearestStop(position, set.imageIds.length) }, opts: lightOptions }));
+      } else replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }));
+    },
+    [setCompare, lightOptions, position, imageWidth, imageHeight],
   );
 
   // Markers move with the image; a new stop or mode places them again at once.
@@ -613,7 +679,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
   const share = useCallback(async () => {
     const viewer = viewerRef.current;
     if (!viewer) return;
-    const url = new URL(viewUrl(viewer, { width: image.tiles.width, height: image.tiles.height }, pageRef.current.compareUrl), window.location.href).href;
+    const url = new URL(viewUrl(viewer, { width: image.tiles.width, height: image.tiles.height }, pageRef.current.modeUrl), window.location.href).href;
     replaceUrl(url);
     try {
       // Phones get the system share sheet; elsewhere the link goes to the clipboard.
@@ -690,21 +756,25 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
     replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }));
   }, [stop, imageWidth, imageHeight]);
 
-  // design.md 7.1: C and E switch between Compare and Explore on a pair's reference page.
+  // design.md 7.1: E, C and L switch between Explore, Compare and Light where they are offered.
+  const offered = useMemo(
+    () => (opened ? modesFor(undefined, opened.rotates && pairs.length ? { pairs: [], side: false } : undefined, lightOptions) : ["explore" as Mode]),
+    [opened, pairs, lightOptions],
+  );
   useEffect(() => {
-    if (!pairs.length || !opened) return;
+    if (offered.length < 2) return;
     const onKey = (e: globalThis.KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       const target = e.target as HTMLElement;
       if (target.closest?.("input, textarea, select, [contenteditable], [role='slider']")) return;
-      if (!comparing && (e.key === "c" || e.key === "C")) setCompare({ mode: "compare" });
-      else if (comparing && (e.key === "e" || e.key === "E")) setCompare({ mode: "explore" });
-      else return;
+      const to = offered.find((m) => m[0] === e.key.toLowerCase());
+      if (!to || to === mode) return;
       e.preventDefault();
+      switchMode(to);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [pairs, opened, comparing, setCompare]);
+  }, [offered, mode, switchMode]);
 
   const flyOnStory = useRef(false);
   const toStory = useCallback(() => {
@@ -797,7 +867,15 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
   const pairDraft = !!active && active.pair.validation.status !== "approved";
   const leftLabel = pairSides?.left.full ?? "";
   const rightLabel = pairSides?.right.full ?? "";
-  const compareAvailable = !!opened && pairs.length > 0;
+  const modeSwitch = offered.length > 1;
+  // Light shows the band nearest the rail's position: its image's About panel and credit. While
+  // two bands blend, both credits show.
+  const shownInfo = lightActive ? lightActive.bands[band].info : info;
+  const lightCredits = lightActive
+    ? [...new Set([Math.floor(position), Math.ceil(position)].map((i) => lightActive.bands[Math.min(i, bandCount - 1)].info.credit))]
+    : [];
+  const lightDraft = !!lightActive && (lightActive.set.validation.status !== "approved" || lightActive.bands[band].image.validation.status !== "approved");
+  const pageTitle = lightActive ? lightActive.set.title : image.title;
   const layouts: Layout[] = desktop ? ["wipe", "side", "blink"] : ["wipe"];
 
   const mission = info.fields
@@ -815,7 +893,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
       data-journey={journey ? "" : undefined}
       data-paused={(story && paused) || undefined}
       data-layout={comparing ? layout : undefined}
-      data-modes={compareAvailable ? "" : undefined}
+      data-modes={modeSwitch ? "" : undefined}
       onKeyDown={onKeyDown}
     >
       <div ref={canvasRef} className={styles.canvas} data-theme="dark" data-testid="viewer" />
@@ -875,12 +953,12 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
           </Link>
           <span className={styles.divider} aria-hidden />
           <h1 className={styles.title}>
-            <span className={styles.longTitle}>{image.title}</span>
+            <span className={styles.longTitle}>{pageTitle}</span>
             <span className={styles.shortTitle} aria-hidden>
-              {shortTitle(image.title)}
+              {shortTitle(pageTitle)}
             </span>
           </h1>
-          {!journey && !pairs.length && <span className={styles.mode}>Explore</span>}
+          {!journey && !pairs.length && !bandSets.length && <span className={styles.mode}>Explore</span>}
         </div>
         {/* Desktop: the pill takes the place of the title bar, which Story leaves to the column. */}
         {story && journey && paused && (
@@ -890,14 +968,13 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
           </button>
         )}
         <div className={`${styles.bar} ${styles.glass} ${styles.fade}`}>
-          {compareAvailable && (
+          {modeSwitch && (
             <div className={styles.modes} role="group" aria-label="Mode">
-              <button type="button" aria-pressed={!comparing} onClick={comparing ? () => setCompare({ mode: "explore" }) : undefined}>
-                Explore
-              </button>
-              <button type="button" aria-pressed={comparing} onClick={comparing ? undefined : () => setCompare({ mode: "compare" })}>
-                Compare
-              </button>
+              {offered.map((m) => (
+                <button key={m} type="button" aria-pressed={m === mode} onClick={m === mode ? undefined : () => switchMode(m)}>
+                  {MODE_NAMES[m]}
+                </button>
+              ))}
             </div>
           )}
           {journey && (
@@ -966,10 +1043,35 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
         </div>
       )}
 
+      {lightActive && (
+        <div className={styles.compareBar}>
+          <LightBar
+            stops={lightActive.bands.map(({ image: b }) => {
+              const spec = b.bands.value[0];
+              return { label: wavelengthLabel(spec), region: spec.region, valueText: bandValueText(spec) };
+            })}
+            position={position}
+            onPosition={setPosition}
+            showing={lightActive.bands[band].image.title}
+            draft={lightDraft}
+            credits={lightCredits}
+          >
+            {lightActive.set.whatDiffers.trim() !== "" && (
+              <WhatDiffers
+                note={lightActive.set.whatDiffers}
+                differs={lightActive.set.differs}
+                caveats={[...new Set(lightActive.bands.flatMap((b) => b.info.caveats))]}
+                draft={lightActive.set.validation.status !== "approved"}
+              />
+            )}
+          </LightBar>
+        </div>
+      )}
+
       {/* Credit and notes stack under the top bar, clear of the overview in every shape. */}
       <div className={styles.topLeft}>
         {/* The credit never fades: the license asks that every user can see it. */}
-        {!active && <p className={`${styles.credit} ${styles.glass}`}>{info.credit}</p>}
+        {!active && !lightActive && <p className={`${styles.credit} ${styles.glass}`}>{info.credit}</p>}
         <div className={styles.toasts} role="status">
           {toast && (
             <div className={`${styles.toast} ${styles.glass}`}>
@@ -1098,6 +1200,12 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
                 <span className={styles.sheetCreditLine}>Left, {pairSides.left.short}: {info.credit}</span>
                 <span className={styles.sheetCreditLine}>Right, {pairSides.right.short}: {active.movingInfo.credit}</span>
               </>
+            ) : lightActive ? (
+              lightCredits.map((c) => (
+                <span key={c} className={styles.sheetCreditLine}>
+                  {c}
+                </span>
+              ))
             ) : (
               info.credit
             )}
@@ -1105,7 +1213,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
         )}
 
         <div className={`${styles.info} ${styles.glass}`} hidden={!infoOpen}>
-          <InfoPanel id={infoId} info={info} onClose={closeInfo} titleRef={infoTitleRef} />
+          <InfoPanel id={infoId} info={shownInfo} onClose={closeInfo} titleRef={infoTitleRef} />
         </div>
       </div>
 

@@ -1,0 +1,146 @@
+/* Light (docs/design.md 5.7 and 7.4): a neutral rail, one tick and one text label per band.
+   No color on the rail: a rainbow would imply visible color for bands that have none. */
+
+.bar {
+  gap: var(--space-1);
+}
+
+.rail {
+  position: relative;
+  display: grid;
+  grid-template-rows: var(--target) auto;
+  touch-action: none;
+  cursor: ew-resize;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.track {
+  position: relative;
+}
+
+/* The line runs from the first stop's center to the last one's. */
+.track::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: var(--edge-stop);
+  right: var(--edge-stop);
+  height: 2px;
+  translate: 0 -1px;
+  background: var(--text-muted);
+  opacity: 0.6;
+}
+
+.tick {
+  position: absolute;
+  top: 50%;
+  width: 2px;
+  height: 0.625rem;
+  translate: -1px -50%;
+  background: var(--text-muted);
+}
+
+.tick[data-current] {
+  background: var(--text);
+}
+
+/* The thumb's box is the target size; the dot inside it is what shows. */
+.thumb {
+  position: absolute;
+  top: 0;
+  left: var(--thumb);
+  display: grid;
+  place-items: center;
+  width: var(--target);
+  height: var(--target);
+  translate: -50% 0;
+  border-radius: 50%;
+  cursor: ew-resize;
+}
+
+.thumb::before {
+  content: "";
+  width: 1.125rem;
+  height: 1.125rem;
+  background: var(--accent);
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--hairline);
+}
+
+.thumb:focus-visible {
+  outline: none;
+}
+
+.thumb:focus-visible::before {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.stops {
+  display: grid;
+  grid-template-columns: repeat(var(--stops), minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stops li {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 0.125rem;
+  min-width: 0;
+  text-align: center;
+  color: var(--text-2);
+}
+
+.stops li[data-current] {
+  color: var(--text);
+}
+
+.wavelength {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.region {
+  font-family: var(--font-mono);
+  font-size: var(--text-label-sm);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  line-height: 1.25;
+  color: var(--text-muted);
+}
+
+.stops li[data-current] .region {
+  color: var(--text-2);
+}
+
+/* Phone: the numbers stay, the region words give way. */
+@media (max-width: 40rem) {
+  .region {
+    display: none;
+  }
+
+  .wavelength {
+    font-size: var(--text-label-sm);
+    letter-spacing: 0;
+  }
+}
+
+@media (forced-colors: active) {
+  .track::before,
+  .tick {
+    background: CanvasText;
+  }
+
+  .thumb::before {
+    background: Highlight;
+    border-color: Canvas;
+  }
+}

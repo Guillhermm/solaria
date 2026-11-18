@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { validateContent } from "../src/content/validate";
 import { publishProblems } from "../src/content/gate";
@@ -100,5 +101,11 @@ describe("mock records", () => {
     const r = validateContent(files);
     const problems = r.ok ? publishProblems(r.value) : [];
     expect(problems.filter((p) => p.endsWith("mock content cannot be published"))).toHaveLength((SPECS.length + COMPARE_SPECS.length) * 2 + 2);
+  });
+  it("match the committed manifests, the Light bands' synthetic wavelengths included", () => {
+    for (const s of [...COMPARE_SPECS, ...SPECS]) {
+      const committed = JSON.parse(readFileSync(`data/mock/images/${s.id}.json`, "utf8"));
+      expect(committed).toEqual(mockImage(s, committed.tiles));
+    }
   });
 });

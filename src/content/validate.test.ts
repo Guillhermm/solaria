@@ -308,13 +308,60 @@ describe("pairs and band sets", () => {
         { path: "data/pairs/demo-pair.json", raw: fx.pair() },
       ];
     };
+    // demo, demo-b and demo-c at 475 nm, 6000 Å and 1 µm: rail order is wavelength order.
+    const withSet = () => {
+      const f = withGroups();
+      const at = (id: string, value: number, unit: "Å" | "nm" | "µm") => {
+        const img = { ...fx.image(), id };
+        img.bands = { ...img.bands, value: [{ id: `band ${id}`, wavelength: { value, unit } }] };
+        return img;
+      };
+      (f[3].raw as ReturnType<typeof fx.image>).bands.value = [{ id: "band demo-b", wavelength: { value: 6000, unit: "Å" } }];
+      return [...f, { path: "data/images/demo-c.json", raw: at("demo-c", 1, "µm") }, { path: "data/band-sets/demo-bands.json", raw: fx.bandSet() }];
+    };
+    const imageIn = (f: ReturnType<typeof withSet>, id: string) => f.find((x) => x.path === `data/images/${id}.json`)!.raw as ReturnType<typeof fx.image>;
     it("collect pairs and band sets", () => {
-      const r = validateContent([
-        ...withGroups(),
-        { path: "data/images/demo-c.json", raw: { ...fx.image(), id: "demo-c" } },
-        { path: "data/band-sets/demo-bands.json", raw: fx.bandSet() },
-      ]);
+      const r = validateContent(withSet());
+      expect(errorsOf(r)).toEqual([]);
       expect(r.ok && [r.value.pairs.length, r.value.bandSets.length]).toEqual([1, 1]);
+    });
+    it("order a band set's rail by wavelength, across units", () => {
+      const f = withSet();
+      imageIn(f, "demo-c").bands.value = [{ id: "band demo-c", wavelength: { value: 500, unit: "Å" } }];
+      expect(errorsOf(validateContent(f))).toEqual([
+        "data/band-sets/demo-bands.json: imageIds[2]: 500 Å does not come after 6000 Å; the rail is ordered by wavelength",
+      ]);
+    });
+    it("skip the order check while a band has no stated wavelength", () => {
+      const f = withSet();
+      imageIn(f, "demo-c").bands.value = [{ id: "band demo-c" }];
+      expect(errorsOf(validateContent(f))).toEqual([]);
+    });
+    it("need one band per image of a band set", () => {
+      const f = withSet();
+      imageIn(f, "demo-c").bands.value = [{ id: "a" }, { id: "b" }];
+      expect(errorsOf(validateContent(f))).toEqual([
+        'data/band-sets/demo-bands.json: imageIds[2]: image "demo-c" has 2 bands, expected one per rail stop',
+      ]);
+    });
+    it("need one pixel grid when a band set has no transform", () => {
+      const f = withSet();
+      const c = imageIn(f, "demo-c");
+      c.sourceId = "demo-c";
+      c.tiles = { ...c.tiles, width: 500, height: 150 };
+      const src = { ...fx.source(), id: "demo-c", file: { ...fx.source().file, width: 500, height: 150 } };
+      f.push({ path: "data/sources/demo-c.json", raw: src });
+      expect(errorsOf(validateContent(f))).toEqual([
+        'data/band-sets/demo-bands.json: imageIds[2]: image "demo-c" is 500 x 150, expected 1000 x 300 like "demo" (registration "none" means one pixel grid)',
+      ]);
+    });
+    it("read a band's region", () => {
+      const f = withSet();
+      imageIn(f, "demo-c").bands.value = [{ id: "c", wavelength: { value: 1, unit: "µm" }, region: "infrared" }];
+      const r = validateContent(f);
+      expect(r.ok && r.value.images.find((i) => i.id === "demo-c")!.bands.value[0].region).toBe("infrared");
+      imageIn(f, "demo-c").bands.value = [{ id: "c", region: "" }];
+      expect(errorsOf(validateContent(f))[0]).toContain("bands.value[0].region: expected a non-empty string");
     });
     it("reject an image id that does not resolve", () => {
       const f = withGroups();

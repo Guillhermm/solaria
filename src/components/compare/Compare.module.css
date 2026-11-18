@@ -306,12 +306,13 @@
 }
 
 /* "What differs?" (design.md 5.6): a popover over the image, clear of the bar. */
-/* Desktop: above the bar, by its measured top edge (CompareBar sets --bar-above), and below
-   the top bar. */
+/* Desktop: above the bar, by its measured edges (useBarEdges sets --bar-above, --bar-center
+   and --bar-width), centered on it and no wider, so it stays clear of the overview and the zoom
+   controls on either side; and below the top bar. */
 .note {
   position: fixed;
-  inset: auto auto calc(var(--bar-above, 10rem) + var(--space-2)) 50%;
-  width: min(34rem, calc(100vw - 2 * var(--space-4)));
+  inset: auto auto calc(var(--bar-above, 10rem) + var(--space-2)) var(--bar-center, 50%);
+  width: min(34rem, var(--bar-width, 100vw), calc(100vw - 2 * var(--space-4)));
   max-height: min(30rem, calc(100dvh - var(--bar-above, 10rem) - var(--space-2) - var(--below-bar, 5.5rem)));
   margin: 0;
   padding: var(--space-3) var(--space-4) var(--space-4);

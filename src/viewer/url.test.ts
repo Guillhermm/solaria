@@ -108,3 +108,25 @@ describe("compare parameters", () => {
     expect(parse(q)).toEqual(state);
   });
 });
+
+describe("light mode in the URL", () => {
+  const LIGHT = { sets: [{ id: "sun", imageIds: ["a", "b", "c"] }] };
+
+  it("is offered only with a band set", () => {
+    expect(parseViewerParams("?mode=light", IMAGE, ["explore", "light"]).mode).toBe("explore");
+    expect(parseViewerParams("?mode=light", IMAGE, ["explore", "light"], undefined, { sets: [] }).mode).toBe("explore");
+    expect(parseViewerParams("?mode=light&band=b", IMAGE, ["explore", "light"], undefined, LIGHT)).toEqual({
+      mode: "light",
+      view: null,
+      light: { set: "sun", band: 1 },
+    });
+  });
+
+  it("serializes the band with the view and round-trips", () => {
+    const state = { mode: "light" as const, view: { x: 10, y: 20, z: 2 }, light: { set: "sun", band: 2 } };
+    const search = serializeViewerParams(state, undefined, LIGHT);
+    expect(search).toBe("?mode=light&band=c&x=10&y=20&z=2");
+    expect(parseViewerParams(search, IMAGE, ["explore", "light"], undefined, LIGHT)).toEqual(state);
+    expect(serializeViewerParams({ ...state, light: { set: "sun", band: 0 } }, undefined, LIGHT)).toBe("?mode=light&x=10&y=20&z=2");
+  });
+});

@@ -126,7 +126,7 @@ C-05 waits for R2: the Webb frame is about 2,566 tiles and 110 MB (estimated), t
 
 | ID | Item | Status | Depends | Done when |
 |---|---|---|---|---|
-| G-01 | Light mode: band rail, crossfade, keyboard stops | todo | X-02, D-09 | Works on mock set |
+| G-01 | Light mode: band rail, crossfade, keyboard stops | done | X-02, D-09 | Works on mock set |
 | G-02 | Sun from SDO: HMI 6173 Å and AIA 1700, 304, 171, 193, 211, 94 Å at one instant with an active region | todo | D-08 | Frames, orientation and credit recorded |
 | G-03 | Band notes (false color, temperature, wavelength order is not temperature order) | todo | G-02 | Validated |
 | G-04 | Sun Journey | todo | G-03 | Every stop validated |

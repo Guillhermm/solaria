@@ -25,7 +25,12 @@
   "bands": {
     "value": [
       {
-        "id": "mock-a"
+        "id": "mock-a",
+        "wavelength": {
+          "value": 171,
+          "unit": "Å"
+        },
+        "region": "extreme ultraviolet"
       }
     ],
     "source": "docs/science/compare-and-light.md#3",

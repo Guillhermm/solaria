@@ -77,6 +77,10 @@ in [docs/science/](docs/science/).
   limited to what is built and tested, and contact links. The header links Journeys and
   About; the footer links About, its credits and accessibility sections, and states that
   Solaria is not endorsed by NASA or ESA.
+- Light mode on the page of a band set's first image (`?mode=light&band=<imageId>`): a rail
+  of bands in wavelength order, labeled in text; dragging it crossfades between neighboring
+  bands and settles on the nearer one, the keyboard steps band by band, and the URL holds the
+  band. Built and tested on the mock band set; no real band set is published yet.
 - Unit and integration tests (Vitest) and end-to-end tests (Playwright). The end-to-end suite
   also runs axe-core on Home and About and measures LCP, CLS and interaction latency on a
   throttled phone profile (`tests/e2e/quality.spec.ts`; results in `docs/design.md` section 9).
@@ -84,9 +88,8 @@ in [docs/science/](docs/science/).
 
 ## Planned
 
-More Journeys, tiles served from
-R2, and Compare and Light modes once a pair or band set
-is validated. See the roadmap for order and status.
+More Journeys, tiles served from R2, and a published Light band set (the Sun from SDO, in
+review) once it is validated. See the roadmap for order and status.
 
 ## Run it
 

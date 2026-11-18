@@ -38,6 +38,11 @@ import type {
 } from "./types";
 import { MIN_CONTROL_POINTS, fitSimilarity, residuals } from "./registration";
 
+const TO_ANGSTROM: Record<NonNullable<Band["wavelength"]>["unit"], number> = { Å: 1, nm: 10, µm: 1e4 };
+
+// For ordering only; what users see keeps the stated unit.
+const angstroms = (w: NonNullable<Band["wavelength"]>) => w.value * TO_ANGSTROM[w.unit];
+
 export type Result<T> = { ok: true; value: T } | { ok: false; errors: string[] };
 
 type Draft<T> = { [K in keyof T]?: T[K] | undefined };
@@ -143,7 +148,7 @@ export const validateSource = (raw: unknown, file: string): Result<Source> => {
 
 const band = (c: Ctx, v: unknown, path: string) => {
   const n = c.errors.length;
-  const o = object(c, v, path, ["id"], ["wavelength", "kind"]);
+  const o = object(c, v, path, ["id"], ["wavelength", "kind", "region"]);
   if (!o) return undefined;
   let wavelength: Band["wavelength"];
   if ("wavelength" in o) {
@@ -160,10 +165,12 @@ const band = (c: Ctx, v: unknown, path: string) => {
     id: str(c, o.id, `${path}.id`),
     wavelength,
     kind: "kind" in o ? oneOf(c, o.kind, `${path}.kind`, ["line", "continuum", "broadband"]) : undefined,
+    region: "region" in o ? str(c, o.region, `${path}.region`) : undefined,
   });
   if (value) {
     if (value.wavelength === undefined) delete value.wavelength;
     if (value.kind === undefined) delete value.kind;
+    if (value.region === undefined) delete value.region;
   }
   return value;
 };
@@ -634,6 +641,33 @@ export const validateContent = (files: { path: string; raw: unknown }[]): Result
     g.imageIds.forEach((id, i) => {
       if (!images.has(id)) errors.push(`${file}: imageIds[${i}]: no image "${id}" in data/images/`);
     });
+  }
+
+  // A band set is one rail: one band per image, ordered by wavelength where every band states
+  // one, and with no transform every image on the same pixel grid.
+  for (const set of content.bandSets) {
+    const file = fileOf.get(set)!;
+    const members = set.imageIds.map((id) => images.get(id)).filter((i) => i !== undefined);
+    if (members.length !== set.imageIds.length) continue;
+    members.forEach((img, i) => {
+      if (img.bands.value.length !== 1) errors.push(`${file}: imageIds[${i}]: image "${img.id}" has ${img.bands.value.length} bands, expected one per rail stop`);
+    });
+    const waves = members.map((img) => img.bands.value[0]?.wavelength);
+    if (waves.every((w) => w !== undefined)) {
+      waves.forEach((w, i) => {
+        if (i > 0 && angstroms(w) <= angstroms(waves[i - 1]!)) {
+          errors.push(`${file}: imageIds[${i}]: ${w.value} ${w.unit} does not come after ${waves[i - 1]!.value} ${waves[i - 1]!.unit}; the rail is ordered by wavelength`);
+        }
+      });
+    }
+    if (set.registration.transform === "none") {
+      const [first] = members;
+      members.forEach((img, i) => {
+        if (img.tiles.width !== first.tiles.width || img.tiles.height !== first.tiles.height) {
+          errors.push(`${file}: imageIds[${i}]: image "${img.id}" is ${img.tiles.width} x ${img.tiles.height}, expected ${first.tiles.width} x ${first.tiles.height} like "${first.id}" (registration "none" means one pixel grid)`);
+        }
+      });
+    }
   }
 
   for (const pair of content.pairs) {

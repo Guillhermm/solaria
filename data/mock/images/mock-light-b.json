@@ -25,7 +25,12 @@
   "bands": {
     "value": [
       {
-        "id": "mock-b"
+        "id": "mock-b",
+        "wavelength": {
+          "value": 1700,
+          "unit": "Å"
+        },
+        "region": "ultraviolet"
       }
     ],
     "source": "docs/science/compare-and-light.md#3",

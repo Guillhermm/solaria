@@ -1,4 +1,5 @@
 import type { Viewport } from "@/content/types";
+import { type LightOptions, type LightState, lightParams, parseLightParams } from "./light";
 import type { Size } from "./view";
 
 export const MODES = ["story", "explore", "compare", "light"] as const;
@@ -17,6 +18,7 @@ export interface ViewerState {
   mode: Mode;
   view: Viewport | null; // null: the image at fit
   compare?: CompareState; // only in compare mode
+  light?: LightState; // only in light mode
 }
 
 export const DEFAULT_SPLIT = 50;
@@ -57,11 +59,17 @@ export const parseViewerParams = (
   image: Size,
   available: readonly Mode[] = ["explore"],
   compare?: CompareOptions,
+  light?: LightOptions,
 ): ViewerState => {
   const params = new URLSearchParams(search);
   const asked = params.get("mode");
-  const mode = available.find((m) => m === asked && (m !== "compare" || (compare && compare.pairs.length > 0))) ?? available[0];
-  const extra = mode === "compare" && compare ? { compare: parseCompareParams(search, compare) } : {};
+  const offered = (m: Mode) =>
+    m === "compare" ? !!compare && compare.pairs.length > 0 : m === "light" ? !!light && light.sets.length > 0 : true;
+  const mode = available.find((m) => m === asked && offered(m)) ?? available[0];
+  const extra =
+    mode === "compare" && compare ? { compare: parseCompareParams(search, compare) }
+    : mode === "light" && light ? { light: parseLightParams(search, light) }
+    : {};
   const x = num(params.get("x"));
   const y = num(params.get("y"));
   const z = num(params.get("z"));
@@ -77,9 +85,11 @@ export const parseViewerParams = (
   };
 };
 
-// Compare defaults (the first pair, wipe, split 50) are left out.
-export const serializeViewerParams = ({ mode, view, compare }: ViewerState, defaultPair?: string) => {
+// Compare defaults (the first pair, wipe, split 50) and Light defaults (the first set and band)
+// are left out.
+export const serializeViewerParams = ({ mode, view, compare, light }: ViewerState, defaultPair?: string, lightOpts?: LightOptions) => {
   const params = new URLSearchParams({ mode });
+  if (mode === "light" && light && lightOpts) for (const [k, v] of lightParams(light, lightOpts)) params.set(k, v);
   if (mode === "compare" && compare) {
     if (compare.pair !== defaultPair) params.set("pair", compare.pair);
     if (compare.layout !== "wipe") params.set("layout", compare.layout);

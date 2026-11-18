@@ -25,7 +25,12 @@
   "bands": {
     "value": [
       {
-        "id": "mock-c"
+        "id": "mock-c",
+        "wavelength": {
+          "value": 6173,
+          "unit": "Å"
+        },
+        "region": "visible"
       }
     ],
     "source": "docs/science/compare-and-light.md#3",

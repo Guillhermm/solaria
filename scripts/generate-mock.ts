@@ -42,6 +42,9 @@ interface Spec {
   tint: [number, number, number];
   band: string;
   color: string;
+  // Synthetic numbers so the Light rail has wavelengths and regions to show; not real bands.
+  wavelength?: { value: number; unit: "Å" };
+  region?: string;
   width?: number; // default W x H
   height?: number;
   maxLevel?: number; // default MAX_LEVEL
@@ -151,9 +154,9 @@ export const COMPARE_SPECS: Spec[] = [
 ];
 
 export const SPECS: Spec[] = [
-  { id: "mock-light-a", title: "Mock Light, band A", disc: { x: 512, y: 256, r: 60, value: 230 }, tint: [255, 80, 80], band: "mock-a", color: "red" },
-  { id: "mock-light-b", title: "Mock Light, band B", disc: { x: 512, y: 256, r: 130, value: 230 }, tint: [80, 255, 80], band: "mock-b", color: "green" },
-  { id: "mock-light-c", title: "Mock Light, band C", disc: { x: 512, y: 256, r: 200, value: 230 }, tint: [80, 80, 255], band: "mock-c", color: "blue" },
+  { id: "mock-light-a", title: "Mock Light, band A", disc: { x: 512, y: 256, r: 60, value: 230 }, tint: [255, 80, 80], band: "mock-a", color: "red", wavelength: { value: 171, unit: "Å" }, region: "extreme ultraviolet" },
+  { id: "mock-light-b", title: "Mock Light, band B", disc: { x: 512, y: 256, r: 130, value: 230 }, tint: [80, 255, 80], band: "mock-b", color: "green", wavelength: { value: 1700, unit: "Å" }, region: "ultraviolet" },
+  { id: "mock-light-c", title: "Mock Light, band C", disc: { x: 512, y: 256, r: 200, value: 230 }, tint: [80, 80, 255], band: "mock-c", color: "blue", wavelength: { value: 6173, unit: "Å" }, region: "visible" },
 ];
 
 const DRAFT = { status: "draft", date: null, notes: "Synthetic test content, never validated." } as const;
@@ -181,7 +184,7 @@ export const mockImage = (spec: Spec, tiles: ImageManifest["tiles"]): ImageManif
   target: claim({ name: "Synthetic grid", type: "test pattern" }),
   observatory: claim("None (synthetic)"),
   instruments: claim(["None"]),
-  bands: claim([{ id: spec.band }]),
+  bands: claim([{ id: spec.band, ...(spec.wavelength ? { wavelength: spec.wavelength } : {}), ...(spec.region ? { region: spec.region } : {}) }]),
   colorMapping: claim({ kind: "per-band" as const, entries: [{ bandId: spec.band, color: spec.color }] }),
   releasedAt: claim("2026-11-17"),
   productType: claim("single exposure" as const),

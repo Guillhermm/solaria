@@ -247,6 +247,13 @@ test.describe("desktop", () => {
       const overlap = bar.x < b.x + b.width && b.x < bar.x + bar.width && bar.y < b.y + b.height && b.y < bar.y + bar.height;
       expect(overlap).toBe(false);
     }
+    // Nor does the open note: it is centered on the bar and no wider.
+    await page.getByRole("button", { name: "What differs?" }).click();
+    const note = (await page.getByRole("dialog", { name: /What differs\?/ }).boundingBox())!;
+    for (const other of [page.getByRole("group", { name: "View controls" }), page.getByTestId("readout"), page.getByTestId("overview-image")]) {
+      const b = (await other.boundingBox())!;
+      expect(note.x < b.x + b.width && b.x < note.x + note.width && note.y < b.y + b.height && b.y < note.y + note.height).toBe(false);
+    }
   });
 
   for (const scheme of ["dark", "light"] as const) {

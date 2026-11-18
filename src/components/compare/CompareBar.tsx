@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { LuPause, LuPlay, LuRepeat } from "react-icons/lu";
 import type { Layout } from "@/viewer/url";
 import styles from "./Compare.module.css";
+import { useBarEdges } from "./useBarEdges";
 
 interface CompareBarProps {
   layout: Layout;
@@ -24,26 +25,7 @@ const NAMES: Record<Layout, string> = { wipe: "Wipe", side: "Side by side", blin
 const CompareBar = ({ layout, layouts, onLayout, headline, draft, credits, chips, blink, children }: CompareBarProps) => {
   const ref = useRef<HTMLElement>(null);
 
-  // The note opens next to the bar, never over it: the bar's edges are measured whenever it
-  // changes size (Blink adds a row) or the window does, and handed to the note as CSS
-  // variables. The note is a descendant of the bar, so it inherits them in the top layer.
-  useEffect(() => {
-    const bar = ref.current;
-    if (!bar) return;
-    const measure = () => {
-      const box = bar.getBoundingClientRect();
-      bar.style.setProperty("--bar-above", `${window.innerHeight - box.top}px`);
-      bar.style.setProperty("--bar-below", `${box.bottom}px`);
-    };
-    const observer = new ResizeObserver(measure);
-    observer.observe(bar);
-    window.addEventListener("resize", measure);
-    measure();
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", measure);
-    };
-  }, []);
+  useBarEdges(ref);
 
   return (
     <section ref={ref} className={`${styles.bar} ${styles.glass}`} aria-label="Compare" data-testid="compare-bar">

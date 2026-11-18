@@ -46,6 +46,9 @@ export interface Band {
   // Absent until a source states it; the filter name alone is not a source for a number.
   wavelength?: { value: number; unit: "Å" | "nm" | "µm" };
   kind?: "line" | "continuum" | "broadband";
+  // Part of the spectrum in words, e.g. "extreme ultraviolet"; read with the wavelength on the
+  // Light rail. Absent until science review states it.
+  region?: string;
 }
 
 // Never empty: an absent mapping would read as natural color.

@@ -565,6 +565,17 @@ r = width / height of the image file:
 - Also a slider pattern, with discrete stops per band plus continuous crossfade between
   them for pointer users; keyboard moves stop to stop. `aria-valuetext`: "171 Å, extreme
   ultraviolet". Wavelength units as the source states them.
+- As built (G-01, Sprint 8): the rail sits in a bar where the compare bar does (between the
+  overview and the zoom controls on desktop, under the top bar below 64rem). Stops are equal
+  columns in `imageIds` order, each labeled with the wavelength as the manifest states it
+  ("171 Å") and, when the manifest gives one, the band's region in small capitals (hidden on a
+  phone). The spoken value spells the unit out: "171 angstroms, extreme ultraviolet". Left,
+  Right, Up, Down, Page Up and Page Down move one band; Home and End go to the ends. A pointer
+  can press anywhere on the rail, labels included, and drags a continuous position; on release
+  it settles on the nearer stop in 160 ms (at once under reduced motion), so the URL and the
+  slider value always name one band. Under the rail: the shown band's image title, the "What
+  differs?" note when the set has one, and the credit of each band on screen (in the sheet on
+  a phone). About this image shows the nearest band's image. `L` opens Light, `E` Explore.
 
 ## 8. Accessibility (WCAG 2.2 AA)
 

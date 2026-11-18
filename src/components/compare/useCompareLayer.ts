@@ -26,6 +26,7 @@ export interface Opened {
   OSD: OSDModule;
   viewer: OpenSeadragon.Viewer;
   margins: () => Margins;
+  rotates: boolean; // the drawer can turn an image; Compare needs it (design.md 5.8)
 }
 
 interface Options {

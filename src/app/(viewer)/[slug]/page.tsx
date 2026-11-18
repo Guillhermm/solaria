@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { CompareView } from "@/components/compare/types";
 import Explore from "@/components/explore/Explore";
+import type { LightView } from "@/components/light/types";
 import { getContent } from "@/content/load";
 import { resolveTileBase } from "@/content/tiles";
 import { infoFor } from "@/viewer/info";
@@ -52,6 +53,20 @@ const ViewerPage = async ({ params }: Params) => {
           return moving && movingSource ? [{ pair, moving, movingInfo: infoFor(moving, movingSource) }] : [];
         });
 
+  // Light is offered on the page of a band set's first image, never on a Journey (yet).
+  const bandSets: LightView[] = journey
+    ? []
+    : content.bandSets
+        .filter((set) => set.imageIds[0] === image.id)
+        .flatMap((set) => {
+          const bands = set.imageIds.flatMap((id) => {
+            const img = content.images.find((i) => i.id === id);
+            const src = img && content.sources.find((s) => s.id === img.sourceId);
+            return img && src ? [{ image: img, info: infoFor(img, src) }] : [];
+          });
+          return bands.length === set.imageIds.length ? [{ set, bands }] : [];
+        });
+
   return (
     <Explore
       image={image}
@@ -59,6 +74,7 @@ const ViewerPage = async ({ params }: Params) => {
       tileBaseUrl={resolveTileBase(process.env.TILE_BASE_URL)}
       journey={journey}
       pairs={pairs}
+      bandSets={bandSets}
     />
   );
 };
