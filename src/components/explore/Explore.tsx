@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { type CSSProperties, type KeyboardEvent, useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
-import { LuArrowLeft, LuInfo, LuMaximize, LuMinimize, LuMinus, LuPlus, LuRotateCcw, LuShare } from "react-icons/lu";
+import { LuArrowLeft, LuChevronDown, LuInfo, LuMaximize, LuMinimize, LuMinus, LuPlus, LuRotateCcw, LuShare } from "react-icons/lu";
 import type OpenSeadragon from "openseadragon";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { tileSource } from "@/content/tiles";
@@ -10,10 +10,12 @@ import type { ImageManifest } from "@/content/types";
 import type { Info } from "@/viewer/info";
 import { overviewHeightRem, shapeOf } from "@/viewer/overview";
 import { keyAction, zoomAnnouncement } from "@/viewer/keys";
+import { type SheetState, stepSheet } from "@/viewer/sheet";
 import { parseViewerParams, serializeViewerParams } from "@/viewer/url";
 import { formatInt, formatZoom, homeView, osdFromView, type Size, viewFromOsd } from "@/viewer/view";
 import { drawRuler } from "./drawRuler";
 import InfoPanel from "./InfoPanel";
+import { useSheetDrag } from "./useSheetDrag";
 import styles from "./Explore.module.css";
 
 interface ExploreProps {
@@ -63,7 +65,15 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
   const [attempt, setAttempt] = useState(0);
   const liveRef = useRef<HTMLParagraphElement>(null);
   const failuresRef = useRef(0);
-  const [infoOpen, setInfoOpen] = useState(false);
+  // On desktop only "full" matters (the About panel is open); the phone sheet uses all three.
+  const [sheet, setSheet] = useState<SheetState>("peek");
+  const infoOpen = sheet === "full";
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const handleRef = useRef<HTMLButtonElement>(null);
+  const drag = useSheetDrag(
+    () => sheetRef.current,
+    (direction) => setSheet((s) => stepSheet(s, direction)),
+  );
   const infoId = useId();
   const infoTitleRef = useRef<HTMLHeadingElement>(null);
   const aboutRef = useRef<HTMLButtonElement>(null);
@@ -293,15 +303,22 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
   }, [image]);
 
   const openInfo = useCallback(() => {
-    setInfoOpen(true);
+    setSheet("full");
     // The panel is hidden until this render commits, so focus waits a frame.
     requestAnimationFrame(() => infoTitleRef.current?.focus());
   }, []);
 
   const closeInfo = useCallback(() => {
-    setInfoOpen(false);
-    aboutRef.current?.focus();
+    setSheet("peek");
+    // The About button is hidden on phones, where the sheet's handle takes its place.
+    const about = aboutRef.current;
+    (about?.offsetParent ? about : handleRef.current)?.focus();
   }, []);
+
+  const tapHandle = useCallback(() => {
+    if (drag.wasDrag()) return;
+    setSheet((s) => (s === "peek" ? "full" : "peek"));
+  }, [drag]);
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -344,6 +361,7 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
       className={styles.root}
       data-shape={shape}
       data-info={infoOpen || undefined}
+      data-sheet={sheet}
       onKeyDown={onKeyDown}
     >
       <div ref={canvasRef} className={styles.canvas} data-theme="dark" data-testid="viewer" />
@@ -385,9 +403,37 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
         </div>
       </header>
 
-      <p className={`${styles.credit} ${styles.glass} ${styles.fade}`}>{info.credit}</p>
+      <div ref={sheetRef} className={styles.sheet}>
+        <div
+          className={styles.grip}
+          onPointerDown={drag.onPointerDown}
+          onPointerMove={drag.onPointerMove}
+          onPointerUp={drag.onPointerUp}
+          onPointerCancel={drag.onPointerCancel}
+        >
+          <button
+            ref={handleRef}
+            type="button"
+            className={styles.handle}
+            onClick={tapHandle}
+            aria-expanded={infoOpen}
+            aria-controls={infoId}
+          >
+            <span className={styles.gripBar} aria-hidden />
+            {sheet === "min" ? "Show overview" : sheet === "peek" ? "About this image" : "Hide details"}
+          </button>
+          {sheet !== "min" && (
+            <button
+              type="button"
+              className={styles.iconButton}
+              onClick={() => setSheet("min")}
+              aria-label="Minimize the panel"
+            >
+              <LuChevronDown aria-hidden />
+            </button>
+          )}
+        </div>
 
-      <div className={styles.sheet}>
         <div className={`${styles.controls} ${styles.glass} ${styles.fade}`} role="group" aria-label="View controls">
           <button type="button" className={styles.iconButton} onClick={() => zoomBy(2)} aria-label="Zoom in">
             <LuPlus aria-hidden />
@@ -428,6 +474,8 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
           <span className={styles.key}>Zoom</span>
           <span ref={zRef} className={styles.zoom}>{formatZoom(home.z)}</span>
         </p>
+        <p className={`${styles.credit} ${styles.glass} ${styles.fade}`}>{info.credit}</p>
+
         <div className={`${styles.info} ${styles.glass}`} hidden={!infoOpen}>
           <InfoPanel id={infoId} info={info} onClose={closeInfo} titleRef={infoTitleRef} />
         </div>

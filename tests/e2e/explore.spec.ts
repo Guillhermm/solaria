@@ -211,3 +211,80 @@ test("when the viewer cannot load, a retry brings it back", async ({ page }) => 
   await ready(page);
   await expect(alert).toHaveCount(0);
 });
+
+test.describe("phone, 390 px wide", () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+
+  test("fits without horizontal overflow, with every control on screen", async ({ page }) => {
+    await page.goto(PATH);
+    await ready(page);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
+    for (const name of ["Back to home", "Share this view", "Zoom in", "Zoom out", "Reset view", "About this image"]) {
+      const target = page.getByRole(name === "Back to home" ? "link" : "button", { name, exact: true });
+      const box = (await target.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(390);
+      expect(box.height).toBeGreaterThanOrEqual(44);
+    }
+    await expect(page.getByRole("button", { name: /Switch to (light|dark) theme/ })).toBeInViewport({ ratio: 1 });
+  });
+
+  test("the sheet holds the readout and overview, and its handle opens the details", async ({ page }) => {
+    await page.goto(PATH);
+    await ready(page);
+    const sheetTop = (await page.getByRole("button", { name: "About this image", exact: true }).boundingBox())!.y;
+    expect((await readout(page).boundingBox())!.y).toBeGreaterThan(sheetTop);
+    expect((await page.getByTestId("overview-image").boundingBox())!.y).toBeGreaterThan(sheetTop);
+    await page.getByRole("button", { name: "About this image", exact: true }).tap();
+    await expect(page.getByRole("region", { name: /Andromeda Galaxy/ })).toBeVisible();
+    await page.getByRole("button", { name: "Hide details" }).tap();
+    await expect(page.getByRole("region", { name: /Andromeda Galaxy/ })).toBeHidden();
+  });
+
+  test("dragging the sheet down minimizes it and dragging up brings it back", async ({ page }) => {
+    await page.goto(PATH);
+    await ready(page);
+    const handle = page.getByRole("button", { name: "About this image", exact: true });
+    const box = (await handle.boundingBox())!;
+    const drag = async (dy: number) => {
+      await page.mouse.move(box.x + 20, box.y + 10);
+      await page.mouse.down();
+      await page.mouse.move(box.x + 20, box.y + 10 + dy / 2);
+      await page.mouse.move(box.x + 20, box.y + 10 + dy);
+      await page.mouse.up();
+    };
+    await drag(120);
+    await expect(page.getByTestId("overview-image")).toBeHidden();
+    await expect(readout(page)).toBeVisible();
+    // The sheet eases back into place after the finger lifts.
+    const show = page.getByRole("button", { name: "Show overview" });
+    await expect(show).toBeInViewport({ ratio: 1 });
+    await page.waitForFunction(() => !document.getAnimations().some((a) => a instanceof CSSTransition));
+    const min = (await show.boundingBox())!;
+    await page.mouse.move(min.x + 20, min.y + 10);
+    await page.mouse.down();
+    await page.mouse.move(min.x + 20, min.y - 50);
+    await page.mouse.move(min.x + 20, min.y - 100);
+    await page.mouse.up();
+    await expect(page.getByTestId("overview-image")).toBeVisible();
+  });
+
+  test("the minimize button does what the drag does, without a gesture", async ({ page }) => {
+    await page.goto(PATH);
+    await ready(page);
+    await page.getByRole("button", { name: "Minimize the panel" }).tap();
+    await expect(page.getByTestId("overview-image")).toBeHidden();
+    await page.getByRole("button", { name: "Show overview" }).tap();
+    await expect(page.getByTestId("overview-image")).toBeVisible();
+  });
+
+  test("a double tap zooms in, so pinching is never required", async ({ page }) => {
+    await page.goto(PATH);
+    await ready(page);
+    const viewer = page.getByTestId("viewer");
+    const box = (await viewer.boundingBox())!;
+    await page.touchscreen.tap(box.width / 2, box.height / 2);
+    await page.touchscreen.tap(box.width / 2, box.height / 2);
+    await expect(readout(page)).not.toContainText("1.0×");
+  });
+});

@@ -24,7 +24,10 @@ in [docs/science/](docs/science/).
   settles. A progress line shows while tiles load, a note appears when they are slow or
   when ten of them fail (with Retry), a full-screen message with Retry replaces the viewer
   if it cannot load at all, and an unknown address shows a 404 page. Overlays fade after
-  3 s without input on pointer devices.
+  3 s without input on pointer devices. On a phone the rulers go and a bottom sheet holds
+  the readout, the overview and the credit: drag its handle up for About this image or down
+  to minimize it, or use its buttons instead of dragging; pinch, drag and double tap work
+  on the image.
 - Content from JSON files in `data/` (sources, image manifests), checked by a validator at
   build time. The site is a static export (`out/`).
 - Scripts: `npm run fetch-source -- <sourceId>` downloads an original into `.cache/` and
