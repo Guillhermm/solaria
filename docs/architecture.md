@@ -572,6 +572,9 @@ npm run sync-r2 -- [--dir public/tiles] [--apply]
   `R2_BUCKET`, read from the environment only. Output never contains a value, only the
   names of missing variables. A dry run without them makes no request and treats every
   file as new; `--apply` without them stops.
+- `.github/workflows/sync-tiles.yml` runs the sync in GitHub Actions: with `--apply` on a
+  push to `main` that touches `public/tiles/` or `data/`, and by hand with an "apply"
+  checkbox. Credentials are the `R2_*` repository secrets. One sync runs at a time.
 - No dependency: R2's S3 API is called with `fetch`, signed with AWS Signature Version 4
   (`node:crypto`, `signRequest`, about 30 lines) against `https://<account>.r2.cloudflarestorage.com/<bucket>`,
   region `auto`. A unit test reproduces two signatures published in the AWS documentation
