@@ -17,13 +17,17 @@ import {
 } from "./check";
 import type {
   Band,
+  BandSet,
   Claim,
   ClaimStatus,
   ColorMapping,
+  ComparePair,
   Content,
+  Difference,
   ImageManifest,
   Journey,
   ProductType,
+  Registration,
   Source,
   Stop,
   TilePyramid,
@@ -354,27 +358,103 @@ export const validateJourney = (raw: unknown, file: string): Result<Journey> => 
   return result(c, value);
 };
 
-type Kind = "sources" | "images" | "journeys";
+const differences = ["instrument", "band", "date", "illumination", "geometry", "processing"] as const;
+
+const group = (c: Ctx, o: Record<string, unknown>, ids: (v: unknown, p: string) => string[] | undefined) => {
+  const dn = c.errors.length;
+  const d = object(c, o.differs, "differs", differences);
+  const differs =
+    d && finish<Record<Difference, boolean>>(c, dn, Object.fromEntries(differences.map((k) => [k, bool(c, d[k], `differs.${k}`)])) as Draft<Record<Difference, boolean>>);
+  const rn = c.errors.length;
+  const r = object(c, o.registration, "registration", ["method", "transform", "residualPx"]);
+  const registration =
+    r &&
+    finish<Registration>(c, rn, {
+      method: str(c, r.method, "registration.method"),
+      transform: oneOf(c, r.transform, "registration.transform", ["none", "similarity", "affine"]),
+      residualPx: nonNegative(c, r.residualPx, "registration.residualPx"),
+    });
+  return {
+    id: str(c, o.id, "id"),
+    title: str(c, o.title, "title"),
+    imageIds: ids(o.imageIds, "imageIds"),
+    differs,
+    registration,
+    whatDiffers: str(c, o.whatDiffers, "whatDiffers"),
+    validation: validation(c, o.validation, "validation"),
+    mock: bool(c, o.mock, "mock"),
+  };
+};
+
+const nonNegative = (c: Ctx, v: unknown, path: string) => {
+  const n = num(c, v, path);
+  return n !== undefined && n < 0 ? fail(c, path, "a number of zero or more", v) : n;
+};
+
+const GROUP_KEYS = ["id", "title", "imageIds", "differs", "registration", "whatDiffers", "validation", "mock"];
+
+const distinct = (c: Ctx, ids: string[] | undefined, path: string) => {
+  if (ids && new Set(ids).size !== ids.length) return fail(c, path, "distinct image ids", ids);
+  return ids;
+};
+
+export const validatePair = (raw: unknown, file: string): Result<ComparePair> => {
+  const c = newCtx(file);
+  const o = object(c, raw, "", GROUP_KEYS);
+  if (!o) return bad(c);
+  const n = c.errors.length;
+  const value = finish<ComparePair>(
+    c,
+    n,
+    group(c, o, (v, p) => {
+      const ids = arrayOf(c, v, p, (x, q) => str(c, x, q), true);
+      if (ids && ids.length !== 2) return fail(c, p, "exactly two image ids", ids);
+      return distinct(c, ids, p);
+    }) as Draft<ComparePair>,
+  );
+  return result(c, value);
+};
+
+export const validateBandSet = (raw: unknown, file: string): Result<BandSet> => {
+  const c = newCtx(file);
+  const o = object(c, raw, "", GROUP_KEYS);
+  if (!o) return bad(c);
+  const n = c.errors.length;
+  const value = finish<BandSet>(
+    c,
+    n,
+    group(c, o, (v, p) => {
+      const ids = arrayOf(c, v, p, (x, q) => str(c, x, q), true);
+      if (ids && ids.length < 2) return fail(c, p, "at least two image ids", ids);
+      return distinct(c, ids, p);
+    }) as Draft<BandSet>,
+  );
+  return result(c, value);
+};
+
+type Kind = "sources" | "images" | "journeys" | "pairs" | "band-sets";
 
 const classify = (path: string) => {
-  const m = /^data\/(mock\/)?(sources|images|journeys)\/([^/]+)\.json$/.exec(path);
+  const m = /^data\/(mock\/)?(sources|images|journeys|pairs|band-sets)\/([^/]+)\.json$/.exec(path);
   return m ? { kind: m[2] as Kind, name: m[3], mock: m[1] !== undefined } : undefined;
 };
 
 export const validateContent = (files: { path: string; raw: unknown }[]): Result<Content> => {
   const errors: string[] = [];
-  const content: Content = { sources: [], images: [], journeys: [] };
+  const content: Content = { sources: [], images: [], journeys: [], pairs: [], bandSets: [] };
   const fileOf = new Map<unknown, string>();
 
   for (const { path, raw } of files) {
     const info = classify(path);
     if (!info) {
-      errors.push(`${path}: not a content file (expected data/{sources,images,journeys}/<name>.json or the same under data/mock/)`);
+      errors.push(`${path}: not a content file (expected data/{sources,images,journeys,pairs,band-sets}/<name>.json or the same under data/mock/)`);
       continue;
     }
     const r =
       info.kind === "sources" ? validateSource(raw, path)
       : info.kind === "images" ? validateImage(raw, path)
+      : info.kind === "pairs" ? validatePair(raw, path)
+      : info.kind === "band-sets" ? validateBandSet(raw, path)
       : validateJourney(raw, path);
     if (!r.ok) {
       errors.push(...r.errors);
@@ -389,6 +469,8 @@ export const validateContent = (files: { path: string; raw: unknown }[]): Result
     }
     if (info.kind === "sources") content.sources.push(value as Source);
     else if (info.kind === "images") content.images.push(value as ImageManifest);
+    else if (info.kind === "pairs") content.pairs.push(value as ComparePair);
+    else if (info.kind === "band-sets") content.bandSets.push(value as BandSet);
     else content.journeys.push(value as Journey);
   }
 
@@ -424,6 +506,13 @@ export const validateContent = (files: { path: string; raw: unknown }[]): Result
       if (s.marker && (s.marker.x < 0 || s.marker.x > width || s.marker.y < 0 || s.marker.y > height)) {
         errors.push(`${file}: ${p}.marker: (${s.marker.x}, ${s.marker.y}) lies outside the image (${width} x ${height})`);
       }
+    });
+  }
+
+  for (const g of [...content.pairs, ...content.bandSets]) {
+    const file = fileOf.get(g)!;
+    g.imageIds.forEach((id, i) => {
+      if (!images.has(id)) errors.push(`${file}: imageIds[${i}]: no image "${id}" in data/images/`);
     });
   }
 

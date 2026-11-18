@@ -42,5 +42,16 @@ export const publishProblems = (content: Content): string[] => {
     if (!approvedImages.has(j.imageId)) out.push(`${what}: image "${j.imageId}" is not approved`);
     for (const s of j.stops) review(`${what} stop ${s.id}`, s.validation);
   }
+  const groups = [
+    ...content.pairs.map((g) => ({ what: `pair ${g.id}`, g })),
+    ...content.bandSets.map((g) => ({ what: `band set ${g.id}`, g })),
+  ];
+  for (const { what, g } of groups) {
+    mock(what, g.mock);
+    review(what, g.validation);
+    for (const id of g.imageIds) {
+      if (!approvedImages.has(id)) out.push(`${what}: image "${id}" is not approved`);
+    }
+  }
   return out;
 };

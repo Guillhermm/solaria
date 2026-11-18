@@ -19,7 +19,7 @@ const readKind = (kind: string) => {
 
 describe("the real data directory", () => {
   it("validates", () => {
-    const files = ["sources", "images", "journeys"].flatMap(readKind);
+    const files = ["sources", "images", "journeys", "pairs", "band-sets"].flatMap(readKind);
     const r = validateContent(files);
     expect(r.ok ? [] : r.errors).toEqual([]);
     expect(files.length).toBeGreaterThan(0);
@@ -38,5 +38,18 @@ describe("the real data directory", () => {
 
   it("passes the production gate", () => {
     expect(() => loadContent({ root: process.cwd(), mode: "production" })).not.toThrow();
+  });
+
+  it("loads the mock pair and band set in development", () => {
+    const c = loadContent({ root: process.cwd(), mode: "development" });
+    expect(c.pairs.map((p) => p.id)).toEqual(["mock-compare"]);
+    expect(c.bandSets.map((b) => b.id)).toEqual(["mock-light"]);
+    expect([...c.pairs, ...c.bandSets].every((g) => g.mock)).toBe(true);
+  });
+
+  it("leaves the mock pair and band set out of a production load", () => {
+    const c = loadContent({ root: process.cwd(), mode: "production" });
+    expect([c.pairs.length, c.bandSets.length]).toEqual([0, 0]);
+    expect(c.images.some((i) => i.mock)).toBe(false);
   });
 });

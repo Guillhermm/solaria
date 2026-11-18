@@ -1,0 +1,28 @@
+{
+  "id": "mock-compare",
+  "title": "Mock Compare pair",
+  "imageIds": [
+    "mock-compare-before",
+    "mock-compare-after"
+  ],
+  "differs": {
+    "instrument": false,
+    "band": false,
+    "date": true,
+    "illumination": false,
+    "geometry": false,
+    "processing": false
+  },
+  "registration": {
+    "method": "none, same synthetic grid",
+    "transform": "none",
+    "residualPx": 0
+  },
+  "whatDiffers": "Synthetic. The disc is larger and shifted in the second image; nothing else changes.",
+  "validation": {
+    "status": "draft",
+    "date": null,
+    "notes": "Synthetic test content, never validated."
+  },
+  "mock": true
+}

@@ -121,8 +121,39 @@ export interface Journey {
   mock: boolean;
 }
 
+// What differs between the images of a pair or band set (compare-and-light.md, section 3, item 13).
+export type Difference = "instrument" | "band" | "date" | "illumination" | "geometry" | "processing";
+
+export interface Registration {
+  method: string; // e.g. "star control points"
+  transform: "none" | "similarity" | "affine";
+  residualPx: number; // RMS residual in pixels of the common frame
+}
+
+interface ImageGroup {
+  id: string; // file name
+  title: string;
+  differs: Record<Difference, boolean>;
+  registration: Registration;
+  whatDiffers: string; // the "What differs?" note, shown beside the images once validated
+  validation: Validation;
+  mock: boolean;
+}
+
+// Compare: two registered images of one target. `imageIds` is [before, after].
+export interface ComparePair extends ImageGroup {
+  imageIds: [string, string];
+}
+
+// Light: the same field in several bands, in rail order (at least two).
+export interface BandSet extends ImageGroup {
+  imageIds: string[];
+}
+
 export interface Content {
   sources: Source[];
   images: ImageManifest[];
   journeys: Journey[];
+  pairs: ComparePair[];
+  bandSets: BandSet[];
 }

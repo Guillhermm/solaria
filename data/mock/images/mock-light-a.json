@@ -1,0 +1,83 @@
+{
+  "id": "mock-light-a",
+  "sourceId": "mock-light-a",
+  "title": "Mock Light, band A",
+  "target": {
+    "value": {
+      "name": "Synthetic grid",
+      "type": "test pattern"
+    },
+    "source": "docs/science/compare-and-light.md#3",
+    "status": "unverified"
+  },
+  "observatory": {
+    "value": "None (synthetic)",
+    "source": "docs/science/compare-and-light.md#3",
+    "status": "unverified"
+  },
+  "instruments": {
+    "value": [
+      "None"
+    ],
+    "source": "docs/science/compare-and-light.md#3",
+    "status": "unverified"
+  },
+  "bands": {
+    "value": [
+      {
+        "id": "mock-a"
+      }
+    ],
+    "source": "docs/science/compare-and-light.md#3",
+    "status": "unverified"
+  },
+  "colorMapping": {
+    "value": {
+      "kind": "per-band",
+      "entries": [
+        {
+          "bandId": "mock-a",
+          "color": "red"
+        }
+      ]
+    },
+    "source": "docs/science/compare-and-light.md#3",
+    "status": "unverified"
+  },
+  "releasedAt": {
+    "value": "2026-11-17",
+    "source": "docs/science/compare-and-light.md#3",
+    "status": "unverified"
+  },
+  "productType": {
+    "value": "single exposure",
+    "source": "docs/science/compare-and-light.md#3",
+    "status": "unverified"
+  },
+  "caveats": [
+    "Synthetic test pattern. It shows nothing about the sky."
+  ],
+  "tiles": {
+    "format": "jpg",
+    "tileSize": 256,
+    "overlap": 0,
+    "width": 1024,
+    "height": 512,
+    "minLevel": 0,
+    "maxLevel": 2,
+    "thumbnail": {
+      "width": 512,
+      "height": 256
+    },
+    "preview": {
+      "width": 1024,
+      "height": 512
+    }
+  },
+  "validation": {
+    "status": "draft",
+    "date": null,
+    "notes": "Synthetic test content, never validated."
+  },
+  "mock": true
+}

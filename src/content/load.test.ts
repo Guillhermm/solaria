@@ -26,6 +26,9 @@ const mockFiles = () => {
   return [
     { path: "data/mock/sources/m.json", raw: s },
     { path: "data/mock/images/m.json", raw: i },
+    { path: "data/mock/images/m2.json", raw: { ...i, id: "m2" } },
+    { path: "data/mock/pairs/mp.json", raw: { ...fx.pair(), id: "mp", imageIds: ["m", "m2"], mock: true } },
+    { path: "data/mock/band-sets/mb.json", raw: { ...fx.bandSet(), id: "mb", imageIds: ["m", "m2"], mock: true } },
   ];
 };
 
@@ -36,13 +39,30 @@ describe("loadContent", () => {
   });
 
   it("treats a missing data directory as empty", () => {
-    expect(loadContent({ root: root([]), mode: "production" })).toEqual({ sources: [], images: [], journeys: [] });
+    expect(loadContent({ root: root([]), mode: "production" })).toEqual({ sources: [], images: [], journeys: [], pairs: [], bandSets: [] });
   });
 
   it("reads data/mock only in development", () => {
     const dir = root([...fx.files(), ...mockFiles()]);
-    expect(loadContent({ root: dir, mode: "development" }).images.map((i) => i.id)).toEqual(["demo", "m"]);
+    expect(loadContent({ root: dir, mode: "development" }).images.map((i) => i.id)).toEqual(["demo", "m", "m2"]);
     expect(loadContent({ root: dir, mode: "production" }).images.map((i) => i.id)).toEqual(["demo"]);
+  });
+
+  it("reads mock pairs and band sets only in development", () => {
+    const dir = root([...fx.files(), ...mockFiles()]);
+    const dev = loadContent({ root: dir, mode: "development" });
+    expect([dev.pairs.map((p) => p.id), dev.bandSets.map((b) => b.id)]).toEqual([["mp"], ["mb"]]);
+    const prod = loadContent({ root: dir, mode: "production" });
+    expect([prod.pairs, prod.bandSets]).toEqual([[], []]);
+  });
+
+  it("throws on a mock pair that leaked into data/pairs", () => {
+    const dir = root([
+      ...fx.files(),
+      { path: "data/images/demo-b.json", raw: { ...fx.image(), id: "demo-b" } },
+      { path: "data/pairs/demo-pair.json", raw: { ...fx.pair(), mock: true } },
+    ]);
+    expect(() => loadContent({ root: dir, mode: "production" })).toThrow(/data\/pairs\/demo-pair\.json: mock/);
   });
 
   it("throws one error that names the file and field of a malformed record", () => {

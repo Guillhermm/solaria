@@ -3,7 +3,7 @@ import * as fx from "./__fixtures__/content";
 import { publishProblems } from "./gate";
 import type { Content } from "./types";
 
-const content = (): Content => ({ sources: [fx.source()], images: [fx.image()], journeys: [fx.journey()] });
+const content = (): Content => ({ sources: [fx.source()], images: [fx.image()], journeys: [fx.journey()], pairs: [], bandSets: [] });
 
 describe("publishProblems", () => {
   it("is empty for an approved set", () => {
@@ -60,5 +60,41 @@ describe("publishProblems", () => {
     const c = content();
     c.journeys[0].stops = Array.from({ length: n }, (_, i) => fx.stop(`s${i}`));
     expect(publishProblems(c)).toEqual([]);
+  });
+
+  describe("pairs and band sets", () => {
+    const withGroups = () => {
+      const c = content();
+      c.images.push({ ...fx.image(), id: "demo-b" }, { ...fx.image(), id: "demo-c" });
+      c.pairs = [fx.pair()];
+      c.bandSets = [fx.bandSet()];
+      return c;
+    };
+
+    it("is empty for approved ones", () => {
+      expect(publishProblems(withGroups())).toEqual([]);
+    });
+
+    it("flags mock ones", () => {
+      const c = withGroups();
+      c.pairs[0].mock = true;
+      c.bandSets[0].mock = true;
+      expect(publishProblems(c)).toEqual([
+        "pair demo-pair: mock content cannot be published",
+        "band set demo-bands: mock content cannot be published",
+      ]);
+    });
+
+    it("flags an unapproved record and an unapproved image", () => {
+      const c = withGroups();
+      c.pairs[0].validation.status = "draft";
+      c.images[1].validation.status = "in-review";
+      expect(publishProblems(c)).toEqual([
+        'image demo-b: validation.status is "in-review", expected "approved"',
+        'pair demo-pair: validation.status is "draft", expected "approved"',
+        'pair demo-pair: image "demo-b" is not approved',
+        'band set demo-bands: image "demo-b" is not approved',
+      ]);
+    });
   });
 });

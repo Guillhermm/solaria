@@ -1,0 +1,29 @@
+{
+  "id": "mock-light",
+  "title": "Mock Light band set",
+  "imageIds": [
+    "mock-light-a",
+    "mock-light-b",
+    "mock-light-c"
+  ],
+  "differs": {
+    "instrument": false,
+    "band": true,
+    "date": false,
+    "illumination": false,
+    "geometry": false,
+    "processing": false
+  },
+  "registration": {
+    "method": "none, same synthetic grid",
+    "transform": "none",
+    "residualPx": 0
+  },
+  "whatDiffers": "Synthetic. Each band shows a disc of a different radius in its own color; nothing else changes.",
+  "validation": {
+    "status": "draft",
+    "date": null,
+    "notes": "Synthetic test content, never validated."
+  },
+  "mock": true
+}

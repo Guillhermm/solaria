@@ -11,11 +11,15 @@ data/                     content, JSON only; written by hand and by scripts
   sources/<id>.json       where an original file came from, its credit and terms
   images/<id>.json        image manifest; `tiles` block written by generate-tiles
   journeys/<slug>.json    Journey stops
-  mock/{images,journeys}/ mock content, loaded by `next dev` only (D-09)
+  pairs/<id>.json         Compare pair: two image ids, `differs` flags, registration, note
+  band-sets/<id>.json     Light band set: two or more image ids, same fields as a pair
+  mock/{sources,images,journeys,pairs,band-sets}/  mock content, loaded by `next dev` only (D-09)
 scripts/                  pipeline, Node only, never imported by the app
   fetch-source.ts         download an original into .cache/sources/, check sha256
   generate-tiles.ts       pyramid, thumbnail, preview, `tiles` block
   validate-content.ts     same checks the build runs, for fast feedback and CI
+  generate-mock.ts        writes the synthetic mock images, tiles, pair and band set (D-09)
+  sync-r2.ts              pushes public/tiles to a Cloudflare R2 bucket (D-08)
   serve-static.ts         serves out/ on 127.0.0.1 for `npm start` and end-to-end tests
 src/content/              no React, no browser
   types.ts                the shapes in section 4
@@ -97,8 +101,8 @@ export const loadContent = (opts: { root: string; mode: Mode }): Content;
 export const getContent = (): Content; // root = process.cwd(), mode from NODE_ENV, memoized
 ```
 
-- Reads `data/{sources,images,journeys}/*.json` with `readdirSync` and `JSON.parse`, so a
-  new file needs no index entry. Reads `data/mock/**` only when `mode` is `development`.
+- Reads `data/{sources,images,journeys,pairs,band-sets}/*.json` with `readdirSync` and `JSON.parse`, so a
+  new file needs no index entry. Reads `data/mock/**` (same five kinds) only when `mode` is `development`.
 - Runs `validateContent` (section 5), then in `production` mode `publishProblems`
   (section 9). Any problem throws one `ContentError` whose message lists every problem
   with its file and field path. Thrown during prerender, it fails `next build`.
@@ -114,7 +118,7 @@ export const getContent = (): Content; // root = process.cwd(), mode from NODE_E
 `src/content/types.ts`. These are the contract; the validator enforces them.
 
 ```ts
-// Content = { sources: Source[]; images: ImageManifest[]; journeys: Journey[] } is exported too.
+// Content = { sources, images, journeys, pairs, bandSets } is exported too.
 export type IsoDate = string; // YYYY-MM-DD, UTC
 export type IsoMonth = string; // YYYY-MM, UTC
 
@@ -237,10 +241,38 @@ export interface Journey {
   validation: Validation;
   mock: boolean;
 }
+// What differs inside a pair or band set (compare-and-light.md, section 3, item 13).
+export type Difference = "instrument" | "band" | "date" | "illumination" | "geometry" | "processing";
+
+export interface Registration {
+  method: string; // e.g. "star control points"
+  transform: "none" | "similarity" | "affine";
+  residualPx: number; // RMS residual in pixels of the common frame, zero or more
+}
+
+interface ImageGroup {
+  id: string; // file name
+  title: string;
+  differs: Record<Difference, boolean>; // all six keys required
+  registration: Registration;
+  whatDiffers: string; // the "What differs?" note, shown once validated
+  validation: Validation;
+  mock: boolean;
+}
+
+export interface ComparePair extends ImageGroup {
+  imageIds: [string, string]; // [before, after]; two distinct ids
+}
+
+export interface BandSet extends ImageGroup {
+  imageIds: string[]; // rail order; at least two distinct ids
+}
 ```
 
-Not in the schema yet (planned): `center` and WCS, planetary geometry (section 3 item 12)
-and pair fields (item 13). They join with the first image that needs them (Compare, C-03).
+Not in the schema yet (planned): `center` and WCS, and planetary geometry (section 3 item 12).
+They join with the first image that needs them (Compare, C-03). Pair and band set fields
+(item 13) are built, D-09. A pair or set holds only image ids; credit, bands and dates come
+from the images, so the pair and set files carry no claims of their own beyond the note.
 
 **Supersedes** the viewport unit in `docs/design.md` section 4 ("0..1 width units"): stops
 and the URL use image pixels and fit-relative zoom, the same numbers the readouts show
@@ -259,6 +291,8 @@ export type Result<T> = { ok: true; value: T } | { ok: false; errors: string[] }
 export const validateSource = (raw: unknown, file: string): Result<Source>;
 export const validateImage = (raw: unknown, file: string): Result<ImageManifest>;
 export const validateJourney = (raw: unknown, file: string): Result<Journey>;
+export const validatePair = (raw: unknown, file: string): Result<ComparePair>;
+export const validateBandSet = (raw: unknown, file: string): Result<BandSet>;
 export const validateContent = (files: { path: string; raw: unknown }[]): Result<Content>;
 ```
 
@@ -365,6 +399,7 @@ Returns one message per problem; empty means publishable. Rules:
 - Any record with `mock: true`.
 - Any source, image, Journey or stop whose `validation.status` is not `approved`.
 - Any `Claim` with status `unverified`.
+- A pair or band set that is mock, not approved, or uses an image that is not approved.
 - A Journey with fewer than 5 or more than 8 stops, or whose image is not approved.
 
 `loadContent` in `production` mode throws if the list is not empty, so `next build`
@@ -373,6 +408,14 @@ fails; the message lists every problem. `scripts/validate-content.ts` runs the s
 failure reads as a content error rather than a prerender stack. Mock files live under
 `data/mock/` and are never read in production, so the mock rule only fires when a mock
 leaks into the real directories.
+
+Mock content (D-09, built): `data/mock/` holds a Compare pair `mock-compare` (two images) and a
+Light band set `mock-light` (three bands), each over synthetic 1024 x 512 grids with a disc,
+flagged `mock: true`, status `draft`, claims `unverified`, credit "Not NASA data".
+`npm run generate-mock` rewrites them and their tile trees under `public/tiles/mock-*`
+(about 600 KB). `next dev` shows them; production never reads `data/mock/`, and the gate
+rejects a mock that leaks into `data/`. The mock tiles are inert files in `public/` and do
+show up in `out/tiles`; the R2 sync skips `mock-*` directories (section 12).
 
 ## 10. Slices in build order
 

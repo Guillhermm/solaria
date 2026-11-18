@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import * as fx from "./__fixtures__/content";
-import { validateContent, validateImage, validateJourney, validateSource } from "./validate";
+import { validateBandSet, validateContent, validateImage, validateJourney, validatePair, validateSource } from "./validate";
 
 const clone = <T>(v: T): T => structuredClone(v);
 
@@ -192,5 +192,73 @@ describe("cross-file rules", () => {
       "data/sources/demo.json: credit: missing",
       "data/images/demo.json: title: missing",
     ]);
+  });
+});
+
+describe("pairs and band sets", () => {
+  const run = (kind: "pair" | "set", edit: (g: Record<string, any>) => void) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+    const g = clone(kind === "pair" ? fx.pair() : fx.bandSet()) as unknown as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+    edit(g);
+    return errorsOf(kind === "pair" ? validatePair(g, "data/pairs/demo-pair.json") : validateBandSet(g, "data/band-sets/demo-bands.json"));
+  };
+
+  it("accept the fixtures", () => {
+    expect(run("pair", () => {})).toEqual([]);
+    expect(run("set", () => {})).toEqual([]);
+  });
+  it("accept a zero residual", () => {
+    expect(run("pair", (g) => (g.registration.residualPx = 0))).toEqual([]);
+  });
+  it("reject a negative residual", () => {
+    expect(run("pair", (g) => (g.registration.residualPx = -1))[0]).toContain("registration.residualPx: expected a number of zero or more");
+  });
+  it("reject a missing differs flag and an unknown transform", () => {
+    expect(run("pair", (g) => delete g.differs.geometry)).toEqual(["data/pairs/demo-pair.json: differs.geometry: missing"]);
+    expect(run("pair", (g) => (g.registration.transform = "warp"))[0]).toContain("registration.transform: expected one of");
+  });
+  it("reject an empty note", () => {
+    expect(run("pair", (g) => (g.whatDiffers = " "))[0]).toContain("whatDiffers: expected a non-empty string");
+  });
+  it("need exactly two distinct images in a pair", () => {
+    expect(run("pair", (g) => (g.imageIds = ["demo"]))[0]).toContain("imageIds: expected exactly two image ids");
+    expect(run("pair", (g) => (g.imageIds = ["demo", "demo"]))[0]).toContain("imageIds: expected distinct image ids");
+  });
+  it("need at least two distinct images in a band set", () => {
+    expect(run("set", (g) => (g.imageIds = ["demo"]))[0]).toContain("imageIds: expected at least two image ids");
+    expect(run("set", (g) => (g.imageIds = ["demo", "demo"]))[0]).toContain("expected distinct image ids");
+  });
+  it("reject an unknown key", () => {
+    expect(run("set", (g) => (g.bands = []))).toEqual(["data/band-sets/demo-bands.json: bands: unknown key"]);
+  });
+
+  describe("in validateContent", () => {
+    const withGroups = () => {
+      const second = { ...fx.image(), id: "demo-b" };
+      return [
+        ...fx.files(),
+        { path: "data/images/demo-b.json", raw: second },
+        { path: "data/pairs/demo-pair.json", raw: fx.pair() },
+      ];
+    };
+    it("collect pairs and band sets", () => {
+      const r = validateContent([
+        ...withGroups(),
+        { path: "data/images/demo-c.json", raw: { ...fx.image(), id: "demo-c" } },
+        { path: "data/band-sets/demo-bands.json", raw: fx.bandSet() },
+      ]);
+      expect(r.ok && [r.value.pairs.length, r.value.bandSets.length]).toEqual([1, 1]);
+    });
+    it("reject an image id that does not resolve", () => {
+      const f = withGroups();
+      (f[4].raw as ReturnType<typeof fx.pair>).imageIds = ["demo", "nope"];
+      expect(errorsOf(validateContent(f))).toEqual(['data/pairs/demo-pair.json: imageIds[1]: no image "nope" in data/images/']);
+    });
+    it("tie mock to data/mock/", () => {
+      const f = withGroups();
+      f[4].path = "data/mock/pairs/demo-pair.json";
+      expect(errorsOf(validateContent(f))).toEqual([
+        "data/mock/pairs/demo-pair.json: mock: expected true for a file under data/mock/, got false",
+      ]);
+    });
   });
 });

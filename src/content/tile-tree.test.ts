@@ -6,7 +6,7 @@ import { loadContent } from "./load";
 import { tileCount } from "./pyramid";
 
 const TILES = join(process.cwd(), "public", "tiles");
-const images = loadContent({ root: process.cwd(), mode: "development" }).images.filter((i) => !i.mock);
+const images = loadContent({ root: process.cwd(), mode: "development" }).images;
 
 const numeric = (d: string) =>
   readdirSync(d).filter((n) => /^\d+$/.test(n)).map(Number).sort((a, b) => a - b);

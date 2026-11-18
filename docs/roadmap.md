@@ -60,7 +60,7 @@ Each item leaves the app working.
 | D-06 | Validation gate: production build fails on any unapproved or mock content | done | D-05 | Test proves both outcomes |
 | D-07 | `TILE_BASE_URL` with local default | done | D-05 | A build loads tiles from the base it was given; a bad value fails the build |
 | D-08 | R2 sync script (dry run by default, credentials from env only) | todo | D-07 | Dry run lists the files it would upload |
-| D-09 | Mock manifests for Compare and Light development, flagged `mock: true` | todo | D-06 | Visible in dev, blocked in production |
+| D-09 | Mock manifests for Compare and Light development, flagged `mock: true` | done | D-06 | Visible in dev, blocked in production |
 
 ## M3. Visual base
 

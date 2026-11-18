@@ -1,4 +1,4 @@
-import type { ImageManifest, Journey, Source, Stop } from "../types";
+import type { BandSet, ComparePair, ImageManifest, Journey, Source, Stop } from "../types";
 
 const approved = { status: "approved", date: "2026-11-17", notes: "fixture" } as const;
 const SHA = "a".repeat(64);
@@ -63,6 +63,28 @@ export const journey = (): Journey => ({
   stops: ["a", "b", "c", "d", "e"].map(stop),
   validation: { ...approved },
   mock: false,
+});
+
+const group = () => ({
+  differs: { instrument: false, band: false, date: true, illumination: false, geometry: false, processing: false },
+  registration: { method: "star control points", transform: "similarity" as const, residualPx: 0.5 },
+  whatDiffers: "Only the date differs.",
+  validation: { ...approved },
+  mock: false,
+});
+
+export const pair = (): ComparePair => ({
+  id: "demo-pair",
+  title: "Demo pair",
+  imageIds: ["demo", "demo-b"],
+  ...group(),
+});
+
+export const bandSet = (): BandSet => ({
+  id: "demo-bands",
+  title: "Demo bands",
+  imageIds: ["demo", "demo-b", "demo-c"],
+  ...group(),
 });
 
 export const files = (): { path: string; raw: unknown }[] => [
