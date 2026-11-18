@@ -815,6 +815,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
       data-journey={journey ? "" : undefined}
       data-paused={(story && paused) || undefined}
       data-layout={comparing ? layout : undefined}
+      data-modes={compareAvailable ? "" : undefined}
       onKeyDown={onKeyDown}
     >
       <div ref={canvasRef} className={styles.canvas} data-theme="dark" data-testid="viewer" />

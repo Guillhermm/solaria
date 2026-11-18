@@ -194,6 +194,32 @@ test.describe("desktop", () => {
     await expect(page.getByRole("slider")).toHaveCount(0);
   });
 
+  test("side by side: the grid both images share lands at the same place in each viewer", async ({ page }) => {
+    await page.goto(`${PATH}?mode=compare&layout=side`);
+    await ready(page);
+    await page.waitForFunction(() => document.querySelector('[data-testid="viewer-side"] .openseadragon-canvas canvas'));
+    await settled(page);
+    await page.waitForTimeout(800);
+    // Grid lines crossing one row, in CSS pixels from each viewer's left edge.
+    const lines = (testId: string) =>
+      page.evaluate((testId) => {
+        const c = document.querySelector<HTMLCanvasElement>(`[data-testid="${testId}"] .openseadragon-canvas canvas`)!;
+        const k = c.width / c.getBoundingClientRect().width;
+        const d = c.getContext("2d")!.getImageData(0, Math.round(c.height * 0.3), c.width, 1).data;
+        const lum = (i: number) => d[i * 4] + d[i * 4 + 1] + d[i * 4 + 2];
+        const out: number[] = [];
+        for (let i = 2; i < c.width - 2; i++) {
+          if (lum(i) > lum(i - 2) + 40 && lum(i) > lum(i + 2) + 40 && lum(i) >= lum(i - 1) && lum(i) > lum(i + 1)) out.push(i / k);
+        }
+        return out;
+      }, testId);
+    const a = await lines("viewer");
+    const b = await lines("viewer-side");
+    expect(b.length).toBeGreaterThan(3);
+    // Every line in the right viewer has its twin in the left one, within 3 px.
+    for (const x of b) expect(Math.min(...a.map((y) => Math.abs(x - y))), JSON.stringify({ a, b })).toBeLessThan(3);
+  });
+
   test("What differs? shows the pair's note, its flags and both images' caveats, from the manifests only", async ({ page }) => {
     const reference = read("data/mock/images/mock-compare-before.json");
     const moving = read("data/mock/images/mock-compare-after.json");
@@ -280,5 +306,18 @@ test.describe("phone", () => {
     await divider(page).focus();
     await page.keyboard.press("ArrowLeft");
     await expect(divider(page)).toHaveAttribute("aria-valuenow", "49");
+  });
+
+  test("the mode switch takes the title's room, and the open note leaves the zoom controls clear", async ({ page }) => {
+    await page.goto(`${PATH}?mode=compare&x=2048&y=1024&z=1`);
+    await ready(page);
+    await expect(page.getByRole("group", { name: "Mode" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toBeHidden();
+    await page.getByRole("button", { name: "What differs?" }).click();
+    const note = (await page.getByTestId("what-differs").boundingBox())!;
+    const zoom = (await page.getByRole("group", { name: "View controls" }).boundingBox())!;
+    expect(note.x + note.width).toBeLessThanOrEqual(zoom.x);
+    await page.getByRole("button", { name: "Zoom in" }).click();
+    await expect(page).not.toHaveURL(/z=1$/);
   });
 });

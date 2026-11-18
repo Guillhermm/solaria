@@ -988,7 +988,8 @@
    credit; the camera frames the stop in the screen above it. A gesture on the image folds
    the sheet to the "back to the story" pill, with the credit still under it. */
 @media (max-width: 40rem) {
-  .root[data-journey] .title {
+  .root[data-journey] .title,
+  .root[data-modes] .title {
     display: none;
   }
 

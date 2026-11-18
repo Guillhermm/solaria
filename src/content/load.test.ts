@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import * as fx from "./__fixtures__/content";
-import { ContentError, contentFile, contentMode, loadContent } from "./load";
+import { ContentError, contentFile, contentMode, loadContent, stagedImageIds } from "./load";
 
 const roots: string[] = [];
 
@@ -64,6 +64,12 @@ describe("loadContent", () => {
     expect(contentFile(dir, "images", "demo")).toBe(join(dir, "data/images/demo.json"));
     expect(contentFile(dir, "images", "st")).toBe(join(dir, "data/staging/images/st.json"));
     expect(() => contentFile(dir, "images", "nope")).toThrow("no nope.json in data/images/ or data/staging/images/");
+    expect(() => contentFile(dir, "images", "../images/demo")).toThrow("not a record id");
+  });
+
+  it("lists the staged image ids, and none when nothing is staged", () => {
+    expect(stagedImageIds(root(fx.files()))).toEqual([]);
+    expect(stagedImageIds(root([...fx.files(), { path: "data/staging/images/st.json", raw: {} }]))).toEqual(["st"]);
   });
 
   it("reads mock pairs and band sets only in development", () => {

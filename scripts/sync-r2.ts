@@ -1,6 +1,7 @@
 import { createHash, createHmac } from "node:crypto";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
+import { stagedImageIds } from "../src/content/load";
 
 const REGION = "auto";
 const SERVICE = "s3";
@@ -95,8 +96,9 @@ const TYPES: Record<string, string> = {
 
 export const contentType = (key: string) => TYPES[key.slice(key.lastIndexOf(".")).toLowerCase()] ?? "application/octet-stream";
 
-// Mock tile trees are for development only and never go to the bucket.
-export const listLocal = (dir: string): LocalFile[] => {
+// Mock tile trees are for development only, and staged images wait for science review: neither
+// goes to the bucket.
+export const listLocal = (dir: string, staged: string[] = []): LocalFile[] => {
   const out: LocalFile[] = [];
   const walk = (d: string) => {
     for (const e of readdirSync(d, { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : 1))) {
@@ -104,7 +106,7 @@ export const listLocal = (dir: string): LocalFile[] => {
       const p = join(d, e.name);
       const key = relative(dir, p).split(sep).join("/");
       if (e.isDirectory()) {
-        if (d === dir && e.name.startsWith("mock-")) continue;
+        if (d === dir && (e.name.startsWith("mock-") || staged.includes(e.name))) continue;
         walk(p);
       } else if (e.isFile()) {
         out.push({ key, path: p, size: statSync(p).size, md5: createHash("md5").update(readFileSync(p)).digest("hex") });
@@ -218,6 +220,7 @@ export const makeClient = (env: Env, deps: Deps) => {
 
 export interface RunOptions {
   dir: string;
+  staged?: string[]; // image ids in data/staging/, left out like mock trees
   apply: boolean;
   env: Record<string, string | undefined>;
   deps: Deps;
@@ -231,7 +234,7 @@ export const runSync = async (opts: RunOptions) => {
     deps.log(`Cannot apply: set ${creds.missing.join(", ")}`);
     return 1;
   }
-  const local = listLocal(dir);
+  const local = listLocal(dir, opts.staged);
   const client = "env" in creds ? makeClient(creds.env, deps) : undefined;
   const remote = client ? await client.list() : new Map<string, RemoteObject>();
   if (!client) deps.log("No credentials in the environment: the bucket was not checked, so every file counts as new.");
@@ -273,6 +276,7 @@ const main = async () => {
   }
   const code = await runSync({
     dir,
+    staged: stagedImageIds(process.cwd()),
     apply: args.includes("--apply"),
     env: process.env,
     deps: { fetch, now: () => new Date(), log: (l) => console.log(l) },

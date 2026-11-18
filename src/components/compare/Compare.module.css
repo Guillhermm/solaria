@@ -345,3 +345,12 @@
     inset: calc(var(--note-top, 9rem) + env(safe-area-inset-top, 0rem)) auto auto 50%;
   }
 }
+
+/* Phone: the note keeps left of the zoom controls, so they stay in reach while it is open. */
+@media (max-width: 40rem) {
+  .note {
+    left: var(--edge);
+    width: calc(100vw - 2 * var(--edge) - var(--target) - var(--space-2));
+    translate: none;
+  }
+}

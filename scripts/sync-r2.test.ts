@@ -128,6 +128,11 @@ describe("listLocal", () => {
       ["img/thumbnail.jpg", 1, md5("t")],
     ]);
   });
+
+  it("skips the tile trees of staged images", () => {
+    const dir = tree({ "img/0/0/0.jpg": "tile", "staged-x/0/0/0.jpg": "s" });
+    expect(listLocal(dir, ["staged-x"]).map((f) => f.key)).toEqual(["img/0/0/0.jpg"]);
+  });
 });
 
 const ENV = {

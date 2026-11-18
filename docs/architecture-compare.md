@@ -274,6 +274,8 @@ Where the build differs from sections 1 to 4, and why. Each was the simpler work
   crops (its Context2d second pass stalls on `ReadPixels`); canvas 16.6 and 16.5 ms. Both
   map the moving image's control points onto the reference within 1.3e-13 px. Other pages
   keep OpenSeadragon's default drawer. Not measured on a phone GPU.
+- **Side by side** gives the second viewer the first one's viewport margins (the rulers), so
+  one zoom and center put a shared feature at the same place in both.
 - **Labels live in the pair manifest.** `labels: [{ full, short }, { full, short }]` in
   `imageIds` order, validated with the pair; the UI composes no claim from image fields.
 - **Labels below 64rem.** Under the desktop width the side labels give way to the "Left: ..."
@@ -291,7 +293,7 @@ Where the build differs from sections 1 to 4, and why. Each was the simpler work
   production build on any draft record in `data/`. They live in `data/staging/`, which
   `loadContent` reads in development only (and in the end-to-end build); `fetch-source`,
   `generate-tiles` and `register-pair` find a record in either place; the postbuild step
-  strips staged tile trees from `out/`. Moving the files to `data/` publishes them, and the
+  strips staged tile trees from `out/`, and `sync-r2` leaves them out of the bucket. Moving the files to `data/` publishes them, and the
   gate then checks them as usual.
 - **Tiler access.** `generate-tiles` opens files up to 100 megapixels for random access:
   each pyramid level reads the original again, which the sequential TIFF reader refused on the

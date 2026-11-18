@@ -1,5 +1,6 @@
 import { readdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
+import { stagedImageIds } from "../src/content/load";
 
 // next build copies public/ into out/, mock tiles included. A production build never
 // loads mock content, nor images staged in data/staging/ for science review, so their tiles
@@ -23,12 +24,6 @@ if (process.argv[1]?.endsWith("strip-mock-tiles.ts")) {
     console.log("SOLARIA_CONTENT=development: mock tiles kept");
     process.exit(0);
   }
-  let staged: string[] = [];
-  try {
-    staged = readdirSync(join("data", "staging", "images")).filter((n) => n.endsWith(".json")).map((n) => n.slice(0, -5));
-  } catch {
-    // Nothing staged.
-  }
-  const removed = stripMockTiles(process.argv[2] ?? "out", staged);
+  const removed = stripMockTiles(process.argv[2] ?? "out", stagedImageIds(process.cwd()));
   console.log(`Removed ${removed.length} mock and staged tile trees from the build output`);
 }

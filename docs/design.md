@@ -239,7 +239,7 @@ aim); tapping a stop opens the Journey at that stop.
   folds it to the title. A gesture on the image folds
   it to the "back to the story" pill, with the credit still under it. Story and Explore
   switch from the top bar; the short image title leaves the phone bar on Journey pages to
-  make room. The camera frames the stop in the top 60 %; near an image edge the view
+  make room, and on pages that offer Compare once its switch is there. The camera frames the stop in the top 60 %; near an image edge the view
   constraint can move the center, never the zoom.
 
 ### 5.5 Journey, Explore mode

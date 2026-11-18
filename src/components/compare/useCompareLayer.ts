@@ -152,6 +152,8 @@ export const useCompareLayer = ({ opened, view, reference, layout, split, showMo
       crossOriginPolicy: "Anonymous",
       showNavigationControl: false,
       animationTime: (a as unknown as { animationTime: number }).animationTime,
+      // The same margins as the left viewer, so one zoom and center give one scale and place.
+      viewportMargins: opened.margins(),
       visibilityRatio: 0,
       minZoomImageRatio: 0,
       gestureSettingsMouse: { clickToZoom: false, dblClickToZoom: true },

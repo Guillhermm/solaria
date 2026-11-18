@@ -54,10 +54,15 @@ export const contentMode = (env: Record<string, string | undefined>): Mode =>
 
 // Where the scripts find a record: data/, or data/staging/ while it waits for science review.
 export const contentFile = (root: string, kind: (typeof KINDS)[number], id: string) => {
+  if (!/^[\w-]+$/.test(id)) throw new Error(`not a record id: ${JSON.stringify(id)}`);
   const found = [`data/${kind}/${id}.json`, `data/staging/${kind}/${id}.json`].find((p) => existsSync(join(root, p)));
   if (!found) throw new Error(`no ${id}.json in data/${kind}/ or data/staging/${kind}/`);
   return join(root, found);
 };
+
+// Images waiting in data/staging/ for science review: their tile trees stay out of the build
+// output and the bucket until the records move to data/.
+export const stagedImageIds = (root: string) => readDir(root, "data/staging/images").map((f) => f.path.slice("data/staging/images/".length, -".json".length));
 
 let cached: Content | undefined;
 
