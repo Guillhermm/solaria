@@ -45,7 +45,14 @@ test("zoom buttons and reset drive the view; zoom shows once", async ({ page }) 
   await expect(readout(page)).toContainText("2.0×");
   await page.getByRole("button", { name: "Zoom in" }).click();
   await expect(readout(page)).toContainText("4.0×");
-  await expect(page.getByText(/\d\.\d×/)).toHaveCount(1);
+  // Shown once on screen; the visually hidden live region may say it too.
+  const shown = await page.evaluate(
+    () =>
+      [...document.querySelectorAll("body *")].filter(
+        (el) => el.children.length === 0 && /\d\.\d×/.test(el.textContent ?? "") && el.getBoundingClientRect().width > 1,
+      ).length,
+  );
+  expect(shown).toBe(1);
   await page.getByRole("group", { name: "View controls" }).getByRole("button", { name: "Reset view" }).click();
   await expect(readout(page)).toContainText("1.0×");
 });
@@ -57,9 +64,11 @@ test("the overview keeps the image's aspect ratio", async ({ page }) => {
   expect(box.width / box.height).toBeCloseTo(42208 / 9870, 1);
 });
 
-test("an unknown slug answers 404", async ({ page }) => {
+test("an unknown slug answers 404 with a way back", async ({ page }) => {
   const response = await page.goto("/no-such-image/");
   expect(response?.status()).toBe(404);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Nothing at these coordinates.");
+  await expect(page.getByRole("link", { name: "Back to home" })).toHaveAttribute("href", "/");
 });
 
 test("a shared link restores its view, and so does a reload", async ({ page }) => {
@@ -129,4 +138,76 @@ test("the info panel shows the manifest's fields, every caveat and the source li
   await page.keyboard.press("Escape");
   await expect(panel).toBeHidden();
   await expect(about).toBeFocused();
+});
+
+const centerX = async (page: Page) =>
+  Number((await readout(page).locator("span").nth(1).textContent())!.replace(/\u202f/g, ""));
+
+test("the keyboard zooms, pans and fits, and the zoom is announced once settled", async ({ page }) => {
+  await page.goto(PATH);
+  await ready(page);
+  const viewer = page.getByRole("application", {
+    name: "Andromeda Galaxy (M31), Hubble PHAT+PHAST panorama image viewer. Use arrow keys to pan, plus and minus to zoom.",
+  });
+  await viewer.focus();
+  await page.keyboard.press("+");
+  await expect(readout(page)).toContainText("2.0×");
+  await expect(page.locator("[aria-live=polite]")).toHaveText("Zoom 2.0×");
+  await page.keyboard.press("+");
+  await expect(readout(page)).toContainText("4.0×");
+  await page.keyboard.press("-");
+  await expect(readout(page)).toContainText("2.0×");
+
+  // At 2x the view is 21 104 px across: an arrow pans 10 % of it, Shift+arrow 50 %.
+  await page.keyboard.press("ArrowRight");
+  await expect.poll(() => centerX(page)).toBe(21104 + 2110);
+  await page.keyboard.press("Shift+ArrowLeft");
+  await expect.poll(() => centerX(page)).toBe(21104 + 2110 - 10552);
+  await page.keyboard.press("0");
+  await expect(readout(page)).toHaveText(/Center x\s*21\u202f104\s*y\s*4\u202f935\s*Zoom\s*1\.0×/);
+});
+
+test("a tile outage keeps the lower level and offers a retry after 10 failures", async ({ page }) => {
+  await page.route(/\/tiles\/andromeda-phat-phast-2025\/[3-6]\//, (route) => route.abort());
+  await page.goto(PATH);
+  await ready(page);
+  await page.keyboard.press("Tab");
+  await page.getByRole("button", { name: "Zoom in" }).click();
+  await page.getByRole("button", { name: "Zoom in" }).click();
+  const toast = page.getByRole("status").filter({ hasText: "Some detail could not load." });
+  await expect(toast).toBeVisible();
+  await page.unroute(/\/tiles\/andromeda-phat-phast-2025\/[3-6]\//);
+  const refetch = page.waitForRequest(/\/tiles\/andromeda-phat-phast-2025\/[3-6]\//);
+  await toast.getByRole("button", { name: "Retry" }).click();
+  await refetch;
+  await expect(toast).toHaveCount(0);
+});
+
+test("slow tiles show a progress line and, after 4 s, a note", async ({ page }) => {
+  await page.route(/\/tiles\//, async (route) => {
+    await new Promise((r) => setTimeout(r, 6000));
+    await route.continue().catch(() => {});
+  });
+  await page.goto(PATH);
+  await expect(page.locator("main[data-loading]")).toHaveCount(1);
+  await expect(page.getByRole("status")).toHaveText("Still loading the detail. You can start moving around.", {
+    timeout: 8000,
+  });
+});
+
+test("when the viewer cannot load, a retry brings it back", async ({ page }) => {
+  let block = true;
+  await page.route(/\/_next\/static\/chunks\/.+\.js$/, async (route) => {
+    const response = await route.fetch();
+    const body = await response.text();
+    if (block && body.includes("Unable to load TileSource")) return route.abort();
+    return route.fulfill({ response, body });
+  });
+  await page.goto(PATH);
+  const alert = page.getByRole("alert").filter({ hasText: "could not load" });
+  await expect(alert).toContainText("This image could not load. Check your connection and try again.");
+  block = false;
+  await alert.getByRole("button", { name: "Retry" }).click();
+  await ready(page);
+  await expect(alert).toHaveCount(0);
 });

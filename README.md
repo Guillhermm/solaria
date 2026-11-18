@@ -19,6 +19,12 @@ in [docs/science/](docs/science/).
   "About this image" opens a panel with the target, observatory, camera, filters and the
   colors assigned to them, observation and release dates, credit, every caveat and a link
   to the source page, all taken from the manifest and its source record.
+  Keyboard: `+` and `-` zoom, arrows pan (Shift for larger steps), `0` or Home fits, `F`
+  toggles fullscreen, Esc closes the panel; a live region announces the zoom once it
+  settles. A progress line shows while tiles load, a note appears when they are slow or
+  when ten of them fail (with Retry), a full-screen message with Retry replaces the viewer
+  if it cannot load at all, and an unknown address shows a 404 page. Overlays fade after
+  3 s without input on pointer devices.
 - Content from JSON files in `data/` (sources, image manifests), checked by a validator at
   build time. The site is a static export (`out/`).
 - Scripts: `npm run fetch-source -- <sourceId>` downloads an original into `.cache/` and

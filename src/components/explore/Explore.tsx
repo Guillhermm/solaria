@@ -9,6 +9,7 @@ import { tileSource } from "@/content/tiles";
 import type { ImageManifest } from "@/content/types";
 import type { Info } from "@/viewer/info";
 import { overviewHeightRem, shapeOf } from "@/viewer/overview";
+import { keyAction, zoomAnnouncement } from "@/viewer/keys";
 import { parseViewerParams, serializeViewerParams } from "@/viewer/url";
 import { formatInt, formatZoom, homeView, osdFromView, type Size, viewFromOsd } from "@/viewer/view";
 import { drawRuler } from "./drawRuler";
@@ -22,6 +23,17 @@ interface ExploreProps {
 }
 
 const noSubscribe = () => () => {};
+
+interface Toast {
+  text: string;
+  retry?: boolean; // tile errors: offer to fetch the missing tiles again
+  sticky?: boolean; // stays until its cause clears
+}
+
+const SLOW: Toast = { text: "Still loading the detail. You can start moving around.", sticky: true };
+const TILE_ERRORS: Toast = { text: "Some detail could not load.", retry: true, sticky: true };
+// design.md 5.8: missing tiles stay at the lower level; only after this many does the user hear of it.
+const TILE_ERROR_LIMIT = 10;
 
 // The settled view (OpenSeadragon's target, not the frame in flight).
 const settledView = (viewer: OpenSeadragon.Viewer, size: Size) => {
@@ -46,7 +58,11 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
   const zRef = useRef<HTMLSpanElement>(null);
   const viewerRef = useRef<OpenSeadragon.Viewer | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<Toast | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const liveRef = useRef<HTMLParagraphElement>(null);
+  const failuresRef = useRef(0);
   const [infoOpen, setInfoOpen] = useState(false);
   const infoId = useId();
   const infoTitleRef = useRef<HTMLHeadingElement>(null);
@@ -63,13 +79,35 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
     "--ov-ar": `${size.width} / ${size.height}`,
   } as CSSProperties;
 
+  const toggleFullscreen = useCallback(async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await rootRef.current?.requestFullscreen();
+    } catch {
+      // Refused by the browser (no user gesture, or a policy); the view stays as it is.
+    }
+  }, []);
+
   useEffect(() => {
     const host = canvasRef.current;
+    const root = rootRef.current;
     const navHost = navRef.current;
-    if (!host || !navHost) return;
+    if (!host || !navHost || !root) return;
     let cancelled = false;
     let frame = 0;
     let urlTimer = 0;
+    let liveTimer = 0;
+    let lastAnnounced = zoomAnnouncement(1);
+    failuresRef.current = 0;
+    // Loading is shown through attributes, not state: it flips on every pan that needs tiles.
+    const setLoading = (loading: boolean) => {
+      root.toggleAttribute("data-loading", loading);
+      host.setAttribute("aria-busy", String(loading));
+    };
+    setLoading(true);
+    const slowTimer = window.setTimeout(() => {
+      if (root.hasAttribute("data-loading")) setToast(SLOW);
+    }, 4000);
     let viewer: OpenSeadragon.Viewer | undefined;
     const { width, height } = image.tiles;
 
@@ -125,7 +163,40 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
       });
       viewerRef.current = viewer;
       const opened = viewer;
+      opened.canvas.setAttribute("role", "application");
+      opened.canvas.setAttribute(
+        "aria-label",
+        `${image.title} image viewer. Use arrow keys to pan, plus and minus to zoom.`,
+      );
+      opened.addHandler("canvas-key", (e) => {
+        // OpenSeadragon's own keys (WASD, R, Shift+arrows) are off; design.md 7.1 sets the map.
+        e.preventDefaultAction = true;
+        const key = e.originalEvent as unknown as globalThis.KeyboardEvent;
+        if (key.type !== "keydown") return;
+        const action = keyAction(key);
+        if (!action) return;
+        key.preventDefault();
+        const vp = opened.viewport;
+        if (action.kind === "zoom") vp.zoomBy(action.factor);
+        else if (action.kind === "pan") {
+          const b = vp.getBounds();
+          vp.panBy(new OSD.Point(b.width * action.dx, b.height * action.dy));
+        } else if (action.kind === "home") vp.goHome();
+        else toggleFullscreen();
+        vp.applyConstraints();
+      });
+      opened.addHandler("open-failed", () => {
+        if (!cancelled) setFailed(true);
+      });
+      opened.addHandler("tile-load-failed", () => {
+        failuresRef.current += 1;
+        if (failuresRef.current === TILE_ERROR_LIMIT) setToast(TILE_ERRORS);
+      });
       opened.addHandler("open", () => {
+        opened.world.getItemAt(0).addHandler("fully-loaded-change", (e) => {
+          setLoading(!e.fullyLoaded);
+          if (e.fullyLoaded) setToast((t) => (t === SLOW ? null : t));
+        });
         // A shared link restores its view; anything invalid in it was already clamped or dropped.
         const { view } = parseViewerParams(window.location.search, { width, height });
         if (view) {
@@ -142,21 +213,53 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
       opened.addHandler("animation-finish", () => {
         clearTimeout(urlTimer);
         urlTimer = window.setTimeout(() => replaceUrl(viewUrl(opened, { width, height })), 400);
+        // design.md 7.1: the zoom is announced once it settles, never per frame.
+        clearTimeout(liveTimer);
+        liveTimer = window.setTimeout(() => {
+          const text = zoomAnnouncement(settledView(opened, { width, height }).z);
+          if (text !== lastAnnounced && liveRef.current) liveRef.current.textContent = text;
+          lastAnnounced = text;
+        }, 500);
       });
       viewer.addHandler("viewport-change", schedule);
       viewer.addHandler("resize", schedule);
       document.fonts.ready.then(schedule);
+    }).catch(() => {
+      // The viewer's script could not load (offline, or a deploy replaced it).
+      if (!cancelled) setFailed(true);
     });
 
     return () => {
       cancelled = true;
       cancelAnimationFrame(frame);
       clearTimeout(urlTimer);
+      clearTimeout(liveTimer);
+      clearTimeout(slowTimer);
       viewer?.destroy();
       viewerRef.current = null;
       navHost.replaceChildren();
     };
-  }, [image, tileBaseUrl, navId]);
+  }, [image, tileBaseUrl, navId, toggleFullscreen, attempt]);
+
+  // design.md 5.5: overlays fade after 3 s without input on pointer devices (CSS decides
+  // which, and keeps anything focused or hovered visible).
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    let timer = 0;
+    const wake = () => {
+      root.removeAttribute("data-idle");
+      clearTimeout(timer);
+      timer = window.setTimeout(() => root.setAttribute("data-idle", ""), 3000);
+    };
+    const events = ["pointermove", "pointerdown", "keydown", "wheel"] as const;
+    for (const name of events) root.addEventListener(name, wake, { passive: true });
+    wake();
+    return () => {
+      clearTimeout(timer);
+      for (const name of events) root.removeEventListener(name, wake);
+    };
+  }, []);
 
   useEffect(() => {
     const onChange = () => setFullscreen(document.fullscreenElement === rootRef.current);
@@ -165,7 +268,7 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
   }, []);
 
   useEffect(() => {
-    if (!toast) return;
+    if (!toast || toast.sticky) return;
     const timer = window.setTimeout(() => setToast(null), 4000);
     return () => clearTimeout(timer);
   }, [toast]);
@@ -182,10 +285,10 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
         return;
       }
       await navigator.clipboard.writeText(url);
-      setToast("Link to this view copied.");
+      setToast({ text: "Link to this view copied." });
     } catch (err) {
       if ((err as Error).name === "AbortError") return;
-      setToast("Could not copy the link. Copy it from the address bar.");
+      setToast({ text: "Could not copy the link. Copy it from the address bar." });
     }
   }, [image]);
 
@@ -219,13 +322,20 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
 
   const reset = useCallback(() => viewerRef.current?.viewport.goHome(), []);
 
-  const toggleFullscreen = useCallback(async () => {
-    try {
-      if (document.fullscreenElement) await document.exitFullscreen();
-      else await rootRef.current?.requestFullscreen();
-    } catch {
-      // Refused by the browser (no user gesture, or a policy); the view stays as it is.
-    }
+  const retryTiles = useCallback(() => {
+    const viewer = viewerRef.current;
+    const item = viewer?.world.getItemAt(0);
+    if (!viewer || !item) return;
+    failuresRef.current = 0;
+    setToast(null);
+    item.reset();
+    viewer.forceRedraw();
+  }, []);
+
+  const retryOpen = useCallback(() => {
+    setFailed(false);
+    setToast(null);
+    setAttempt((n) => n + 1);
   }, []);
 
   return (
@@ -244,7 +354,7 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
       </div>
 
       <header className={styles.topbar}>
-        <div className={`${styles.bar} ${styles.glass}`}>
+        <div className={`${styles.bar} ${styles.glass} ${styles.fade}`}>
           <Link href="/" className={styles.iconButton} aria-label="Back to home">
             <LuArrowLeft aria-hidden />
           </Link>
@@ -256,7 +366,7 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
           <h1 className={styles.title}>{image.title}</h1>
           <span className={styles.mode}>Explore</span>
         </div>
-        <div className={`${styles.bar} ${styles.glass}`}>
+        <div className={`${styles.bar} ${styles.glass} ${styles.fade}`}>
           <button
             ref={aboutRef}
             type="button"
@@ -275,10 +385,10 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
         </div>
       </header>
 
-      <p className={`${styles.credit} ${styles.glass}`}>{info.credit}</p>
+      <p className={`${styles.credit} ${styles.glass} ${styles.fade}`}>{info.credit}</p>
 
       <div className={styles.sheet}>
-        <div className={`${styles.controls} ${styles.glass}`} role="group" aria-label="View controls">
+        <div className={`${styles.controls} ${styles.glass} ${styles.fade}`} role="group" aria-label="View controls">
           <button type="button" className={styles.iconButton} onClick={() => zoomBy(2)} aria-label="Zoom in">
             <LuPlus aria-hidden />
           </button>
@@ -300,7 +410,7 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
           )}
         </div>
 
-        <div className={`${styles.overview} ${styles.glass}`} data-theme="dark">
+        <div className={`${styles.overview} ${styles.glass} ${styles.fade}`} data-theme="dark">
           <p className={styles.overviewHead}>
             <span>Overview</span>
             <span className={styles.size}>
@@ -310,7 +420,7 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
           <div ref={navRef} className={styles.nav} style={overviewStyle} data-testid="overview-image" />
         </div>
 
-        <p className={`${styles.readout} ${styles.glass}`} data-theme="dark" data-testid="readout">
+        <p className={`${styles.readout} ${styles.glass} ${styles.fade}`} data-theme="dark" data-testid="readout">
           <span className={styles.key}>Center x</span>
           <span ref={xRef} className={styles.value}>{formatInt(home.x)}</span>
           <span className={styles.key}>y</span>
@@ -323,9 +433,30 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
         </div>
       </div>
 
+      <div className={styles.progress} aria-hidden />
+
       <div className={styles.toasts} role="status">
-        {toast && <p className={`${styles.toast} ${styles.glass}`}>{toast}</p>}
+        {toast && (
+          <div className={`${styles.toast} ${styles.glass}`}>
+            <p>{toast.text}</p>
+            {toast.retry && (
+              <button type="button" className={styles.textButton} onClick={retryTiles}>
+                Retry
+              </button>
+            )}
+          </div>
+        )}
       </div>
+      <p ref={liveRef} className={styles.visuallyHidden} aria-live="polite" />
+
+      {failed && (
+        <div className={styles.failed} role="alert">
+          <p>This image could not load. Check your connection and try again.</p>
+          <button type="button" className={styles.primary} onClick={retryOpen}>
+            Retry
+          </button>
+        </div>
+      )}
     </main>
   );
 };
