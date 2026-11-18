@@ -135,3 +135,26 @@ test.describe("desktop lens interactions", () => {
     expect(worst).toBeLessThan(200);
   });
 });
+
+test("Home loads no OpenSeadragon, the viewer does (design.md 9)", async ({ page }) => {
+  const scriptBodies = async (path: string) => {
+    const pending: Promise<string>[] = [];
+    page.on("response", (r) => {
+      if (r.request().resourceType() === "script") pending.push(r.text().catch(() => ""));
+    });
+    await page.goto(path);
+    await page.waitForLoadState("networkidle");
+    return Promise.all(pending);
+  };
+  const home = await scriptBodies("/");
+  expect(home.length).toBeGreaterThan(0);
+  expect(home.filter((b) => b.includes("OpenSeadragon"))).toHaveLength(0);
+  const viewer = await page.context().newPage();
+  const bodies: Promise<string>[] = [];
+  viewer.on("response", (r) => {
+    if (r.request().resourceType() === "script") bodies.push(r.text().catch(() => ""));
+  });
+  await viewer.goto("/andromeda/");
+  await viewer.waitForLoadState("networkidle");
+  expect((await Promise.all(bodies)).some((b) => b.includes("OpenSeadragon"))).toBe(true);
+});
