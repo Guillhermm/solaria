@@ -2,8 +2,9 @@ import { readdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
 // next build copies public/ into out/, mock tiles included. A production build never
-// loads mock content, so its tiles have no reason to ship. Returns the removed names.
-export const stripMockTiles = (outDir: string) => {
+// loads mock content, nor images staged in data/staging/ for science review, so their tiles
+// have no reason to ship. Returns the removed names.
+export const stripMockTiles = (outDir: string, staged: string[] = []) => {
   const tiles = join(outDir, "tiles");
   let entries;
   try {
@@ -11,7 +12,7 @@ export const stripMockTiles = (outDir: string) => {
   } catch {
     return [];
   }
-  const removed = entries.filter((e) => e.isDirectory() && e.name.startsWith("mock-")).map((e) => e.name);
+  const removed = entries.filter((e) => e.isDirectory() && (e.name.startsWith("mock-") || staged.includes(e.name))).map((e) => e.name);
   for (const name of removed) rmSync(join(tiles, name), { recursive: true });
   return removed;
 };
@@ -22,6 +23,12 @@ if (process.argv[1]?.endsWith("strip-mock-tiles.ts")) {
     console.log("SOLARIA_CONTENT=development: mock tiles kept");
     process.exit(0);
   }
-  const removed = stripMockTiles(process.argv[2] ?? "out");
-  console.log(`Removed ${removed.length} mock tile trees from the build output`);
+  let staged: string[] = [];
+  try {
+    staged = readdirSync(join("data", "staging", "images")).filter((n) => n.endsWith(".json")).map((n) => n.slice(0, -5));
+  } catch {
+    // Nothing staged.
+  }
+  const removed = stripMockTiles(process.argv[2] ?? "out", staged);
+  console.log(`Removed ${removed.length} mock and staged tile trees from the build output`);
 }

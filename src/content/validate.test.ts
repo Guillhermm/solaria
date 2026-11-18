@@ -323,6 +323,20 @@ describe("pairs and band sets", () => {
         'data/pairs/demo-pair.json: registration.controlPoints[2].moving: (1200, 10) lies outside image "demo-b"',
       ]);
     });
+    it("keep registration notes and refuse an empty one", () => {
+      const f = withGroups();
+      const pair = f[4].raw as ReturnType<typeof fx.pair>;
+      pair.registration = { ...fx.similarityRegistration(), notes: "Per-chip offsets up to 0.3 arcsec." } as typeof pair.registration;
+      const r = validateContent(f);
+      expect(r.ok && r.value.pairs[0].registration).toMatchObject({ notes: "Per-chip offsets up to 0.3 arcsec." });
+      (pair.registration as { notes?: string }).notes = "";
+      expect(errorsOf(validateContent(f))[0]).toContain("registration.notes: expected a non-empty string");
+    });
+    it("accept staged content as real, not mock", () => {
+      const f = withGroups();
+      f[4].path = "data/staging/pairs/demo-pair.json";
+      expect(errorsOf(validateContent(f))).toEqual([]);
+    });
     it("tie mock to data/mock/", () => {
       const f = withGroups();
       f[4].path = "data/mock/pairs/demo-pair.json";

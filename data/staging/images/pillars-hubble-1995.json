@@ -1,0 +1,159 @@
+{
+  "id": "pillars-hubble-1995",
+  "sourceId": "pillars-hubble-1995",
+  "title": "Pillars of Creation, Hubble 1995 (WFPC2)",
+  "target": {
+    "value": {
+      "name": "Pillars of Creation, Eagle Nebula (M16)",
+      "type": "star-forming region"
+    },
+    "source": "https://science.nasa.gov/asset/hubble/gas-pillars-in-the-eagle-nebula-m16-pillars-of-creation-in-a-star-forming-region",
+    "status": "supported"
+  },
+  "observatory": {
+    "value": "Hubble",
+    "source": "https://science.nasa.gov/asset/hubble/gas-pillars-in-the-eagle-nebula-m16-pillars-of-creation-in-a-star-forming-region",
+    "status": "verified"
+  },
+  "instruments": {
+    "value": [
+      "Wide Field and Planetary Camera 2 (WFPC2)"
+    ],
+    "source": "https://science.nasa.gov/asset/hubble/gas-pillars-in-the-eagle-nebula-m16-pillars-of-creation-in-a-star-forming-region",
+    "status": "verified"
+  },
+  "bands": {
+    "value": [
+      {
+        "id": "[O III]"
+      },
+      {
+        "id": "H-alpha"
+      },
+      {
+        "id": "[S II]"
+      }
+    ],
+    "source": "https://esahubble.org/images/opo9544a/",
+    "status": "supported"
+  },
+  "colorMapping": {
+    "value": {
+      "kind": "per-band",
+      "entries": [
+        {
+          "bandId": "[O III]",
+          "color": "blue"
+        },
+        {
+          "bandId": "H-alpha",
+          "color": "green"
+        },
+        {
+          "bandId": "[S II]",
+          "color": "red"
+        }
+      ]
+    },
+    "source": "https://science.nasa.gov/asset/hubble/gas-pillars-in-the-eagle-nebula-m16-pillars-of-creation-in-a-star-forming-region",
+    "status": "verified"
+  },
+  "releasedAt": {
+    "value": "1995-11-02",
+    "source": "https://science.nasa.gov/asset/hubble/gas-pillars-in-the-eagle-nebula-m16-pillars-of-creation-in-a-star-forming-region",
+    "status": "verified"
+  },
+  "productType": {
+    "value": "mosaic",
+    "source": "docs/science/pillars.md",
+    "status": "supported"
+  },
+  "observedAt": {
+    "value": {
+      "start": "1995-04-01",
+      "end": "1995-04-01"
+    },
+    "source": "https://science.nasa.gov/asset/hubble/gas-pillars-in-the-eagle-nebula-m16-pillars-of-creation-in-a-star-forming-region",
+    "status": "verified"
+  },
+  "pixelScale": {
+    "value": {
+      "value": 0.099,
+      "unit": "arcsec/px"
+    },
+    "source": "docs/science/pillars.md",
+    "status": "supported"
+  },
+  "fieldOfView": {
+    "value": "2.51 x 2.47 arcmin",
+    "source": "https://esahubble.org/images/opo9544a/",
+    "status": "verified"
+  },
+  "orientation": {
+    "value": "North is 42.3 degrees left of vertical",
+    "source": "https://esahubble.org/images/opo9544a/",
+    "status": "verified"
+  },
+  "caveats": [
+    "The stepped empty corner is the layout of the camera's four detectors, not a feature of the nebula."
+  ],
+  "footprint": [
+    [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 766,
+        "y": 0
+      },
+      {
+        "x": 766,
+        "y": 407
+      },
+      {
+        "x": 1113,
+        "y": 407
+      },
+      {
+        "x": 1113,
+        "y": 746
+      },
+      {
+        "x": 1518,
+        "y": 746
+      },
+      {
+        "x": 1518,
+        "y": 1497
+      },
+      {
+        "x": 0,
+        "y": 1497
+      }
+    ]
+  ],
+  "tiles": {
+    "format": "jpg",
+    "tileSize": 256,
+    "overlap": 0,
+    "width": 1518,
+    "height": 1497,
+    "minLevel": 0,
+    "maxLevel": 6,
+    "thumbnail": {
+      "width": 512,
+      "height": 505
+    },
+    "preview": {
+      "width": 1518,
+      "height": 1497
+    }
+  },
+  "validation": {
+    "status": "draft",
+    "date": null,
+    "notes": "Awaiting science review (second-foundation:validate). Facts and their statuses from docs/science/pillars.md."
+  },
+  "mock": false
+}

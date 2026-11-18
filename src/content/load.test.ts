@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import * as fx from "./__fixtures__/content";
-import { ContentError, contentMode, loadContent } from "./load";
+import { ContentError, contentFile, contentMode, loadContent } from "./load";
 
 const roots: string[] = [];
 
@@ -46,6 +46,24 @@ describe("loadContent", () => {
     const dir = root([...fx.files(), ...mockFiles()]);
     expect(loadContent({ root: dir, mode: "development" }).images.map((i) => i.id)).toEqual(["demo", "m", "m2"]);
     expect(loadContent({ root: dir, mode: "production" }).images.map((i) => i.id)).toEqual(["demo"]);
+  });
+
+  it("reads data/staging only in development, as real content behind review", () => {
+    const draft = { status: "draft", date: null, notes: "In review." };
+    const dir = root([
+      ...fx.files(),
+      { path: "data/staging/sources/st.json", raw: { ...fx.source(), id: "st", validation: draft } },
+      { path: "data/staging/images/st.json", raw: { ...fx.image(), id: "st", sourceId: "st", validation: draft } },
+    ]);
+    expect(loadContent({ root: dir, mode: "development" }).images.map((i) => i.id)).toEqual(["demo", "st"]);
+    expect(loadContent({ root: dir, mode: "production" }).images.map((i) => i.id)).toEqual(["demo"]);
+  });
+
+  it("finds a record in data/ or data/staging/ for the scripts", () => {
+    const dir = root([...fx.files(), { path: "data/staging/images/st.json", raw: {} }]);
+    expect(contentFile(dir, "images", "demo")).toBe(join(dir, "data/images/demo.json"));
+    expect(contentFile(dir, "images", "st")).toBe(join(dir, "data/staging/images/st.json"));
+    expect(() => contentFile(dir, "images", "nope")).toThrow("no nope.json in data/images/ or data/staging/images/");
   });
 
   it("reads mock pairs and band sets only in development", () => {

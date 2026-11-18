@@ -14,12 +14,15 @@ data/                     content, JSON only; written by hand and by scripts
   pairs/<id>.json         Compare pair: two image ids, `differs` flags, registration, note
   band-sets/<id>.json     Light band set: two or more image ids, same fields as a pair
   mock/{sources,images,journeys,pairs,band-sets}/  mock content, loaded by `next dev` only (D-09)
+  staging/{sources,images,pairs,...}/  real content in science review: read in development
+                          only, `mock: false`; moved to data/ once approved (Sprint 7)
 scripts/                  pipeline, Node only, never imported by the app
   fetch-source.ts         download an original into .cache/sources/, check sha256
   generate-tiles.ts       pyramid, thumbnail, preview, `tiles` block
   validate-content.ts     same checks the build runs, for fast feedback and CI
   generate-mock.ts        writes the synthetic mock images, tiles, pair and band set (D-09)
-  strip-mock-tiles.ts     postbuild: removes out/tiles/mock-* from the production output
+  strip-mock-tiles.ts     postbuild: removes mock and staged tile trees from the production output
+  register-pair.ts        fits a pair's similarity from its control points and writes it back
   sync-r2.ts              pushes public/tiles to a Cloudflare R2 bucket (D-08)
   serve-static.ts         serves out/ on 127.0.0.1 for `npm start` and end-to-end tests
 src/content/              no React, no browser

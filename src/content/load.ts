@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { publishProblems } from "./gate";
 import type { Content } from "./types";
@@ -36,7 +36,7 @@ const readDir = (root: string, rel: string) => {
 
 export const loadContent = (opts: { root: string; mode: Mode }): Content => {
   const dirs: string[] = KINDS.map((k) => `data/${k}`);
-  if (opts.mode === "development") dirs.push(...KINDS.map((k) => `data/mock/${k}`));
+  if (opts.mode === "development") dirs.push(...KINDS.map((k) => `data/mock/${k}`), ...KINDS.map((k) => `data/staging/${k}`));
   const files = dirs.flatMap((d) => readDir(opts.root, d));
   const result = validateContent(files);
   if (!result.ok) throw new ContentError(result.errors);
@@ -51,6 +51,13 @@ export const loadContent = (opts: { root: string; mode: Mode }): Content => {
 // the end-to-end tests; nothing else sets it, so a plain build stays behind the gate.
 export const contentMode = (env: Record<string, string | undefined>): Mode =>
   env.SOLARIA_CONTENT === "development" || env.NODE_ENV !== "production" ? "development" : "production";
+
+// Where the scripts find a record: data/, or data/staging/ while it waits for science review.
+export const contentFile = (root: string, kind: (typeof KINDS)[number], id: string) => {
+  const found = [`data/${kind}/${id}.json`, `data/staging/${kind}/${id}.json`].find((p) => existsSync(join(root, p)));
+  if (!found) throw new Error(`no ${id}.json in data/${kind}/ or data/staging/${kind}/`);
+  return join(root, found);
+};
 
 let cached: Content | undefined;
 

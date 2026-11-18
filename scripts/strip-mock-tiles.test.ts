@@ -20,6 +20,13 @@ describe("stripMockTiles", () => {
     expect(existsSync(join(dir, "tiles", "mockery"))).toBe(true);
   });
 
+  it("removes the tile trees of staged images too", () => {
+    dir = mkdtempSync(join(tmpdir(), "strip-"));
+    for (const id of ["pillars-hubble-1995", "andromeda"]) mkdirSync(join(dir, "tiles", id), { recursive: true });
+    expect(stripMockTiles(dir, ["pillars-hubble-1995"])).toEqual(["pillars-hubble-1995"]);
+    expect(existsSync(join(dir, "tiles", "andromeda"))).toBe(true);
+  });
+
   it("does nothing when the output has no tiles", () => {
     dir = mkdtempSync(join(tmpdir(), "strip-"));
     expect(stripMockTiles(dir)).toEqual([]);

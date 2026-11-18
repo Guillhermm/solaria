@@ -40,11 +40,19 @@ describe("the real data directory", () => {
     expect(() => loadContent({ root: process.cwd(), mode: "production" })).not.toThrow();
   });
 
-  it("loads the mock pair and band set in development", () => {
+  it("loads the mock and the staged pairs and the mock band set in development", () => {
     const c = loadContent({ root: process.cwd(), mode: "development" });
-    expect(c.pairs.map((p) => p.id)).toEqual(["mock-compare"]);
+    expect(c.pairs.map((p) => p.id)).toEqual(["mock-compare", "pillars-hubble-1995-2014"]);
     expect(c.bandSets.map((b) => b.id)).toEqual(["mock-light"]);
-    expect([...c.pairs, ...c.bandSets].every((g) => g.mock)).toBe(true);
+    expect(c.bandSets.every((g) => g.mock)).toBe(true);
+  });
+
+  it("keeps the staged Hubble pair in draft, out of production", () => {
+    const dev = loadContent({ root: process.cwd(), mode: "development" });
+    const pair = dev.pairs.find((p) => p.id === "pillars-hubble-1995-2014")!;
+    expect([pair.mock, pair.validation.status]).toEqual([false, "draft"]);
+    const prod = loadContent({ root: process.cwd(), mode: "production" });
+    expect(prod.images.map((i) => i.id)).not.toContain("pillars-hubble-2014");
   });
 
   it("leaves the mock pair and band set out of a production load", () => {

@@ -1,0 +1,27 @@
+{
+  "id": "pillars-hubble-2014",
+  "title": "Pillars of Creation, Hubble WFC3, heic1501a (full resolution)",
+  "pageUrl": "https://esahubble.org/images/heic1501a/",
+  "fileUrl": "https://esahubble.org/media/archives/images/original/heic1501a.tif",
+  "releaseId": "heic1501a",
+  "releasedAt": "2015-01-05",
+  "credit": "NASA, ESA/Hubble and the Hubble Heritage Team",
+  "terms": {
+    "name": "Usage of ESA/Hubble Images and Videos (CC BY 4.0)",
+    "url": "https://esahubble.org/copyright/"
+  },
+  "retrievedAt": "2026-11-17",
+  "file": {
+    "format": "tif",
+    "bytes": 120462412,
+    "sha256": "eaaae93a1d671808add79216c5c12a229218fb5d8a7c8e8931ba01b3d8a46b2a",
+    "width": 6780,
+    "height": 7071
+  },
+  "validation": {
+    "status": "draft",
+    "date": null,
+    "notes": "Awaiting science review (second-foundation:validate). Facts and their statuses from docs/science/pillars.md."
+  },
+  "mock": false
+}

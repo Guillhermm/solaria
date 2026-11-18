@@ -1,0 +1,215 @@
+{
+  "id": "pillars-hubble-1995-2014",
+  "title": "Pillars of Creation, Hubble 1995 and 2014",
+  "imageIds": [
+    "pillars-hubble-1995",
+    "pillars-hubble-2014"
+  ],
+  "reference": "pillars-hubble-2014",
+  "headline": "Hubble 1995 and 2014",
+  "labels": [
+    {
+      "full": "1995, Hubble WFPC2",
+      "short": "1995"
+    },
+    {
+      "full": "2014, Hubble WFC3",
+      "short": "2014"
+    }
+  ],
+  "differs": {
+    "instrument": true,
+    "band": false,
+    "date": true,
+    "illumination": false,
+    "geometry": false,
+    "processing": false
+  },
+  "registration": {
+    "method": "similarity, least squares on 15 star control points (Second Foundation mathematician, 2026-11-17)",
+    "transform": "similarity",
+    "controlPoints": [
+      {
+        "label": "S01, WF-TL",
+        "moving": {
+          "x": 399.12,
+          "y": 109.2
+        },
+        "reference": {
+          "x": 2869.7,
+          "y": 682.64
+        }
+      },
+      {
+        "label": "S02, WF-TL",
+        "moving": {
+          "x": 610.7,
+          "y": 580.64
+        },
+        "reference": {
+          "x": 3240.94,
+          "y": 1910.03
+        }
+      },
+      {
+        "label": "S03, WF-TL",
+        "moving": {
+          "x": 77.65,
+          "y": 142.3
+        },
+        "reference": {
+          "x": 2069.5,
+          "y": 664.58
+        }
+      },
+      {
+        "label": "S04, WF-TL",
+        "moving": {
+          "x": 324.93,
+          "y": 429.31
+        },
+        "reference": {
+          "x": 2586.74,
+          "y": 1447.33
+        }
+      },
+      {
+        "label": "S05, WF-TL",
+        "moving": {
+          "x": 714.47,
+          "y": 689.72
+        },
+        "reference": {
+          "x": 3461.62,
+          "y": 2210.81
+        }
+      },
+      {
+        "label": "S06, PC",
+        "moving": {
+          "x": 1084.49,
+          "y": 473.32
+        },
+        "reference": {
+          "x": 4439.09,
+          "y": 1799.12
+        }
+      },
+      {
+        "label": "S07, PC",
+        "moving": {
+          "x": 1037.86,
+          "y": 620.81
+        },
+        "reference": {
+          "x": 4279.15,
+          "y": 2145.88
+        }
+      },
+      {
+        "label": "S08, WF-BL",
+        "moving": {
+          "x": 137.16,
+          "y": 1150.04
+        },
+        "reference": {
+          "x": 1899.04,
+          "y": 3165.13
+        }
+      },
+      {
+        "label": "S09, WF-BL",
+        "moving": {
+          "x": 343.23,
+          "y": 962.85
+        },
+        "reference": {
+          "x": 2467.65,
+          "y": 2771.63
+        }
+      },
+      {
+        "label": "S10, WF-BL",
+        "moving": {
+          "x": 277.39,
+          "y": 1461.71
+        },
+        "reference": {
+          "x": 2144.2,
+          "y": 3974.33
+        }
+      },
+      {
+        "label": "S11, WF-BL",
+        "moving": {
+          "x": 722.88,
+          "y": 1082.63
+        },
+        "reference": {
+          "x": 3355.65,
+          "y": 3182.35
+        }
+      },
+      {
+        "label": "S12, WF-BR",
+        "moving": {
+          "x": 1452.87,
+          "y": 1434.35
+        },
+        "reference": {
+          "x": 5042.7,
+          "y": 4278.71
+        }
+      },
+      {
+        "label": "S13, WF-BR",
+        "moving": {
+          "x": 1445.5,
+          "y": 1006.84
+        },
+        "reference": {
+          "x": 5161.74,
+          "y": 3225.1
+        }
+      },
+      {
+        "label": "S14, WF-BR",
+        "moving": {
+          "x": 1339.68,
+          "y": 812.93
+        },
+        "reference": {
+          "x": 4961.06,
+          "y": 2714.27
+        }
+      },
+      {
+        "label": "S15, WF-BR",
+        "moving": {
+          "x": 1358.63,
+          "y": 1249.09
+        },
+        "reference": {
+          "x": 4871.54,
+          "y": 3792.92
+        }
+      }
+    ],
+    "similarity": {
+      "scale": 2.480406764775808,
+      "rotationDeg": 7.316675750701712,
+      "tx": 1922.6834577295635,
+      "ty": 290.5482819223739
+    },
+    "residualPx": 2.4967113265995695,
+    "maxResidualPx": 6.074423915251294,
+    "notes": "One similarity for the whole mosaic, by decision; the fit is not per chip. The WFPC2 release mosaic keeps per-chip offsets: with a shared scale, chip translations relative to WF-BR are WF-TL (-2.8, -6.9), WF-BL (-2.6, -1.2) and PC (-1.6, -2.5) 2014 px, up to about 7.5 2014 px (0.3 arcsec) between WF-TL and WF-BR; a translation per chip would bring the RMS from 2.56 to 1.66 px (90 inliers). Held out of the fit: S16 (WF-TL) 1995 (486.44, 195.24) to 2014 (3057.02, 922.66); S17 (WF-BL) 1995 (264.62, 1179.22) to 2014 (2203.6, 3276.26); S18 (WF-BR) 1995 (1193.62, 1330.51) to 2014 (4439.43, 3940.82); residuals 2.02, 2.59 and 0.50 px (2014). Details: docs/science/pillars.md, part 2."
+  },
+  "whatDiffers": "Draft, awaiting science review. Same telescope, two cameras: WFPC2 in 1995, WFC3 in 2014. The 2014 image is sharper and covers a wider field. The two were taken about 19 years apart.",
+  "validation": {
+    "status": "draft",
+    "date": null,
+    "notes": "Awaiting science review (second-foundation:validate): the headline, the labels and the note are claims."
+  },
+  "mock": false
+}

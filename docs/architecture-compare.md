@@ -287,3 +287,18 @@ Where the build differs from sections 1 to 4, and why. Each was the simpler work
   `npm run build` is unchanged and stays behind the gate.
 - **The mock pair** is drawn at 4096 x 2048 (scene units times 4) so OpenSeadragon's
   `maxZoomPixelRatio` of 1.1 still lets a viewer zoom past the fit.
+- **Staged content.** The Hubble pair, its images and sources are draft, and the gate fails a
+  production build on any draft record in `data/`. They live in `data/staging/`, which
+  `loadContent` reads in development only (and in the end-to-end build); `fetch-source`,
+  `generate-tiles` and `register-pair` find a record in either place; the postbuild step
+  strips staged tile trees from `out/`. Moving the files to `data/` publishes them, and the
+  gate then checks them as usual.
+- **Tiler access.** `generate-tiles` opens files up to 100 megapixels for random access:
+  each pyramid level reads the original again, which the sequential TIFF reader refused on the
+  1995 file ("out of order read").
+- **Hubble registration (C-03).** 15 fit stars and 3 held out, picked by the Second
+  Foundation mathematician (`docs/science/pillars.md`, part 2). `register-pair` reproduces
+  scale 2.48041, rotation +7.3167 degrees, translation (1922.68, 290.55), RMS 2.50 px and
+  worst 6.07 px (2014 pixels), and a test holds it there. One similarity for the whole
+  mosaic, by decision; the per-chip offsets are in `registration.notes`. Footprint: the
+  measured data area with the x = 768 edge moved in to 766.

@@ -151,6 +151,7 @@ export type Registration =
       similarity: Similarity; // written by scripts/register-pair.ts
       residualPx: number; // RMS, reference pixels, written by the script
       maxResidualPx: number; // worst point, reference pixels, written by the script
+      notes?: string; // what the fit leaves out, from the science review (e.g. per-chip offsets)
     };
 
 interface ImageGroup {

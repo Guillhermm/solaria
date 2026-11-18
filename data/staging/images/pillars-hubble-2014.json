@@ -1,0 +1,120 @@
+{
+  "id": "pillars-hubble-2014",
+  "sourceId": "pillars-hubble-2014",
+  "title": "Pillars of Creation, Hubble 2014 (WFC3)",
+  "target": {
+    "value": {
+      "name": "Pillars of Creation, Eagle Nebula (M16)",
+      "type": "star-forming region"
+    },
+    "source": "https://esahubble.org/news/heic1501/",
+    "status": "supported"
+  },
+  "observatory": {
+    "value": "Hubble",
+    "source": "https://esahubble.org/images/heic1501a/",
+    "status": "verified"
+  },
+  "instruments": {
+    "value": [
+      "Wide Field Camera 3 (WFC3)"
+    ],
+    "source": "https://science.nasa.gov/asset/hubble/2014-hubble-wfc3uvis-image-of-m16/",
+    "status": "verified"
+  },
+  "bands": {
+    "value": [
+      {
+        "id": "F502N"
+      },
+      {
+        "id": "F657N"
+      },
+      {
+        "id": "F673N"
+      }
+    ],
+    "source": "https://science.nasa.gov/asset/hubble/2014-hubble-wfc3uvis-image-of-m16/",
+    "status": "verified"
+  },
+  "colorMapping": {
+    "value": {
+      "kind": "per-band",
+      "entries": [
+        {
+          "bandId": "F502N",
+          "color": "blue"
+        },
+        {
+          "bandId": "F657N",
+          "color": "green"
+        },
+        {
+          "bandId": "F673N",
+          "color": "red"
+        }
+      ]
+    },
+    "source": "https://science.nasa.gov/asset/hubble/2014-hubble-wfc3uvis-image-of-m16/",
+    "status": "verified"
+  },
+  "releasedAt": {
+    "value": "2015-01-05",
+    "source": "https://esahubble.org/images/heic1501a/",
+    "status": "verified"
+  },
+  "productType": {
+    "value": "mosaic",
+    "source": "https://esahubble.org/news/heic1501/",
+    "status": "supported"
+  },
+  "observedAt": {
+    "value": {
+      "start": "2014-09",
+      "end": "2014-09"
+    },
+    "source": "https://science.nasa.gov/asset/hubble/2014-hubble-wfc3uvis-image-of-m16/",
+    "status": "verified"
+  },
+  "pixelScale": {
+    "value": {
+      "value": 0.04,
+      "unit": "arcsec/px"
+    },
+    "source": "docs/science/pillars.md",
+    "status": "supported"
+  },
+  "fieldOfView": {
+    "value": "4.53 x 4.72 arcmin",
+    "source": "https://esahubble.org/images/heic1501a/",
+    "status": "verified"
+  },
+  "orientation": {
+    "value": "North is 35.0 degrees left of vertical",
+    "source": "https://esahubble.org/images/heic1501a/",
+    "status": "verified"
+  },
+  "tiles": {
+    "format": "jpg",
+    "tileSize": 256,
+    "overlap": 0,
+    "width": 6780,
+    "height": 7071,
+    "minLevel": 0,
+    "maxLevel": 6,
+    "thumbnail": {
+      "width": 491,
+      "height": 512
+    },
+    "preview": {
+      "width": 1964,
+      "height": 2048
+    }
+  },
+  "validation": {
+    "status": "draft",
+    "date": null,
+    "notes": "Awaiting science review (second-foundation:validate). Facts and their statuses from docs/science/pillars.md."
+  },
+  "mock": false
+}

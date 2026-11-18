@@ -4,6 +4,7 @@ import { mkdir, readFile, rename, rm, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { Readable, Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
+import { contentFile } from "../src/content/load";
 import { validateSource } from "../src/content/validate";
 import type { Source } from "../src/content/types";
 
@@ -82,7 +83,7 @@ const main = async () => {
     console.error("Usage: tsx scripts/fetch-source.ts <sourceId>");
     process.exit(1);
   }
-  const file = `data/sources/${id}.json`;
+  const file = contentFile(process.cwd(), "sources", id);
   const parsed = validateSource(JSON.parse(await readFile(file, "utf8")), file);
   if (!parsed.ok) {
     console.error(parsed.errors.join("\n"));

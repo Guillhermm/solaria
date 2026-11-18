@@ -434,7 +434,7 @@ const registration = (c: Ctx, v: unknown): Registration | undefined => {
       residualPx: literal(c, r.residualPx, "registration.residualPx", 0),
     });
   }
-  const r = object(c, v, "registration", ["method", "transform", "controlPoints", "similarity", "residualPx", "maxResidualPx"]);
+  const r = object(c, v, "registration", ["method", "transform", "controlPoints", "similarity", "residualPx", "maxResidualPx"], ["notes"]);
   if (!r) return undefined;
   const points = arrayOf(c, r.controlPoints, "registration.controlPoints", (x, p) => controlPoint(c, x, p));
   if (points && points.length < MIN_CONTROL_POINTS) {
@@ -447,7 +447,9 @@ const registration = (c: Ctx, v: unknown): Registration | undefined => {
     similarity: similarity(c, r.similarity, "registration.similarity"),
     residualPx: nonNegative(c, r.residualPx, "registration.residualPx"),
     maxResidualPx: nonNegative(c, r.maxResidualPx, "registration.maxResidualPx"),
+    notes: "notes" in r ? str(c, r.notes, "registration.notes") : undefined,
   });
+  if (value && value.notes === undefined) delete value.notes;
   if (value) checkRefit(c, value);
   return value;
 };
@@ -524,9 +526,11 @@ export const validateBandSet = (raw: unknown, file: string): Result<BandSet> => 
 
 type Kind = "sources" | "images" | "journeys" | "pairs" | "band-sets";
 
+// data/staging/ holds real content still in science review: read in development only, like
+// data/mock/, but not mock.
 const classify = (path: string) => {
-  const m = /^data\/(mock\/)?(sources|images|journeys|pairs|band-sets)\/([^/]+)\.json$/.exec(path);
-  return m ? { kind: m[2] as Kind, name: m[3], mock: m[1] !== undefined } : undefined;
+  const m = /^data\/(mock\/|staging\/)?(sources|images|journeys|pairs|band-sets)\/([^/]+)\.json$/.exec(path);
+  return m ? { kind: m[2] as Kind, name: m[3], mock: m[1] === "mock/" } : undefined;
 };
 
 export const validateContent = (files: { path: string; raw: unknown }[]): Result<Content> => {
@@ -537,7 +541,7 @@ export const validateContent = (files: { path: string; raw: unknown }[]): Result
   for (const { path, raw } of files) {
     const info = classify(path);
     if (!info) {
-      errors.push(`${path}: not a content file (expected data/{sources,images,journeys,pairs,band-sets}/<name>.json or the same under data/mock/)`);
+      errors.push(`${path}: not a content file (expected data/{sources,images,journeys,pairs,band-sets}/<name>.json or the same under data/mock/ or data/staging/)`);
       continue;
     }
     const r =
