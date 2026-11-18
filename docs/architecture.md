@@ -571,7 +571,13 @@ npm run sync-r2 -- [--dir public/tiles] [--apply]
 - Credentials come from `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` and
   `R2_BUCKET`, read from the environment only. Output never contains a value, only the
   names of missing variables. A dry run without them makes no request and treats every
-  file as new; `--apply` without them stops.
+  file as new; `--apply` without them stops. `npm run sync-r2` also loads a `.env` file
+  when one exists (`.env.example` lists the variables).
+- `--create-bucket` checks `R2_BUCKET` with a HEAD request. If the bucket exists it changes
+  nothing and says so; otherwise it reports what it would do, and with `--apply` creates the
+  bucket and sets a CORS rule allowing GET and HEAD from `https://solaria.zenus.systems` and
+  the local dev origin. Creating a bucket needs an Admin Read & Write token. Public access
+  and the custom domain are set in the Cloudflare dashboard.
 - No dependency: R2's S3 API is called with `fetch`, signed with AWS Signature Version 4
   (`node:crypto`, `signRequest`, about 30 lines) against `https://<account>.r2.cloudflarestorage.com/<bucket>`,
   region `auto`. A unit test reproduces two signatures published in the AWS documentation

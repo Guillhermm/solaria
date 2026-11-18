@@ -207,6 +207,24 @@ export const makeClient = (env: Env, deps: Deps) => {
       } while (token);
       return remote;
     },
+    exists: async () => {
+      const res = await send("HEAD", base, undefined, {});
+      if (res.status === 404) return false;
+      if (!res.ok) throw new Error(`checking the bucket failed with HTTP ${res.status}`);
+      return true;
+    },
+    create: async () => {
+      const res = await send("PUT", base, undefined, {});
+      if (!res.ok) throw new Error(`creating the bucket failed with HTTP ${res.status}`);
+    },
+    putCors: async (xml: string) => {
+      const body = Buffer.from(xml);
+      const res = await send("PUT", `${base}?cors=`, body, {
+        "content-type": "application/xml",
+        "content-md5": createHash("md5").update(body).digest("base64"),
+      });
+      if (!res.ok) throw new Error(`setting the bucket CORS rule failed with HTTP ${res.status}`);
+    },
     put: async (file: LocalFile) => {
       const url = `${base}/${file.key.split("/").map(encode).join("/")}`;
       const res = await send("PUT", url, readFileSync(file.path), {
@@ -265,21 +283,67 @@ export const runSync = async (opts: RunOptions) => {
   return failed === 0 ? 0 : 1;
 };
 
+// The viewer fetches tiles with crossOriginPolicy "Anonymous", so the bucket must answer
+// CORS for the site's origins; reads only.
+export const CORS_ORIGINS = ["https://solaria.zenus.systems", "http://127.0.0.1:8434", "http://localhost:8434"];
+
+export const corsXml = (origins: string[]) =>
+  `<CORSConfiguration><CORSRule>${origins.map((o) => `<AllowedOrigin>${o}</AllowedOrigin>`).join("")}` +
+  `<AllowedMethod>GET</AllowedMethod><AllowedMethod>HEAD</AllowedMethod><AllowedHeader>*</AllowedHeader>` +
+  `<MaxAgeSeconds>86400</MaxAgeSeconds></CORSRule></CORSConfiguration>`;
+
+export interface CreateOptions {
+  apply: boolean;
+  env: Record<string, string | undefined>;
+  deps: Deps;
+}
+
+// Creates R2_BUCKET and its CORS rule. A bucket that already exists is left exactly as it
+// is, so this can never change a bucket the account already had.
+export const runCreateBucket = async ({ apply, env, deps }: CreateOptions) => {
+  const creds = readEnv(env);
+  if ("missing" in creds) {
+    deps.log(`Cannot check the bucket: set ${creds.missing.join(", ")}`);
+    return 1;
+  }
+  const client = makeClient(creds.env, deps);
+  const name = creds.env.bucket;
+  if (await client.exists()) {
+    deps.log(`Bucket ${name} already exists; nothing was changed.`);
+    return 0;
+  }
+  if (!apply) {
+    deps.log(`Would create bucket ${name} with CORS for GET and HEAD from ${CORS_ORIGINS.join(", ")}.`);
+    deps.log("Dry run. Pass --apply to create it.");
+    return 0;
+  }
+  await client.create();
+  await client.putCors(corsXml(CORS_ORIGINS));
+  deps.log(`Created bucket ${name} with CORS for GET and HEAD from ${CORS_ORIGINS.join(", ")}.`);
+  return 0;
+};
+
 const main = async () => {
   const args = process.argv.slice(2);
   const dirIndex = args.indexOf("--dir");
   const dir = dirIndex >= 0 ? args[dirIndex + 1] : join("public", "tiles");
-  const unknown = args.filter((a, i) => a !== "--apply" && a !== "--dir" && i !== dirIndex + 1);
+  const flags = ["--apply", "--dir", "--create-bucket"];
+  const unknown = args.filter((a, i) => !flags.includes(a) && (dirIndex < 0 || i !== dirIndex + 1));
   if (!dir || unknown.length > 0) {
-    console.error("Usage: tsx scripts/sync-r2.ts [--dir <tiles directory>] [--apply]");
+    console.error("Usage: tsx scripts/sync-r2.ts [--create-bucket] [--dir <tiles directory>] [--apply]");
     process.exit(1);
+  }
+  const deps: Deps = { fetch, now: () => new Date(), log: (l) => console.log(l) };
+  if (args.includes("--create-bucket")) {
+    process.exitCode = await runCreateBucket({ apply: args.includes("--apply"), env: process.env, deps });
+    return;
   }
   const code = await runSync({
     dir,
     staged: stagedImageIds(process.cwd()),
     apply: args.includes("--apply"),
     env: process.env,
-    deps: { fetch, now: () => new Date(), log: (l) => console.log(l) },
+    deps,
   });
   process.exitCode = code;
 };

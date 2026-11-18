@@ -49,7 +49,9 @@ in [docs/science/](docs/science/).
   (it lists what it would upload), `--apply` to upload, skipping objects whose size and MD5
   already match. It reads `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` and
   `R2_BUCKET` from the environment, or from a `.env` file in the repository root when one
-  exists (copy `.env.example`), and has no dependency. Ready and unit-tested with a mocked
+  exists (copy `.env.example`), and has no dependency. `npm run sync-r2 -- --create-bucket`
+  checks `R2_BUCKET` and, with `--apply`, creates it with a read-only CORS rule for the
+  site's origins; a bucket that already exists is left untouched. Ready and unit-tested with a mocked
   `fetch`, but not yet run against a real bucket (the bucket is roadmap item R-01).
   `TILE_BASE_URL` (a root-relative path or an https URL, default `/tiles`) is read at build
   time and sets where the viewer loads tiles from; a build serves one base.
