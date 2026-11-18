@@ -110,6 +110,6 @@ Deferred: offline support.
 
 ## License
 
-The code is under the [MIT License](LICENSE). It does not cover the images, tiles or the
+The code is under the [Apache License 2.0](LICENSE). It does not cover the images, tiles or the
 captions taken from their sources: each image keeps its owner's terms and credit line, listed
 on the About page and in [docs/science/](docs/science/).
