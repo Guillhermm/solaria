@@ -1,4 +1,4 @@
-import { execFile } from "node:child_process";
+import { execFile, spawnSync } from "node:child_process";
 import { mkdirSync, readFileSync, readdirSync, renameSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { isDeepStrictEqual, promisify } from "node:util";
@@ -125,6 +125,14 @@ export const run = async (ids: string[], deps: BuildDeps) => {
   return failed.length === 0 ? 0 : 1;
 };
 
+// wasm-vips never hands its heap back between images, so a long run ends in "Insufficient memory"
+// (the CI run of all, 2026-11-18). Each image gets a fresh process instead.
+export const runIsolated = (ids: string[], buildOne: (id: string) => number, log: (line: string) => void) => {
+  const failed = ids.filter((id) => buildOne(id) !== 0);
+  log(failed.length === 0 ? `Built ${ids.length} image(s)` : `${failed.length} of ${ids.length} failed: ${failed.join(", ")}`);
+  return failed.length === 0 ? 0 : 1;
+};
+
 const main = async () => {
   const args = process.argv.slice(2);
   const writeManifest = args.includes("--write-manifest");
@@ -141,6 +149,11 @@ const main = async () => {
   if (writeManifest) {
     ids.forEach((id) => writeExpected(id, root));
     console.log(`Wrote the tiles block of ${ids.join(", ")}`);
+    return;
+  }
+  if (ids.length > 1) {
+    const buildOne = (id: string) => spawnSync("npx", ["tsx", "scripts/build-tiles.ts", id], { stdio: "inherit" }).status ?? 1;
+    process.exitCode = runIsolated(ids, buildOne, (l) => console.log(l));
     return;
   }
   const vips = await Vips();

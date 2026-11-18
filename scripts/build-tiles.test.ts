@@ -6,7 +6,7 @@ import Vips from "wasm-vips";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import * as fx from "../src/content/__fixtures__/content";
 import { loadContent } from "../src/content/load";
-import { type BuildDeps, buildImage, expectedTiles, imageIds, parseTargets, run, writeExpected } from "./build-tiles";
+import { type BuildDeps, buildImage, expectedTiles, imageIds, parseTargets, run, runIsolated, writeExpected } from "./build-tiles";
 import { tileImage } from "./generate-tiles";
 
 describe("expectedTiles", () => {
@@ -181,5 +181,20 @@ describe("ignore rules for public/tiles", () => {
   });
   it("keeps the mock trees trackable", () => {
     expect(ignored("public/tiles/mock-light-a/0/0/0.jpg")).toBe(false);
+  });
+});
+
+describe("runIsolated", () => {
+  it("builds every id even after one fails, and reports the failures", () => {
+    const seen: string[] = [];
+    const log: string[] = [];
+    const code = runIsolated(["a", "b", "c"], (id) => (seen.push(id), id === "b" ? 1 : 0), (l) => log.push(l));
+    expect(seen).toEqual(["a", "b", "c"]);
+    expect(code).toBe(1);
+    expect(log).toEqual(["1 of 3 failed: b"]);
+  });
+
+  it("exits 0 when every child succeeds", () => {
+    expect(runIsolated(["a", "b"], () => 0, () => {})).toBe(0);
   });
 });

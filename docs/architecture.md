@@ -595,6 +595,8 @@ npm run sync-r2 -- [--dir public/tiles] [--apply]
   A failed fetch, hash, cut or mismatch is reported per id, leaves nothing for that id, and the
   exit code is 1 so the sync step does not run. The workflow cannot commit, so a mismatch is
   how CI catches a drifted manifest.
+  With more than one id, each image is built in its own child process: wasm-vips does not
+  return its heap between images, and the first CI run of `all` ran out of memory on the ninth.
 - Adding an image needs no local download: write the manifest without a `tiles` block, run
   `npm run build-tiles -- <id> --write-manifest`, which fills the block from the source record's
   `file.width` and `file.height` (or the `crop`), and commit the manifest. Then run the workflow
