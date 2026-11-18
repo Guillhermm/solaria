@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { type PointerEvent, useRef } from "react";
+import { type MouseEvent, type PointerEvent, useRef } from "react";
 import { LuArrowLeft, LuArrowRight } from "react-icons/lu";
 import OutLink from "@/components/OutLink";
 import type { Journey } from "@/content/types";
@@ -14,7 +14,7 @@ interface StoryPanelProps {
   onGo: (index: number) => void;
   onExplore: () => void;
   collapsed: boolean; // phone: the sheet is down to the stop's title
-  compare?: { href: string; label: string }; // phone: the pair's Compare on this stop's view (the top bar has no room)
+  compare?: { href: string; label: string; onFollow: (e: MouseEvent<HTMLAnchorElement>) => void }; // phone: the pair's Compare on this stop's view (the top bar has no room)
 }
 
 const SWIPE_REM = 2.5;
@@ -110,7 +110,7 @@ const StoryPanel = ({ journey, index, seen, mission, onGo, onExplore, collapsed,
                     ))}
                   </ul>
                   {compare && (
-                    <a className={styles.compare} href={compare.href}>
+                    <a className={styles.compare} href={compare.href} onClick={compare.onFollow}>
                       {compare.label}
                       <LuArrowRight aria-hidden />
                     </a>

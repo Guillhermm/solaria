@@ -1279,8 +1279,9 @@ descriptions, stop bodies and credits, all from validated data.
   Each stop keeps its own button in the overview and its row in the stop list.
 - **D13, Compare from a Journey.** A Journey on a pair's reference image links to that
   image's Compare (wipe) on the stop's view: a "Compare" item after Story and Explore in the
-  top bar, named "Compare" plus the pair's headline; in Explore it carries the view on
-  screen. A phone's top bar has no room for it, so the stop card carries the link there,
+  top bar, named "Compare" plus the pair's headline. Followed, it carries the view on screen,
+  so Compare opens at the zoom Story shows (a stop past the hand zoom cap is shown at the
+  cap); copied, it holds the stop's own view. A phone's top bar has no room for it, so the stop card carries the link there,
   with the same name as its text.
 - **D14, Compare shows each image only inside its footprint.** The reference is cut to its
   own footprint in every layout (left of the divider in Wipe), as the moving image already

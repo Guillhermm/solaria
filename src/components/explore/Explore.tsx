@@ -1347,6 +1347,17 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   const leftLabel = pairSides?.left.full ?? "";
   const rightLabel = pairSides?.right.full ?? "";
   const modeSwitch = offered.length > 1;
+
+  // The link's href holds the stop's own view for a copied link; followed, it carries the view
+  // on screen, so Compare opens at the zoom Story shows (a stop past the hand zoom cap is shown
+  // at the cap).
+  const followCompare = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>) => {
+      const viewer = viewerRef.current;
+      if (viewer && journey && compareFrom) e.currentTarget.href = compareHref(journey.imageId, compareFrom.pair, settledView(viewer, { width: imageWidth, height: imageHeight }));
+    },
+    [journey, compareFrom, imageWidth, imageHeight],
+  );
   // Light shows the band nearest the rail's position: its image's About panel and credit. While
   // two bands blend, on the rail or in a stop's fade, both credits show.
   // What the bands put on screen waits for the viewer: the static HTML cannot know the band a
@@ -1469,16 +1480,12 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
                 Explore
               </button>
               {compareFrom && (
-                // The pair lives on the image's page: Compare opens there on the stop's view, or
-                // on the view in Explore, read when the link is followed.
+                // The pair lives on the image's page: Compare opens there on the view on screen.
                 <a
                   className={styles.compareLink}
                   href={compareHref(journey.imageId, compareFrom.pair, journey.stops[stop].viewport)}
                   aria-label={`Compare ${compareFrom.headline}`}
-                  onClick={(e) => {
-                    const viewer = viewerRef.current;
-                    if (!story && viewer) e.currentTarget.href = compareHref(journey.imageId, compareFrom.pair, settledView(viewer, size));
-                  }}
+                  onClick={followCompare}
                 >
                   Compare
                 </a>
@@ -1702,7 +1709,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         {story && journey && (
           <div id={storyId} className={styles.story}>
             <StoryPanel journey={journey} index={stop} seen={seen} mission={mission} onGo={goTo} onExplore={toExplore} collapsed={sheet === "min"}
-              compare={compareFrom && { href: compareHref(journey.imageId, compareFrom.pair, journey.stops[stop].viewport), label: `Compare ${compareFrom.headline}` }}
+              compare={compareFrom && { href: compareHref(journey.imageId, compareFrom.pair, journey.stops[stop].viewport), label: `Compare ${compareFrom.headline}`, onFollow: followCompare }}
             />
           </div>
         )}

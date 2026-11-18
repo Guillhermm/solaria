@@ -70,10 +70,13 @@ const sameArea = (a: number[][], b: number[][]) => {
 
 const compareFromStops = () => {
   for (const n of [4, 5, 6]) {
-    test(`stop ${n}: one click opens the June and October wipe on the stop's view`, async ({ page }) => {
-      const v = journey.stops[n - 1].viewport;
+    test(`stop ${n}: one click opens the June and October wipe on the view Story shows`, async ({ page }) => {
       await page.goto(`/${journey.slug}/?mode=story&stop=${n}`);
       await ready(page);
+      await settled(page);
+      await steady(page);
+      // The stop as Story shows it, past the hand zoom cap or not.
+      const v = await readout(page);
       await page.getByRole("link", { name: /^Compare June and October/ }).click();
       await expect(page).toHaveURL(new RegExp(`/${pair.reference}/\\?mode=compare`));
       await ready(page);
