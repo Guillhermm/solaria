@@ -25,12 +25,13 @@ const ready = async (page: Page) => {
   await page.waitForFunction(() => !document.querySelector("main[data-loading]"));
 };
 
-test("every viewer page draws with the canvas drawer", async ({ page }) => {
+test("every viewer page draws with the canvas drawer and keeps 500 tiles", async ({ page }) => {
   test.slow();
   for (const path of pages) {
     await page.goto(path);
     await ready(page);
     await expect(page.getByTestId("viewer"), path).toHaveAttribute("data-drawer", "canvas");
+    await expect(page.getByTestId("viewer"), path).toHaveAttribute("data-tile-cache", "500");
   }
 });
 

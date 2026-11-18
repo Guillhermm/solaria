@@ -694,6 +694,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           vp.applyConstraints(true);
         }
         host.dataset.drawer = (opened.drawer as unknown as { getType: () => string }).getType();
+        host.dataset.tileCache = String((opened as unknown as { maxImageCacheCount: number }).maxImageCacheCount);
         host.dataset.open = "";
         // L2: a link with labels=1 opens with them on, in the modes that show them.
         if (parseLabelsParam(window.location.search)) setLabelsOn(true);
