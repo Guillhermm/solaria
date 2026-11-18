@@ -598,9 +598,11 @@ r = width / height of the image file:
 
 - LCP under 2.5 s on a mid phone: the home hero renders a static poster JPEG (the lowest
   useful level, about 150 KB, preloaded) and only then starts OpenSeadragon on top of it.
-- CLS below 0.1 (web.dev's "good" threshold), and 0 on Home and the viewer: the viewer
-  reserves the full viewport from the first paint. Decided on 2026-11-17: fonts keep
-  `font-display: swap`, so text pages such as About may shift slightly when Geist arrives.
+- CLS below 0.1 (web.dev's "good" threshold), and below 0.01 on Home and the viewer: the
+  viewer reserves the full viewport from the first paint. Decided on 2026-11-17: fonts keep
+  `font-display: swap`, so text moves slightly when Geist arrives, by more where the
+  system Arial differs from the one the fallback is matched to (the CI runner measured
+  0.0015 on Home and 0.0005 on the viewer, against 0 on macOS).
 - INP under 200 ms: no React state update per viewport frame (the current `setScale` on
   every `viewport-change` re-renders the component during pans); update readouts through
   a ref or throttle to one per animation frame.
