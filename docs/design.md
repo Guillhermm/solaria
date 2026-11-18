@@ -1013,13 +1013,13 @@ S1 to S4 (14.1) hold for every element added here. Three more apply to every rul
 
 - Q1. The index is built at build time from content whose validation status is `approved`
   and whose `mock` is false, and is inlined into the page: opening search or typing makes
-  no network request. It holds three kinds: every image title (13), every label text in
-  `data/labels` (4) and the title of every Journey stop that lands on one place (19), 36
+  no network request. It holds three kinds: every image title (15), every label text in
+  `data/labels` (4) and the title of every Journey stop that lands on one place (25), 44
   entries today. Stops at the fit view (the two "Your turn" stops and the whole-galaxy and
   whole-disk stops) stay out (15.5, D1). A mock or
   unapproved entry never appears (unit test with a fixture).
 - Q2. The serialized index is 16 KB or less in each page's HTML. Raised from 8 KB on
-  2026-11-18, when the Pillars Journey took it to 8 593 bytes; no reason for 8 KB was
+  2026-11-18, when the Pillars Journey took it to 8 593 bytes (10 656 with the Moon Journey); no reason for 8 KB was
   recorded, and the target it serves is section 9's LCP. Measured on the production build:
   the index is 1.3 KB of Home's 15.3 KB of gzipped HTML (82 KB raw), about 6 ms at the
   1.6 Mbps of section 9's throttling; Home LCP stays the poster, median 1.66 s over five
@@ -1096,9 +1096,9 @@ S1 to S4 (14.1) hold for every element added here. Three more apply to every rul
   M32. "andromeda" gives Andromeda core, then Andromeda Galaxy (M31), Hubble PHAT+PHAST
   panorama. "171" gives 171 Å, active region 13664, then The Sun, SDO AIA 171 Å,
   2024-05-10 12:00 UTC. "your turn" gives the no-match state. "sun" gives the seven SDO
-  images, 7 rows and no overflow line. "the" matches 16 entries: The bright center, The
-  companion galaxy M32, The ripples moved, The dunes stayed, then four SDO images, with
-  "Showing 8 of 16. Type more to narrow." under them (the line shows only past 8).
+  images, 7 rows and no overflow line. "the" matches 20 entries: The bright center, The
+  companion galaxy M32, The descent stage, The shadow flips, The ripples moved, The dunes
+  stayed, then two SDO images, with "Showing 8 of 20. Type more to narrow." under them (the line shows only past 8).
   "pillars" gives the 1995 image, then 2014, then Webb 2022.
   (Vectors as of D1 and the Sun stop titles of D3.)
 - Q17. Results update on every input event with no debounce and no animation. The live
@@ -1142,8 +1142,8 @@ S1 to S4 (14.1) hold for every element added here. Three more apply to every rul
   image title as context, to `/<id>/?mode=explore&x=&y=&z=4`. The images of one band set
   are one row, to its first image in Light (`?mode=light&x=&y=&z=4`) with the band set's
   title as context. Order: Journey images in Home's order, then the rest by id. "2048,
-  2048" gives Andromeda, Mars 2007-06-30, Pillars of Creation, Hubble 2014, the Sun band
-  set, Mars 2007-10-13, then Webb 2022 (the 1995 frame is 1518 by 1497).
+  2048" gives Andromeda, Moon 2011-11-05, Mars 2007-06-30, Pillars of Creation, Hubble 2014,
+  the Sun band set, Moon orthophoto 2011-01-22, Mars 2007-10-13, then Webb 2022 (the 1995 frame is 1518 by 1497).
 - Q25. Sky coordinates are detected, not converted: a query with a digit followed by `h`,
   `m`, `s`, `°`, `′`, `″`, `'` or `"`, or with the word `ra` or `dec`, shows the sky note
   (copy below) and no point row. Converting RA and Dec to pixels is deferred (F-09).

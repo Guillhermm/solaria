@@ -3,7 +3,7 @@ import { mkdirSync, readFileSync, readdirSync, renameSync, rmSync } from "node:f
 import { join } from "node:path";
 import { isDeepStrictEqual, promisify } from "node:util";
 import Vips from "wasm-vips";
-import { contentFile } from "../src/content/load";
+import { contentFile, stagedImageIds } from "../src/content/load";
 import { validateSource } from "../src/content/validate";
 import type { ImageManifest, Source, TilePyramid } from "../src/content/types";
 import { fetchSource } from "./fetch-source";
@@ -40,6 +40,10 @@ export const expectedTiles = (source: Source, crop: ImageManifest["crop"]): Tile
 
 export const imageIds = (root: string) =>
   readdirSync(join(root, "data", "images")).filter((n) => n.endsWith(".json")).map((n) => n.slice(0, -".json".length)).sort();
+
+// A new image starts in data/staging/, and its tiles block is written from there; it is never cut here.
+export const targetIds = (root: string, writeManifest: boolean) =>
+  writeManifest ? [...imageIds(root), ...stagedImageIds(root)] : imageIds(root);
 
 // Tile sets already on R2 that this script must not cut again, with the reason.
 export const NOT_REBUILT: Record<string, string> = {
@@ -140,7 +144,7 @@ const main = async () => {
   let ids: string[];
   try {
     let skipped: string[];
-    ({ ids, skipped } = parseTargets(args.filter((a) => a !== "--write-manifest").join(" "), imageIds(root)));
+    ({ ids, skipped } = parseTargets(args.filter((a) => a !== "--write-manifest").join(" "), targetIds(root, writeManifest)));
     skipped.forEach((id) => console.log(skipMessage(id)));
   } catch (err) {
     console.error(`${err instanceof Error ? err.message : err}\nUsage: tsx scripts/build-tiles.ts <id ...|all> [--write-manifest]`);

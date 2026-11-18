@@ -136,18 +136,34 @@ const levelsOnDisk = async (dir: string) => {
   return levels[levels.length - 1];
 };
 
+// Each pyramid level reads the original again, which a sequential reader refuses ("out of order
+// read"), so the cutter needs random access. Up to `limit` pixels the file is opened that way,
+// which holds it in memory. A larger original needs a crop: one sequential pass copies the crop
+// into memory, and that copy is what gets cut.
+export const openForCutting = (
+  vips: Awaited<ReturnType<typeof Vips>>,
+  input: string,
+  crop: ImageManifest["crop"],
+  limit = RANDOM_ACCESS_PIXELS,
+) => {
+  const header = vips.Image.newFromFile(input);
+  if (header.width * header.height <= limit) return cropTo(vips.Image.newFromFile(input, { access: "random" }), crop);
+  if (!crop) {
+    throw new Error(`${input} is ${header.width} x ${header.height}, over the ${limit / 1e6} Mpx the cutter holds in memory: give its manifest a crop`);
+  }
+  if (crop.width * crop.height > limit) {
+    throw new Error(`crop ${crop.width} x ${crop.height} is over the ${limit / 1e6} Mpx the cutter holds in memory`);
+  }
+  return cropTo(vips.Image.newFromFile(input, { access: "sequential" }), crop).copyMemory();
+};
+
 // Cuts one original into `outDir` (pyramid, preview, thumbnail, poster) and returns the `tiles` block.
 export const tileImage = async (
   vips: Awaited<ReturnType<typeof Vips>>,
   opts: { input: string; outDir: string; crop: ImageManifest["crop"]; noPyramid?: boolean },
 ) => {
   const { input, outDir, crop } = opts;
-  // Each pyramid level reads the original again, which a sequential TIFF reader refuses
-  // ("out of order read"). Up to RANDOM_ACCESS_PIXELS the file is opened for random access,
-  // which holds it in memory; larger originals stay sequential.
-  const header = vips.Image.newFromFile(input);
-  const access = header.width * header.height <= RANDOM_ACCESS_PIXELS ? "random" : "sequential";
-  const image = cropTo(vips.Image.newFromFile(input, { access }), crop);
+  const image = openForCutting(vips, input, crop);
   let maxLevel = MAX_LEVEL;
   if (opts.noPyramid) maxLevel = await levelsOnDisk(outDir);
   else await cutPyramid(image, outDir, { tileSize: TILE_SIZE, maxLevel });

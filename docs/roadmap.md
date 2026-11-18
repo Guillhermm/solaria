@@ -24,13 +24,13 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 | 9 | Labeled features, kiosk, test hardening | F-03, F-01, T-01 | done |
 | 10 | Search and detail of the week | F-04, F-02 | done |
 | 11 | Mars Journey, installable app, smooth zoom | F-05, F-07, T-02, T-03 | done |
-| 12 | Tiles out of git, weekly rebuild, Pillars Journey with Webb | R-03, W-01, C-05 (H-01 blocked) | done, R-03 awaits its first CI run |
+| 12 | Tiles out of git, weekly rebuild, Pillars Journey with Webb, analytics | R-03, W-01, C-05, L-08 (H-01 blocked) | done |
+| 13 | Moon Journey, large originals cut through their crop | J-01 | done |
 
 Deferred on 2026-11-17, not needed for now: sky coordinates in search (F-09)
 and offline support (F-08).
 
-Still open: the first CI run of the tile build (R-03), which also puts the Webb tiles of the
-Pillars Journey (C-05) on R2.
+Planned: Earth deforestation Journey (J-02).
 Blocked: half-resolution Andromeda (H-01), by the science review of the half file.
 
 ## M0. Plan
@@ -149,13 +149,15 @@ C-05 waited for R2, which now exists: the Webb frame is about 2,566 tiles and 11
 |---|---|---|---|---|
 | R-01 | Create the R2 bucket, public domain for tiles, CORS for the site | done | D-08 | Tiles load from R2 in a preview build |
 | R-02 | Switch production to R2 | done | R-01 | The live site loads its tiles from tiles.solariadata.com |
-| R-03 | Stop committing new tiles (owner: Guilherme): the sync workflow cuts tiles from the NASA originals (`build-tiles`) and `public/tiles/` is ignored; built; `all` skips the quarter Andromeda, which stays on R2 as cut; still to do: run `all` once in CI; HiRISE tiles decode via `opj_decompress` but differ from the committed ones in 8 EXIF bytes per tile | doing | R-02 | New images never enter git |
+| R-03 | Stop committing new tiles (owner: Guilherme): the sync workflow cuts tiles from the NASA originals (`build-tiles`) and `public/tiles/` is ignored; built; `all` skips the quarter Andromeda, which stays on R2 as cut; `all` ran in CI on 2026-11-18; HiRISE tiles decode via `opj_decompress` but differ from the committed ones in 8 EXIF bytes per tile | done | R-02 | New images never enter git |
 | H-01 | Half-resolution Andromeda on R2 (owner: Guilherme): `generate-tiles` gets `--max-level` and a level and column range, is tested on a PNG, then the set is tiled in pieces and synced (architecture.md section 15). Blocked 2026-11-17: its 256-color palette shifts colors and bands faint regions (`docs/science/andromeda.md`), so the quarter set stays | blocked | R-01, S-04 | Half set loads from R2 in a preview build and its stops are validated |
 
 ## Later
 
 | ID | Item | Status |
 |---|---|---|
+| J-01 | Moon Journey: the Apollo 11 landing site from LRO's Narrow Angle Camera, from Mare Tranquillitatis down to the lander and the astronauts' tracks; a Compare of the same site under different sunlight if the science review finds a matching pair. Built with the 22 Jan 2011 orthophoto as the pair, sun from opposite sides (`docs/science/moon-apollo-11.md`) | done |
+| J-02 | Earth Journey: deforestation in Rondônia, Brazil, seen by Landsat across decades (Compare across dates); needs careful science on dates, bands and atmospheric correction | planned |
 | F-01 | Kiosk mode: attract loop, idle reset, no links out | done |
 | F-02 | Detail of the week, rotated at build time (rebuilt weekly by W-01) | done |
 | F-03 | Labeled features on images, each label validated | done |

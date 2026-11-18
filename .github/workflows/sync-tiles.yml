@@ -8,6 +8,8 @@ on:
         default: all
         options:
           - all
+          - moon-apollo-11-lroc-nac-2011-11-05
+          - moon-apollo-11-lroc-nac-ortho-2011-01-22
           - nili-patera-hirise-2007-06-30
           - nili-patera-hirise-2007-10-13
           - pillars-hubble-1995

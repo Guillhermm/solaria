@@ -1,0 +1,114 @@
+{
+  "id": "moon-apollo-11-lroc-nac-2011-11-05",
+  "sourceId": "moon-apollo-11-lroc-nac-2011-11-05",
+  "title": "Apollo 11 landing site, LROC NAC, 2011-11-05",
+  "target": {
+    "value": {
+      "name": "Apollo 11 landing site, Mare Tranquillitatis, Moon",
+      "type": "landing site"
+    },
+    "source": "https://lroc.im-ldi.com/featured_sites/apollo-11/flip-book",
+    "status": "verified"
+  },
+  "observatory": {
+    "value": "Lunar Reconnaissance Orbiter",
+    "source": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/BDR/NAC_ROI/APOLLO11HIB/NAC_ROI_APOLLO11HIB_E006N0235.IMG",
+    "status": "verified"
+  },
+  "instruments": {
+    "value": [
+      "LROC NAC"
+    ],
+    "source": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/BDR/NAC_ROI/APOLLO11HIB/NAC_ROI_APOLLO11HIB_E006N0235.IMG",
+    "status": "verified"
+  },
+  "bands": {
+    "value": [
+      {
+        "id": "NAC",
+        "kind": "broadband",
+        "region": "visible light, 400 to 750 nm"
+      }
+    ],
+    "source": "https://lroc.im-ldi.com/assets/LROC_factsheet-1ea25e00953a1dc6e26774f2e6925bf5f4534712da4ce1c2dfc70f49c41acab6.pdf",
+    "status": "verified"
+  },
+  "colorMapping": {
+    "value": {
+      "kind": "grayscale"
+    },
+    "source": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/BDR/NAC_ROI/APOLLO11HIB/NAC_ROI_APOLLO11HIB_E006N0235.IMG",
+    "status": "verified"
+  },
+  "productType": {
+    "value": "mosaic",
+    "source": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/BDR/NAC_ROI/APOLLO11HIB/NAC_ROI_APOLLO11HIB_E006N0235.IMG",
+    "status": "verified"
+  },
+  "observedAt": {
+    "value": {
+      "start": "2011-11-05",
+      "end": "2011-11-05"
+    },
+    "source": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/BDR/NAC_ROI/APOLLO11HIB/NAC_ROI_APOLLO11HIB_E006N0235.IMG",
+    "status": "verified"
+  },
+  "processing": {
+    "value": "Calibrated by the LROC team, the left and right camera images tied together and map-projected (equirectangular) onto a terrain model, joined into one mosaic, then reduced to 8 bits for this browse file with a scaling the archive does not state.",
+    "source": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/BDR/NAC_ROI/APOLLO11HIB/NAC_ROI_APOLLO11HIB_E006N0235_README.TXT",
+    "status": "supported"
+  },
+  "pixelScale": {
+    "value": {
+      "value": 0.4,
+      "unit": "m/px"
+    },
+    "source": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/BDR/NAC_ROI/APOLLO11HIB/NAC_ROI_APOLLO11HIB_E006N0235.IMG",
+    "status": "verified"
+  },
+  "fieldOfView": {
+    "value": "1.74 x 1.74 km (4350 x 4350 px at 0.40 m/px)",
+    "source": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/BDR/NAC_ROI/APOLLO11HIB/NAC_ROI_APOLLO11HIB_E006N0235.IMG",
+    "status": "verified"
+  },
+  "orientation": {
+    "value": "North is up",
+    "source": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/BDR/NAC_ROI/APOLLO11HIB/NAC_ROI_APOLLO11HIB_E006N0235.IMG",
+    "status": "verified"
+  },
+  "caveats": [
+    "Cut from a larger product: add (300, 31425) to a pixel of this image to get its pixel in the original file.",
+    "Joined from the pictures of LRO's two Narrow Angle Cameras, left and right, taken together on one pass.",
+    "Morning sun from the east, about 49 degrees above the horizon (incidence angle 41 degrees), so shadows fall to the west, to the left.",
+    "Brightness is an 8-bit version of the calibrated data. The lander's deck is clipped to pure white and the darkest shadows to black, so brightness cannot be measured from this picture."
+  ],
+  "crop": {
+    "x": 300,
+    "y": 31425,
+    "width": 4350,
+    "height": 4350
+  },
+  "tiles": {
+    "format": "jpg",
+    "tileSize": 256,
+    "overlap": 0,
+    "width": 4350,
+    "height": 4350,
+    "minLevel": 0,
+    "maxLevel": 6,
+    "thumbnail": {
+      "width": 512,
+      "height": 512
+    },
+    "preview": {
+      "width": 2048,
+      "height": 2048
+    }
+  },
+  "validation": {
+    "status": "approved",
+    "date": "2026-11-18",
+    "notes": "Accepted with caveats by science review (reviewer, mathematician, physicist); fixes applied. docs/science/moon-apollo-11.md, Validation of J-01."
+  },
+  "mock": false
+}

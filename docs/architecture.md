@@ -597,6 +597,13 @@ npm run sync-r2 -- [--dir public/tiles] [--apply]
   A failed fetch, hash, cut or mismatch is reported per id, leaves nothing for that id, and the
   exit code is 1 so the sync step does not run. The workflow cannot commit, so a mismatch is
   how CI catches a drifted manifest.
+  Originals over 200 Mpx (`RANDOM_ACCESS_PIXELS`) cannot be opened for random access, and a
+  sequential read fails the cutter with `out of order read`. `openForCutting` therefore needs a
+  manifest `crop` for them: one sequential pass copies the crop into memory (at most 200 Mpx),
+  and that copy is cut. A large original without a crop fails with "give its manifest a crop".
+  Checked on the 510 Mpx LROC NAC mosaic with a 4000 x 4000 crop: 111 s, peak 0.58 GB.
+  `--write-manifest` also accepts a staged id (a new image starts in `data/staging/`); building
+  a staged id stays refused, and `sync-r2` skips staged trees.
   With more than one id, each image is built in its own child process: wasm-vips does not
   return its heap between images, and the first CI run of `all` ran out of memory on the ninth.
 - Adding an image needs no local download: write the manifest without a `tiles` block, run
@@ -1036,6 +1043,11 @@ the ones in the repository today.
   `pillars-hubble-2014-webb-2022`, registered on 15 stars, about 0.02 arcsecond). Webb's tiles
   are cut by the sync workflow, not committed. Science record: `docs/science/pillars.md`,
   Parts 3 to 5 and "Validation of C-05".
+- The Moon Journey at `/moon/`: eight stops over the Apollo 11 landing site in LRO's Narrow Angle
+  Camera mosaic of 5 November 2011 (0.40 m/px), cropped to 1.74 km around the lander (the
+  original is a 510 Mpx strip, cut through its crop). Three stops open the pair
+  `moon-apollo-11-2011` with the 22 January 2011 orthophoto (0.50 m/px), sun from the opposite
+  side. Science record: `docs/science/moon-apollo-11.md`.
 - A Journey stop can show a Compare pair: a stop's `compare: { pairId, split }` names a pair
   whose reference is the Journey's image, and arriving there shows the moving image in Wipe at
   that split, with the side labels and the compare bar (headline, "What differs?", both

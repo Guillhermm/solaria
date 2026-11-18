@@ -6,7 +6,7 @@ import Vips from "wasm-vips";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import * as fx from "../src/content/__fixtures__/content";
 import { loadContent } from "../src/content/load";
-import { type BuildDeps, buildImage, expectedTiles, imageIds, parseTargets, run, runIsolated, writeExpected } from "./build-tiles";
+import { type BuildDeps, buildImage, expectedTiles, imageIds, parseTargets, run, runIsolated, targetIds, writeExpected } from "./build-tiles";
 import { tileImage } from "./generate-tiles";
 
 describe("expectedTiles", () => {
@@ -160,9 +160,24 @@ describe("buildImage", () => {
     expect(JSON.parse(readFileSync(join(root, "data/images/demo.json"), "utf8")).tiles).toEqual(expectedTiles(JSON.parse(readFileSync(join(root, "data/sources/demo.json"), "utf8")), undefined));
   });
 
+  it("writeExpected works for a staged id", () => {
+    const image = fx.image();
+    image.tiles = { ...image.tiles, width: 1 };
+    writeFileSync(join(root, "data/staging/images/demo.json"), JSON.stringify(image));
+    rmSync(join(root, "data/images/demo.json"));
+    writeExpected("demo", root);
+    expect(JSON.parse(readFileSync(join(root, "data/staging/images/demo.json"), "utf8")).tiles).toEqual(expectedTiles(JSON.parse(readFileSync(join(root, "data/sources/demo.json"), "utf8")), undefined));
+  });
+
   it("imageIds skips data/staging", () => {
     writeFileSync(join(root, "data/staging/images/waiting.json"), "{}");
     expect(imageIds(root)).toEqual(["demo"]);
+  });
+
+  it("targetIds adds staged ids only for --write-manifest", () => {
+    writeFileSync(join(root, "data/staging/images/waiting.json"), "{}");
+    expect(targetIds(root, false)).toEqual(["demo"]);
+    expect(targetIds(root, true)).toEqual(["demo", "waiting"]);
   });
 });
 

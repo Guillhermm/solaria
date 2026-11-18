@@ -1,0 +1,27 @@
+{
+  "id": "moon-apollo-11-lroc-nac-ortho-2011-01-22",
+  "title": "Apollo 11 landing site, LROC NAC M150361817 L/R, orthophoto NAC_DTM_APOLLO11_M150361817_50CM, 2011-01-22",
+  "pageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr_product/NAC_DTM_APOLLO11_M150361817_50CM",
+  "fileUrl": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/EXTRAS/BROWSE/NAC_DTM/APOLLO11/NAC_DTM_APOLLO11_M150361817_50CM.TIF",
+  "releaseId": null,
+  "releasedAt": null,
+  "credit": "NASA/GSFC/Arizona State University",
+  "terms": {
+    "name": "LROC terms of use: PDS archive data are public domain, credit requested",
+    "url": "https://lroc.im-ldi.com/about/terms"
+  },
+  "retrievedAt": "2026-11-18",
+  "file": {
+    "format": "tif",
+    "bytes": 472311429,
+    "sha256": "9f8c20a161d89de0ba6a81113523f5d8273ea4aa7b8362639bbadc8dd8236724",
+    "width": 8440,
+    "height": 55908
+  },
+  "validation": {
+    "status": "approved",
+    "date": "2026-11-18",
+    "notes": "Accepted with caveats by science review (reviewer, mathematician, physicist); fixes applied. docs/science/moon-apollo-11.md, Validation of J-01."
+  },
+  "mock": false
+}

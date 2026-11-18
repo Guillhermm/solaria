@@ -404,7 +404,7 @@ test.describe("behavior at 1440x900", () => {
     await expect(status).toHaveText("2 results");
     await input(page).fill("the");
     await expect(options(page)).toHaveCount(8);
-    await expect(dialog(page).getByTestId("search-line")).toHaveText(["Showing 8 of 16. Type more to narrow."]);
+    await expect(dialog(page).getByTestId("search-line")).toHaveText(["Showing 8 of 20. Type more to narrow."]);
     await input(page).fill("your turn");
     await expect(options(page)).toHaveCount(0);
     await expect(dialog(page).getByTestId("search-line")).toHaveText([
@@ -509,9 +509,11 @@ test.describe("behavior at 1440x900", () => {
     await input(page).fill("2048, 2048");
     await expect(options(page).getByTestId("search-context")).toHaveText([
       "Andromeda Galaxy (M31), Hubble PHAT+PHAST panorama",
+      "Apollo 11 landing site, LROC NAC, 2011-11-05",
       "Nili Patera dunes, HiRISE, 2007-06-30",
       "Pillars of Creation, Hubble 2014 (WFC3)",
       "The Sun in seven SDO channels, 2024-05-10 12:00 UTC",
+      "Apollo 11 landing site, LROC NAC orthophoto, 2011-01-22",
       "Nili Patera dunes, HiRISE, 2007-10-13",
       "Pillars of Creation, Webb 2022 (NIRCam)",
     ]);
