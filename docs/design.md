@@ -288,6 +288,14 @@ aim); tapping a stop opens the Journey at that stop.
   validated note does not ship: comparing images that differ in instrument, band and
   resolution needs explaining or it misleads.
 - Phone: Wipe only, divider handle 3rem, labels collapse to "Left: 2014" chips.
+- As built (C-05): compare inside a Journey had no spec here, so a stop that shows a pair
+  keeps the compare bar's look as it is in Compare: the side labels at the divider, the bar
+  with the headline, "What differs?" and both credits, in the bar's usual place (between the
+  overview and the zoom controls on desktop, under the top bar below 64rem; the chips on a
+  phone). Story shows Wipe only, so the bar has no layout switch. On desktop the divider spans
+  the image right of the story column, and the stop's split is a share of that area; on a
+  phone the handle keeps clear of the stop card. Divider and bar fade in over 700 ms with the
+  flight, like a band, at once under reduced motion; leaving the stop removes them.
 
 ### 5.7 Light mode (replaces Spectral Gallery)
 

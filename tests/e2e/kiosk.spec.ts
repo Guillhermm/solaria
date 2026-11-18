@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, type Page, test } from "@playwright/test";
+import { readContent } from "./content";
 
 // Kiosk mode (F-01), design.md 14.1 and 14.3. K-rules hold at 1440x900 and 390x844 in the
 // dark theme; time runs on Playwright's clock.
@@ -7,6 +8,8 @@ const read = (path: string) => JSON.parse(readFileSync(path, "utf8"));
 const andromeda = read("data/journeys/andromeda.json");
 const mars = read("data/journeys/nili-patera.json");
 const sun = read("data/journeys/sun.json");
+// K5's loop order: Home's, so a staged Journey joins it after the published ones.
+const order = readContent("journeys");
 const COPY = "Still exploring? Returning to the start in 10 s.";
 
 test.beforeEach(async ({ page, baseURL }) => {
@@ -169,9 +172,11 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       await ready(page);
       await page.clock.runFor(8_500);
       await expect(page).toHaveURL(new RegExp(`/${sun.slug}/\\?mode=story&stop=1`));
-      await page.goto(`/${sun.slug}/?mode=story&stop=${sun.stops.length}&kiosk=1`);
+      const last = order.at(-1);
+      await page.goto(`/${last.slug}/?mode=story&stop=${last.stops.length}&kiosk=1`);
       await ready(page);
       await page.clock.runFor(8_500);
+      expect(order[0].slug).toBe(andromeda.slug);
       await expect(page).toHaveURL(new RegExp(`/${andromeda.slug}/\\?mode=story&stop=1`));
     });
 

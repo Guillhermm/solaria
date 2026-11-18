@@ -12,6 +12,7 @@ import {
   stopNumber,
   stopOf,
   stopTarget,
+  stopCompare,
   storySearch,
   viewBounds,
   zoomSpan,
@@ -181,5 +182,24 @@ describe("clearStop", () => {
     const p = clearStop({ ...base, center: { x: 800, y: 200 }, mark: { x: 990, y: 10 } });
     expect(p.x).toBeLessThanOrEqual(800);
     expect(p.y).toBeGreaterThanOrEqual(200);
+  });
+});
+
+describe("stopCompare", () => {
+  const pairs = [{ pair: { id: "p" } }, { pair: { id: "q" } }];
+  const stops = [stop("a"), { ...stop("b"), compare: { pairId: "q", split: 30 } }, { ...stop("c"), compare: { pairId: "gone", split: 50 } }];
+
+  it("shows the stop's pair at the stop's split", () => {
+    expect(stopCompare(stops, 1, pairs, null)).toEqual({ view: pairs[1], split: 30 });
+  });
+  it("shows nothing at a stop without a compare, an unknown pair or past the end", () => {
+    expect(stopCompare(stops, 0, pairs, null)).toBeNull();
+    expect(stopCompare(stops, 2, pairs, null)).toBeNull();
+    expect(stopCompare(stops, 3, pairs, null)).toBeNull();
+    expect(stopCompare(stops, 1, [], null)).toBeNull();
+  });
+  it("keeps a divider dragged at this stop, and only at this stop", () => {
+    expect(stopCompare(stops, 1, pairs, { stop: 1, split: 72 })?.split).toBe(72);
+    expect(stopCompare(stops, 1, pairs, { stop: 0, split: 72 })?.split).toBe(30);
   });
 });

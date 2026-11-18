@@ -51,7 +51,7 @@ import { bandValueText, type LightOptions, type LightState, nearestStop, parseLi
 import { sides } from "@/viewer/compare";
 import { dividerValueText } from "@/viewer/divider";
 import { chipText, mergeMarks, reticleSide } from "@/viewer/route";
-import { type Bounds, clearStop, flightPlan, parseStop, stepStop, stopNumber, stopOf, stopTarget, storySearch, viewBounds, zoomSpan } from "@/viewer/story";
+import { type Bounds, clearStop, type DraggedSplit, flightPlan, parseStop, stepStop, stopCompare, stopNumber, stopOf, stopTarget, storySearch, viewBounds, zoomSpan } from "@/viewer/story";
 import { fitScale, formatInt, formatZoom, homeView, osdFromView, type Size, viewFromOsd, waitsForTiles } from "@/viewer/view";
 import { DWELL_MS, storySearch1 } from "@/kiosk/kiosk";
 import { useAttract, useKiosk } from "@/kiosk/useKiosk";
@@ -76,6 +76,7 @@ interface ExploreProps {
   nextJourney?: string; // kiosk attract loop: the Journey that follows this one (design.md 14.3, K5)
   search?: SearchIndex; // design.md 15.2, built with the page
   compareFrom?: { pair: string; headline: string }; // a Journey on a pair's reference: its Compare opens on the image's page
+  stopPairs?: CompareView[]; // the pairs a Journey's stops show in wipe (stop.compare)
 }
 
 interface Camera {
@@ -190,6 +191,8 @@ const PHONE = "(max-width: 40rem)";
 const RETICLE_REM = 5.5;
 // What the wipe handle keeps clear of (design.md 15.5, D17).
 const HANDLE_AVOIDS = "main > header > *, [data-testid=overview], [data-testid=compare-bar], [role=group][aria-label='View controls'], [data-testid=toasts] > *";
+// In Story the phone's stop card covers the foot of the divider too.
+const STORY_HANDLE_AVOIDS = `${HANDLE_AVOIDS}, [data-testid=sheet]`;
 // Stop markers nearer than this on screen merge into one chip (24 px at the default font size).
 const MERGE_REM = 1.5;
 const REDUCED = "(prefers-reduced-motion: reduce)";
@@ -204,7 +207,7 @@ const BLINK_MS = 800;
 
 const NO_INDEX: SearchIndex = { entries: [], places: [], example: "" };
 
-const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets = NO_SETS, labels = NO_LABELS, labelStops = NO_STOPS, nextJourney, search = NO_INDEX, compareFrom }: ExploreProps) => {
+const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets = NO_SETS, labels = NO_LABELS, labelStops = NO_STOPS, nextJourney, search = NO_INDEX, compareFrom, stopPairs = NO_PAIRS }: ExploreProps) => {
   const rootRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
@@ -232,6 +235,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   const { width: imageWidth, height: imageHeight } = image.tiles;
   const pairIds = pairs.map((p) => p.pair.id).join(" ");
   const desktop = useSyncExternalStore(subscribeMedia, () => window.matchMedia(DESKTOP).matches, () => true);
+  const reducedMotion = useSyncExternalStore(subscribeMedia, () => window.matchMedia(REDUCED).matches, () => false);
   const compareOptions = useCallback(
     (): CompareOptions | undefined => (pairIds ? { pairs: pairIds.split(" "), side: window.matchMedia(DESKTOP).matches } : undefined),
     [pairIds],
@@ -283,6 +287,13 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   const fitOverlapRef = useRef(false);
   const stop = mode === "story" ? Number(route.split(":")[1]) : 0;
   const story = mode === "story" && !!journey;
+  // A Story stop with a compare shows its pair in wipe (architecture-compare.md 5); the divider
+  // starts at the stop's split, and a drag holds only while the story stays at that stop.
+  const [dragged, setDragged] = useState<DraggedSplit | null>(null);
+  const atStop = story && journey && opened?.rotates ? stopCompare(journey.stops, stop, stopPairs, dragged) : null;
+  const layerRef = useRef<HTMLDivElement>(null);
+  const layerLeft = useCallback(() => layerRef.current?.offsetLeft ?? 0, []);
+  const dragStop = useCallback((value: number) => setDragged({ stop, split: value }), [stop]);
   // The last stop the story showed, kept while Explore is open so Story resumes there.
   const [storyStop, setStoryStop] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -387,7 +398,8 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       } else sheetBottom = 0;
       // The Light bar floats over the image, under the top bar below the desktop width and at the
       // foot on desktop: the fit, the stops and a link's view frame what it leaves free (D11).
-      const bar = root.querySelector<HTMLElement>("[data-testid='light-bar']")?.getBoundingClientRect();
+      // A Story stop's compare bar frames the stop the same way.
+      const bar = root.querySelector<HTMLElement>("[data-testid='light-bar'], [data-stop-compare] [data-testid='compare-bar']")?.getBoundingClientRect();
       const hostBox = host.getBoundingClientRect();
       const atFoot = !!bar && window.matchMedia(DESKTOP).matches;
       const barTop = bar && !atFoot ? Math.round(bar.bottom - hostBox.top) : 0;
@@ -759,7 +771,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         markMax();
         schedule();
         // design.md 5.8: Compare is hidden where the drawer cannot rotate an image.
-        if (pairs.length || bandSets.length) setOpened({ OSD, viewer: opened, margins: () => margins, rotates: opened.drawer.canRotate() });
+        if (pairs.length || bandSets.length || stopPairs.length) setOpened({ OSD, viewer: opened, margins: () => margins, rotates: opened.drawer.canRotate() });
       });
       // Zooming out below 1.1 by hand puts the cap back.
       opened.addHandler("zoom", () => {
@@ -830,19 +842,22 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       cameraRef.current = null;
       navHost.replaceChildren();
     };
-  }, [image, tileBaseUrl, navId, toggleFullscreen, attempt, journey, pairs, bandSets]);
+  }, [image, tileBaseUrl, navId, toggleFullscreen, attempt, journey, pairs, bandSets, stopPairs]);
 
   useCompareLayer({
     opened: opened?.rotates ? opened : null,
-    view: active,
+    view: active ?? atStop?.view ?? null,
     reference: size,
     referenceFootprint: image.footprint,
     layout,
-    split,
+    split: atStop?.split ?? split,
     showMoving,
     tileBaseUrl,
     sideHost: sideRef,
     fitOverlap: fitOverlapRef,
+    layerLeft: atStop ? layerLeft : undefined,
+    // design.md 7.4 (G-04): what a stop adds fades in with the flight, at once under reduced motion.
+    fadeInMs: atStop && !reducedMotion ? BAND_FADE_MS : 0,
   });
 
   useLightLayer({ opened, view: lightActive, position, fade, tileBaseUrl });
@@ -859,8 +874,9 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   // The Light bar's height is a margin of the view; it changes as the bar appears, wraps or folds
   // to the rail in Story.
   const lightOn = !!(opened && lightActive);
+  const stopCompareOn = !!atStop;
   useEffect(() => {
-    const bar = rootRef.current?.querySelector<HTMLElement>("[data-testid='light-bar']");
+    const bar = rootRef.current?.querySelector<HTMLElement>("[data-testid='light-bar'], [data-stop-compare] [data-testid='compare-bar']");
     if (!bar) return;
     const observer = new ResizeObserver(() => cameraRef.current?.syncMargins());
     observer.observe(bar);
@@ -868,7 +884,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       observer.disconnect();
       cameraRef.current?.syncMargins();
     };
-  }, [lightOn]);
+  }, [lightOn, stopCompareOn]);
 
   // A Journey stop switches the band with a crossfade between the two, whatever lies between
   // them on the rail; a cut under reduced motion.
@@ -920,7 +936,6 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   }, [comparing, lighting, split, band, imageWidth, imageHeight]);
 
   // design.md 5.6: Blink toggles every 800 ms, never under reduced motion, and can be paused.
-  const reducedMotion = useSyncExternalStore(subscribeMedia, () => window.matchMedia(REDUCED).matches, () => false);
   const blinking = comparing && layout === "blink" && blinkPlaying && !reducedMotion;
   useEffect(() => {
     if (!blinking) return;
@@ -1084,6 +1099,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     (index: number) => {
       if (!journey || index < 0 || index >= journey.stops.length) return;
       heldViewRef.current = null;
+      setDragged(null);
       setSeen((s) => new Set(s).add(stop));
       setPaused(false);
       replaceUrl(`${window.location.pathname}${storySearch(index)}`);
@@ -1118,6 +1134,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   const resume = useCallback(() => {
     if (!journey) return;
     setPaused(false);
+    setDragged(null);
     if (cameraRef.current) cameraRef.current.fly(cameraRef.current.stopView(journey.stops[stop]));
     bandForStop(stop);
   }, [journey, stop, bandForStop]);
@@ -1378,8 +1395,11 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   );
 
   // The column's mission line: validated manifest fields only (design.md 5.3).
-  const pairSides = active ? sides(active.pair) : null;
-  const pairDraft = !!active && active.pair.validation.status !== "approved";
+  // The pair on screen: Compare mode's, or the one a Story stop shows.
+  const shownPair = active ?? atStop?.view ?? null;
+  const shownSplit = atStop?.split ?? split;
+  const pairSides = shownPair ? sides(shownPair.pair) : null;
+  const pairDraft = !!shownPair && shownPair.pair.validation.status !== "approved";
   const leftLabel = pairSides?.left.full ?? "";
   const rightLabel = pairSides?.right.full ?? "";
   const modeSwitch = offered.length > 1;
@@ -1429,17 +1449,17 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       <div ref={canvasRef} className={styles.canvas} data-theme="dark" data-testid="viewer" />
       {comparing && layout === "side" && <div ref={sideRef} className={styles.side} data-theme="dark" data-testid="viewer-side" />}
 
-      {active && pairSides && layout !== "blink" && (
-        <div className={styles.compareLayer} data-theme="dark">
+      {shownPair && pairSides && layout !== "blink" && (
+        <div ref={layerRef} className={styles.compareLayer} data-theme="dark" data-stop-compare={atStop ? "" : undefined}>
           {layout === "wipe" ? (
             <Divider
-              split={split}
-              onChange={setSplit}
+              split={shownSplit}
+              onChange={atStop ? dragStop : setSplit}
               labels={[leftLabel, rightLabel]}
-              valueText={dividerValueText(split, [leftLabel, rightLabel])}
+              valueText={dividerValueText(shownSplit, [leftLabel, rightLabel])}
               draft={pairDraft}
-              hint={active.pair.alignment}
-              avoid={HANDLE_AVOIDS}
+              hint={shownPair.pair.alignment}
+              avoid={atStop ? STORY_HANDLE_AVOIDS : HANDLE_AVOIDS}
             />
           ) : (
             <Divider split={50} labels={[leftLabel, rightLabel]} draft={pairDraft} />
@@ -1551,18 +1571,18 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         </div>
       </header>
 
-      {active && pairSides && (
-        <div className={styles.compareBar}>
+      {shownPair && pairSides && (
+        <div className={styles.compareBar} data-stop-compare={atStop ? "" : undefined}>
           <CompareBar
             layout={layout}
-            layouts={layouts}
+            layouts={atStop ? ["wipe"] : layouts}
             onLayout={(l) => setCompare({ layout: l })}
-            headline={active.pair.headline}
+            headline={shownPair.pair.headline}
             draft={pairDraft}
             chips={[pairSides.left.short, pairSides.right.short]}
             credits={[
               { label: `Left, ${pairSides.left.short}:`, credit: info.credit },
-              { label: `Right, ${pairSides.right.short}:`, credit: active.movingInfo.credit },
+              { label: `Right, ${pairSides.right.short}:`, credit: shownPair.movingInfo.credit },
             ]}
             blink={
               layout === "blink"
@@ -1580,9 +1600,9 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
             }
           >
             <WhatDiffers
-              note={active.pair.whatDiffers}
-              differs={active.pair.differs}
-              caveats={[...(active.pair.caveats ?? []), ...info.caveats, ...active.movingInfo.caveats]}
+              note={shownPair.pair.whatDiffers}
+              differs={shownPair.pair.differs}
+              caveats={[...(shownPair.pair.caveats ?? []), ...info.caveats, ...shownPair.movingInfo.caveats]}
               draft={pairDraft}
             />
           </CompareBar>
@@ -1619,7 +1639,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       {/* Credit and notes stack under the top bar, clear of the overview in every shape. */}
       <div className={styles.topLeft}>
         {/* The credit never fades: the license asks that every user can see it. */}
-        {!active && !lightShown && (
+        {!shownPair && !lightShown && (
           <p className={`${styles.credit} ${styles.glass}`} data-testid="credit" data-credit>
             {info.credit}
           </p>
@@ -1768,10 +1788,10 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         )}
         {!infoOpen && (
           <button type="button" className={styles.sheetCredit} onClick={openFromCredit} data-testid="sheet-credit" data-credit>
-            {active && pairSides ? (
+            {shownPair && pairSides ? (
               <>
                 <span className={styles.sheetCreditLine}>Left, {pairSides.left.short}: {info.credit}</span>
-                <span className={styles.sheetCreditLine}>Right, {pairSides.right.short}: {active.movingInfo.credit}</span>
+                <span className={styles.sheetCreditLine}>Right, {pairSides.right.short}: {shownPair.movingInfo.credit}</span>
               </>
             ) : lightShown ? (
               lightCredits.map((c) => (

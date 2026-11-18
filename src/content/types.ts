@@ -121,6 +121,9 @@ export interface Stop {
   viewport: Viewport;
   marker?: { x: number; y: number; r: number }; // image pixels
   band?: string; // an image id of the Journey's band set: the band shown at this stop; absent keeps the current one
+  // A pair whose reference is the Journey's image: the stop shows its moving image in wipe, the
+  // divider at `split` percent of the width (an integer, 0 to 100).
+  compare?: { pairId: string; split: number };
   sources: { label: string; url: string }[]; // at least one
   validation: Validation;
 }

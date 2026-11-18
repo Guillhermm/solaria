@@ -12,6 +12,10 @@ export const RESET_TEXT = "Returning to the start.";
 
 export const storySearch1 = (slug: string) => `/${slug}/?mode=story&stop=1`;
 
+// K5: the loop's order is Home's: the Journeys as loaded (published, then staged in an
+// end-to-end build), without the mock ones the tests use.
+export const journeyOrder = (journeys: readonly { slug: string; mock: boolean }[]) => journeys.filter((j) => !j.mock).map((j) => j.slug);
+
 // K5: the Journey after `slug` in Home's order, the first after the last.
 export const nextJourney = (order: readonly string[], slug: string) => order[(order.indexOf(slug) + 1) % order.length];
 

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { attractOn, countdownText, nextJourney, setAttract, subscribeAttract } from "./kiosk";
+import { attractOn, countdownText, journeyOrder, nextJourney, setAttract, subscribeAttract } from "./kiosk";
 
 beforeEach(() => sessionStorage.clear());
 
@@ -9,6 +9,11 @@ describe("kiosk helpers", () => {
     expect(nextJourney(["andromeda", "sun"], "andromeda")).toBe("sun");
     expect(nextJourney(["andromeda", "sun"], "sun")).toBe("andromeda");
     expect(nextJourney(["andromeda"], "andromeda")).toBe("andromeda");
+  });
+
+  it("orders the loop as loaded, without the mock Journeys", () => {
+    const j = (slug: string, mock = false) => ({ slug, mock });
+    expect(journeyOrder([j("andromeda"), j("sun"), j("mock-tour", true), j("pillars")])).toEqual(["andromeda", "sun", "pillars"]);
   });
 
   it("writes the countdown as design.md 5.8 has it", () => {

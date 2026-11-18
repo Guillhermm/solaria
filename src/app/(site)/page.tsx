@@ -16,7 +16,8 @@ export const metadata: Metadata = pageMetadata({ path: "/", title: SITE_NAME, de
 
 const entries = (): JourneyEntry[] => {
   const { journeys, images, sources } = getContent();
-  return journeys.flatMap((journey) => {
+  // Mock Journeys exist for the end-to-end tests only (data/mock/, never in production).
+  return journeys.filter((j) => !j.mock).flatMap((journey) => {
     // A Journey through a band set shows the band it opens on.
     const image = images.find((i) => i.id === (journey.stops[0]?.band ?? journey.imageId));
     const source = image && sources.find((s) => s.id === image.sourceId);

@@ -4,8 +4,9 @@ import type { CompareView } from "@/components/compare/types";
 import Explore from "@/components/explore/Explore";
 import type { LightView } from "@/components/light/types";
 import { getContent } from "@/content/load";
+import type { ComparePair } from "@/content/types";
 import { resolveTileBase } from "@/content/tiles";
-import { nextJourney } from "@/kiosk/kiosk";
+import { journeyOrder, nextJourney } from "@/kiosk/kiosk";
 import { buildSearchIndex } from "@/search/build";
 import { journeyImage, pageMetadata, SITE_DESCRIPTION, thumbnailFor } from "@/seo/seo";
 import { infoFor } from "@/viewer/info";
@@ -57,15 +58,15 @@ const ViewerPage = async ({ params }: Params) => {
 
   // Compare is offered on the page of a pair's reference image; a Journey links to it (D13).
   const content = getContent();
-  const pairs: CompareView[] = journey
-    ? []
-    : content.pairs
-        .filter((p) => p.reference === image.id)
-        .flatMap((pair) => {
-          const moving = content.images.find((i) => i.id === pair.imageIds.find((id) => id !== image.id));
-          const movingSource = moving && content.sources.find((s) => s.id === moving.sourceId);
-          return moving && movingSource ? [{ pair, moving, movingInfo: infoFor(moving, movingSource) }] : [];
-        });
+  const viewOf = (pair: ComparePair): CompareView[] => {
+    const moving = content.images.find((i) => i.id === pair.imageIds.find((id) => id !== image.id));
+    const movingSource = moving && content.sources.find((s) => s.id === moving.sourceId);
+    return moving && movingSource ? [{ pair, moving, movingInfo: infoFor(moving, movingSource) }] : [];
+  };
+  const pairs: CompareView[] = journey ? [] : content.pairs.filter((p) => p.reference === image.id).flatMap(viewOf);
+  // The pairs a Journey's stops show in wipe; the validator checked each references its image.
+  const stopPairIds = new Set(journey?.stops.flatMap((s) => (s.compare ? [s.compare.pairId] : [])));
+  const stopPairs = content.pairs.filter((p) => stopPairIds.has(p.id)).flatMap(viewOf);
 
   // A Journey on a pair's reference image links to that page's Compare.
   const journeyPair = journey && content.pairs.find((p) => p.reference === journey.imageId);
@@ -97,9 +98,10 @@ const ViewerPage = async ({ params }: Params) => {
       bandSets={bandSets}
       labels={labels}
       labelStops={labelStops}
-      nextJourney={journey ? nextJourney(content.journeys.map((j) => j.slug), journey.slug) : undefined}
+      nextJourney={journey ? nextJourney(journeyOrder(content.journeys), journey.slug) : undefined}
       search={buildSearchIndex(content)}
       compareFrom={journeyPair ? { pair: journeyPair.id, headline: journeyPair.headline } : undefined}
+      stopPairs={stopPairs}
     />
   );
 };

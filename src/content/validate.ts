@@ -340,9 +340,17 @@ export const validateImage = (raw: unknown, file: string): Result<ImageManifest>
   return result(c, value);
 };
 
+const stopCompare = (c: Ctx, v: unknown, path: string) => {
+  const n = c.errors.length;
+  const o = object(c, v, path, ["pairId", "split"]);
+  if (!o) return undefined;
+  const split = typeof o.split === "number" && Number.isInteger(o.split) && o.split >= 0 && o.split <= 100 ? o.split : fail(c, `${path}.split`, "an integer from 0 to 100", o.split);
+  return finish<NonNullable<Stop["compare"]>>(c, n, { pairId: str(c, o.pairId, `${path}.pairId`), split });
+};
+
 const stop = (c: Ctx, v: unknown, path: string) => {
   const n = c.errors.length;
-  const o = object(c, v, path, ["id", "title", "body", "viewport", "sources", "validation"], ["marker", "band"]);
+  const o = object(c, v, path, ["id", "title", "body", "viewport", "sources", "validation"], ["marker", "band", "compare"]);
   if (!o) return undefined;
   const vn = c.errors.length;
   const vo = object(c, o.viewport, `${path}.viewport`, ["x", "y", "z"]);
@@ -368,6 +376,7 @@ const stop = (c: Ctx, v: unknown, path: string) => {
     viewport,
     marker,
     band: "band" in o ? str(c, o.band, `${path}.band`) : undefined,
+    compare: "compare" in o ? stopCompare(c, o.compare, `${path}.compare`) : undefined,
     sources: arrayOf(
       c,
       o.sources,
@@ -383,6 +392,7 @@ const stop = (c: Ctx, v: unknown, path: string) => {
   });
   if (value && value.marker === undefined) delete value.marker;
   if (value && value.band === undefined) delete value.band;
+  if (value && value.compare === undefined) delete value.compare;
   return value;
 };
 
@@ -698,6 +708,12 @@ export const validateContent = (files: { path: string; raw: unknown }[]): Result
         });
       }
     }
+    j.stops.forEach((s, i) => {
+      if (!s.compare) return;
+      const pair = content.pairs.find((p) => p.id === s.compare!.pairId);
+      if (!pair) errors.push(`${file}: stops[${i}].compare.pairId: no pair "${s.compare.pairId}" in data/pairs/`);
+      else if (pair.reference !== j.imageId) errors.push(`${file}: stops[${i}].compare.pairId: pair "${pair.id}" has reference "${pair.reference}", expected the Journey's image "${j.imageId}"`);
+    });
     const { width, height } = img.tiles;
     j.stops.forEach((s, i) => {
       const p = `stops[${i}]`;

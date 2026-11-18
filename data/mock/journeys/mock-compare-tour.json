@@ -1,0 +1,36 @@
+{
+  "slug": "mock-compare-tour",
+  "imageId": "mock-compare-before",
+  "title": "Mock Compare tour",
+  "summary": "Synthetic test Journey: one stop shows the mock pair in wipe.",
+  "stops": [
+    {
+      "id": "whole",
+      "title": "The whole mock frame",
+      "body": "Synthetic test stop at the fit view.",
+      "viewport": { "x": 2048, "y": 1024, "z": 1 },
+      "sources": [{ "label": "Mock source", "url": "https://example.org/mock" }],
+      "validation": { "status": "draft", "date": null, "notes": "Synthetic test content, never validated." }
+    },
+    {
+      "id": "disc",
+      "title": "The disc, before and after",
+      "body": "Synthetic test stop that shows the mock pair in wipe.",
+      "viewport": { "x": 2240, "y": 1040, "z": 1.6 },
+      "compare": { "pairId": "mock-compare", "split": 40 },
+      "sources": [{ "label": "Mock source", "url": "https://example.org/mock" }],
+      "validation": { "status": "draft", "date": null, "notes": "Synthetic test content, never validated." }
+    },
+    {
+      "id": "corner",
+      "title": "The top left corner",
+      "body": "Synthetic test stop away from the pair.",
+      "viewport": { "x": 900, "y": 500, "z": 2 },
+      "marker": { "x": 1040, "y": 480, "r": 60 },
+      "sources": [{ "label": "Mock source", "url": "https://example.org/mock" }],
+      "validation": { "status": "draft", "date": null, "notes": "Synthetic test content, never validated." }
+    }
+  ],
+  "validation": { "status": "draft", "date": null, "notes": "Synthetic test content, never validated." },
+  "mock": true
+}

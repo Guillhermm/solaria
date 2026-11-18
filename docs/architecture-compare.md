@@ -179,6 +179,9 @@ The Pillars Journey uses the 2014 image. A stop may carry `compare?: { pairId: s
 split: number }`; arriving at it adds the moving image with the same layer module, leaving
 it removes it. The validator checks the pair exists and references the Journey's image.
 
+Built (stop `compare` only; the Webb pair waits on R-02): see section 9, "Compare at a
+Journey stop".
+
 ## 6. Sourcing and tile weight
 
 `fetch-source` into `.cache/sources/` (ignored), then `generate-tiles <file> <imageId>`
@@ -237,8 +240,9 @@ Each leaves `npm test`, `npm run build` and the end-to-end suite green.
    2 % scale; science review recomputes (section 2).
 7. **"What differs?" note** (C-04). Text only, validated.
 8. **Pillars Journey with Webb** (C-05, after R-02). Webb source and tiles on R2, second
-   pair, stop `compare` field. Tests: stop validation; end-to-end arrival at the Webb stop
-   shows both labels and the headline.
+   pair, stop `compare` field (the stop field is built, section 9; the Webb data is not).
+   Tests: stop validation; end-to-end arrival at the Webb stop shows both labels and the
+   headline.
 
 ## 8. Risks and what to test first
 
@@ -314,6 +318,20 @@ Where the build differs from sections 1 to 4, and why. Each was the simpler work
   `data/` and ship in production. A pair may carry `caveats` (shown first in the note) and
   `alignment`, a short line shown under the divider handle on hover and focus and read as
   the slider's description.
+- **Compare at a Journey stop (C-05, slice 8 without the Webb data).** A stop may carry
+  `compare: { pairId, split }`; the validator checks the pair exists, that its `reference` is
+  the Journey's `imageId`, and that `split` is an integer from 0 to 100. The page passes the
+  pairs a Journey's stops name; arriving at such a stop adds the moving image with the same
+  layer hook (`useCompareLayer`), in Wipe only, with the divider at the stop's split, the side
+  labels, and the compare bar with its headline, "What differs?" and both credits (the single
+  credit is hidden, as in Compare). Leaving the stop, for another stop or Explore, removes it.
+  On desktop the divider spans the image right of the story column (`layerLeft` offsets the
+  split), so a split is a share of the image area. Dragging the divider holds at that stop;
+  coming back to it starts again at its split. Under full motion the moving image, the
+  divider and the bar fade in over 700 ms with the flight, as a band does (G-04); under
+  reduced motion they appear at once with the cut. Leaving is a cut either way. The bar is a
+  margin of the view, like the Light bar, so the stop is framed clear of it. Test data: the
+  mock Journey `data/mock/journeys/mock-compare-tour.json` over the mock pair.
 - **The note's place.** The compare bar measures its own edges with a `ResizeObserver` and
   hands them to the note as `--bar-above` and `--bar-below`: on desktop the note opens a
   `--space-2` gap above the bar, below 64rem the same gap below it, its height capped to the

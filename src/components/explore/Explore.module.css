@@ -1097,6 +1097,31 @@
   pointer-events: none;
 }
 
+/* A Story stop's wipe spans the image right of the story column, so a stop's split is a share
+   of the image area; it and the bar fade in with the flight, at once under reduced motion. */
+.compareLayer[data-stop-compare] {
+  left: calc(var(--column) + var(--ruler-left));
+}
+
+@starting-style {
+  .compareLayer[data-stop-compare],
+  .compareBar[data-stop-compare] {
+    opacity: 0;
+  }
+}
+
+.compareLayer[data-stop-compare],
+.compareBar[data-stop-compare] {
+  transition: opacity 700ms var(--ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .compareLayer[data-stop-compare],
+  .compareBar[data-stop-compare] {
+    transition: none;
+  }
+}
+
 /* Side by side: the left viewer takes the left half, the second viewer the right half. */
 .root[data-layout="side"] .canvas {
   right: 50%;

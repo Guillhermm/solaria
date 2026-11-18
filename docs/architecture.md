@@ -582,6 +582,8 @@ npm run sync-r2 -- [--dir public/tiles] [--apply]
 - New tiles never enter git (R-03): `/public/tiles/*` is ignored except `mock-*`. The trees
   already committed stay tracked and are the same bytes the workflow cuts (checked for
   `pillars-hubble-1995`, `pillars-hubble-2014` and `sun-sdo-2024-05-10-aia-171`).
+  `src/content/tile-tree.test.ts` checks every tracked tree and every untracked one on disk;
+  it skips, by name, a manifest whose untracked tree is absent (cut on R2 or not yet built).
 - `build-tiles` never cuts `andromeda-phat-phast-2025` (`NOT_REBUILT`): the quarter set stays on
   R2 as it is (H-01, which would have replaced it, is blocked by the science review). `all` leaves it out and logs why; naming it
   is an error. Checked 2026-11-17: at 416 Mpx it opens sequentially and the cut stops with
@@ -967,7 +969,9 @@ the ones in the repository today.
   `npm run generate-mock` rewrites the synthetic mock content in `data/mock/` (one Compare
   pair, one Light band set, flagged `mock: true`, tiles in `public/tiles/mock-*`); `next dev`
   loads it, production builds never read it, `postbuild` drops its tiles from `out/`, and the
-  gate rejects a leaked mock.
+  gate rejects a leaked mock. A hand-written mock Journey over the pair,
+  `data/mock/journeys/mock-compare-tour.json`, tests a stop's `compare`; mock Journeys stay off
+  the Journeys index and the kiosk loop.
   `npm run sync-r2` pushes `public/tiles/` to a Cloudflare R2 bucket: a dry run by default
   (it lists what it would upload), `--apply` to upload, skipping objects whose size and MD5
   already match. It reads `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` and
@@ -1019,6 +1023,11 @@ the ones in the repository today.
   alignment limit and a "what differs" note. Both images are cut to the part they share; an
   image record's `crop` gives the offset of its pixels in the source product, and the
   science record is `docs/science/mars-nili-patera.md`.
+- A Journey stop can show a Compare pair: a stop's `compare: { pairId, split }` names a pair
+  whose reference is the Journey's image, and arriving there shows the moving image in Wipe at
+  that split, with the side labels and the compare bar (headline, "What differs?", both
+  credits); leaving the stop removes it. It fades in with the flight, at once under reduced
+  motion (`docs/architecture-compare.md`, section 9). No published Journey uses it yet.
 - Feature labels in Explore and Light: the Feature labels button (above Reset view) draws
   the validated labels of `data/labels/` on the image, as rings or measured circles with
   chips placed clear of the controls; a chip opens its description, and About this image

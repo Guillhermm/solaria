@@ -175,3 +175,24 @@ export const clearStop = (c: StopClearance): Point & { outside: number } => {
     }
   return best ? { ...best.p, outside: best.out } : { ...start, outside: leaves(start) };
 };
+
+// A divider the user dragged at one stop: it holds until the story moves to another stop.
+export interface DraggedSplit {
+  stop: number;
+  split: number;
+}
+
+// The pair a Story stop shows in wipe and where its divider stands: the stop's split, or the
+// one dragged at this stop. Null at a stop without a compare (or an unknown pair), so arriving
+// adds the moving image and leaving takes it away.
+export const stopCompare = <P extends { pair: { id: string } }>(
+  stops: readonly Stop[],
+  index: number,
+  pairs: readonly P[],
+  dragged: DraggedSplit | null,
+): { view: P; split: number } | null => {
+  const compare = stops[index]?.compare;
+  const view = compare && pairs.find((p) => p.pair.id === compare.pairId);
+  if (!compare || !view) return null;
+  return { view, split: dragged?.stop === index ? dragged.split : compare.split };
+};

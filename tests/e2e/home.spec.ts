@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
+import { readContent } from "./content";
 
 const read = (path: string) => JSON.parse(readFileSync(path, "utf8"));
 const source = read("data/sources/andromeda-phat-phast-2025.json");
@@ -168,7 +169,7 @@ test.describe("desktop", () => {
     await page.goto("/");
     const index = page.getByRole("region", { name: "Journeys" });
     const rows = index.getByRole("listitem");
-    await expect(rows).toHaveCount(3);
+    await expect(rows.getByRole("heading", { level: 3 })).toHaveText(readContent("journeys").map((j) => j.title));
     const mars = JSON.parse(readFileSync("data/journeys/nili-patera.json", "utf8"));
     const marsRow = rows.nth(1);
     await expect(marsRow.getByRole("heading", { level: 3 })).toHaveText(mars.title);
@@ -201,7 +202,7 @@ test.describe("desktop", () => {
     await expect(row).toContainText("42 208 × 9 870 px");
     await expect(row.getByRole("link", { name: `Begin ${journey.title}` })).toHaveAttribute("href", "/andromeda/");
     await expect(index.getByRole("heading", { name: "More journeys will appear here" })).toHaveCount(0);
-    await expect(index.getByText(/Planned|Pillars/)).toHaveCount(0);
+    await expect(index.getByText(/Planned/)).toHaveCount(0);
     // design.md 6.4: the thumbnail keeps its true shape inside the slot.
     const shape = await row.locator("img").evaluate((el) => {
       const img = el as HTMLImageElement;

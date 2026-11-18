@@ -40,7 +40,10 @@ interface Options {
   tileBaseUrl: string;
   sideHost: RefObject<HTMLDivElement | null>;
   fitOverlap: RefObject<boolean>; // a link without a view: fit the overlap once the moving image is in
-
+  // A Journey stop: the divider's layer starts this many pixels from the viewer's left edge (the
+  // story column), and the moving image fades in over fadeInMs once it is added (0: at once).
+  layerLeft?: () => number;
+  fadeInMs?: number;
 }
 
 // Hidden polygons: a degenerate triangle crops everything away without dropping the image,
@@ -50,14 +53,14 @@ const NOTHING = [[{ x: -1, y: -1 }, { x: -1, y: -1 }, { x: -1, y: -1 }]];
 // docs/architecture-compare.md section 1: the moving image joins the reference in one viewer
 // and one coordinate frame. The world keeps the reference's home bounds, so zoom, the readout
 // and the URL stay relative to the reference fit.
-export const useCompareLayer = ({ opened, view, reference, referenceFootprint, layout, split, showMoving, tileBaseUrl, sideHost, fitOverlap }: Options) => {
+export const useCompareLayer = ({ opened, view, reference, referenceFootprint, layout, split, showMoving, tileBaseUrl, sideHost, fitOverlap, layerLeft, fadeInMs = 0 }: Options) => {
   const itemRef = useRef<OpenSeadragon.TiledImage | null>(null);
   const update = useRef<() => void>(() => {});
-  const state = useRef({ layout, split, showMoving });
+  const state = useRef({ layout, split, showMoving, layerLeft, fadeInMs });
   useEffect(() => {
-    state.current = { layout, split, showMoving };
+    state.current = { layout, split, showMoving, layerLeft, fadeInMs };
     update.current();
-  }, [layout, split, showMoving]);
+  }, [layout, split, showMoving, layerLeft, fadeInMs]);
 
   useEffect(() => {
     if (!opened || !view) return;
@@ -68,6 +71,7 @@ export const useCompareLayer = ({ opened, view, reference, referenceFootprint, l
     const refItem = viewer.world.getItemAt(0);
     let item: OpenSeadragon.TiledImage | null = null;
     let cancelled = false;
+    let fadeFrame = 0;
 
     // The overview stays a map of the reference: OpenSeadragon mirrors every new image into the
     // navigator, so the mirror of the moving image is taken out as soon as it arrives.
@@ -88,7 +92,8 @@ export const useCompareLayer = ({ opened, view, reference, referenceFootprint, l
       if (l === "wipe") {
         const vp = viewer.viewport;
         const m = opened.margins();
-        const x = splitToReferenceX(at, { width: viewer.container.clientWidth, marginLeft: m.left, marginRight: m.right }, vp.getBoundsNoRotate(true), reference);
+        const offset = state.current.layerLeft?.() ?? 0;
+        const x = splitToReferenceX(at, { width: viewer.container.clientWidth - offset, marginLeft: m.left - offset, marginRight: m.right }, vp.getBoundsNoRotate(true), reference);
         const r = referenceCrop(whole, x);
         crop(refItem, r.length ? r : NOTHING);
         const kept = movingCrop(footprint, s, x);
@@ -115,6 +120,19 @@ export const useCompareLayer = ({ opened, view, reference, referenceFootprint, l
         item = e.item;
         itemRef.current = item;
         update.current();
+        const ms = state.current.fadeInMs;
+        if (ms > 0) {
+          const added = e.item;
+          const start = performance.now();
+          const step = (now: number) => {
+            const t = Math.min(1, (now - start) / ms);
+            added.setOpacity(t);
+            if (t < 1) fadeFrame = requestAnimationFrame(step);
+          };
+          // Not 0: OpenSeadragon loads no tiles for an image at zero opacity.
+          added.setOpacity(0.01);
+          fadeFrame = requestAnimationFrame(step);
+        }
         if (fitOverlap.current) {
           const b = overlapBounds(footprint, s, reference);
           const k = reference.width;
@@ -128,6 +146,7 @@ export const useCompareLayer = ({ opened, view, reference, referenceFootprint, l
 
     return () => {
       cancelled = true;
+      cancelAnimationFrame(fadeFrame);
       nav?.world.removeHandler("add-item", dropMirror as unknown as OpenSeadragon.EventHandler<OpenSeadragon.WorldEvent>);
       viewer.removeHandler("viewport-change", onChange);
       viewer.removeHandler("resize", onChange);

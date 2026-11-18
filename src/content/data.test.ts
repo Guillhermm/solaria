@@ -42,7 +42,15 @@ describe("the real data directory", () => {
 
   it("loads the mock and the Hubble pairs and both band sets in development", () => {
     const c = loadContent({ root: process.cwd(), mode: "development" });
-    expect(c.pairs.map((p) => p.id)).toEqual(["nili-patera-hirise-2007", "pillars-hubble-1995-2014", "mock-compare"]);
+    // Staged content (data/staging/, the science team's drafts) loads last, whatever it holds.
+    const staged = (kind: string) => readKind(`staging/${kind}`).map(({ raw }) => {
+      const r = raw as { id?: string; slug?: string };
+      return r.id ?? r.slug;
+    });
+    expect(c.pairs.map((p) => p.id)).toEqual(["nili-patera-hirise-2007", "pillars-hubble-1995-2014", "mock-compare", ...staged("pairs")]);
+    // K5: the kiosk loop and Home follow this order, so published Journeys come before staged
+    // ones and Andromeda opens it.
+    expect(c.journeys.map((j) => j.slug)).toEqual(["andromeda", "nili-patera", "sun", "mock-compare-tour", ...staged("journeys")]);
     const mars = c.images.filter((i) => i.id.startsWith("nili-patera-hirise-"));
     expect(mars.map((i) => [i.crop, i.tiles.width, i.tiles.height, i.validation.status])).toEqual([
       [{ x: 667, y: 4310, width: 3934, height: 5747 }, 3934, 5747, "approved"],

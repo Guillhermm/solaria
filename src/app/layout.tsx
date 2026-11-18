@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import Kiosk from "@/components/kiosk/Kiosk";
 import { getContent } from "@/content/load";
+import { journeyOrder } from "@/kiosk/kiosk";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/seo/seo";
 import { GROUND } from "./theme-color";
 import "./globals.css";
@@ -31,7 +32,7 @@ const RootLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
     <body>
       {children}
       {/* Renders nothing unless ?kiosk=1 started kiosk mode; the attract loop follows Home's order. */}
-      <Kiosk journeys={getContent().journeys.map((j) => j.slug)} />
+      <Kiosk journeys={journeyOrder(getContent().journeys)} />
     </body>
   </html>
 );

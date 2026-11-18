@@ -159,6 +159,21 @@ describe("journey rules", () => {
   it("rejects a malformed marker", () => {
     expect(run((s) => (s.stops[0].marker = { x: 1, y: 2 }))).toEqual(["data/journeys/demo-tour.json: stops[0].marker.r: missing"]);
   });
+  it("keeps a stop's compare and checks its split is an integer from 0 to 100", () => {
+    const s = clone(fx.journey());
+    (s.stops[1] as unknown as Record<string, unknown>).compare = { pairId: "demo-pair", split: 0 };
+    (s.stops[2] as unknown as Record<string, unknown>).compare = { pairId: "demo-pair", split: 100 };
+    const r = validateJourney(s, "data/journeys/demo-tour.json");
+    expect(r.ok && r.value.stops.map((x) => x.compare ?? null)).toEqual([null, { pairId: "demo-pair", split: 0 }, { pairId: "demo-pair", split: 100 }, null, null]);
+    for (const split of [-1, 101, 37.5, "50", null]) {
+      expect(run((j) => (j.stops[1].compare = { pairId: "demo-pair", split }))).toEqual([
+        `data/journeys/demo-tour.json: stops[1].compare.split: expected an integer from 0 to 100, got ${JSON.stringify(split)}`,
+      ]);
+    }
+    expect(run((j) => (j.stops[1].compare = { pairId: "demo-pair" }))).toEqual(["data/journeys/demo-tour.json: stops[1].compare.split: missing"]);
+    expect(run((j) => (j.stops[1].compare = { pairId: "", split: 50 }))).toEqual(['data/journeys/demo-tour.json: stops[1].compare.pairId: expected a non-empty string, got ""']);
+    expect(run((j) => (j.stops[1].compare = { pairId: "demo-pair", split: 50, layout: "side" }))[0]).toContain("stops[1].compare.layout: unknown key");
+  });
 });
 
 describe("cross-file rules", () => {
@@ -374,6 +389,29 @@ describe("pairs and band sets", () => {
       expect(errorsOf(validateContent(f))).toEqual([
         'data/band-sets/demo-bands.json: imageIds[2]: image "demo-c" is 500 x 150, expected 1000 x 300 like "demo" (registration "none" means one pixel grid)',
       ]);
+    });
+    describe("a Journey stop that compares", () => {
+      const tour = (f: ReturnType<typeof withGroups>) => f.find((x) => x.path === "data/journeys/demo-tour.json")!.raw as ReturnType<typeof fx.journey>;
+      const comparing = (pairId: string) => {
+        const f = withGroups();
+        tour(f).stops[2].compare = { pairId, split: 40 };
+        return f;
+      };
+      it("accepts a pair whose reference is the Journey's image", () => {
+        const r = validateContent(comparing("demo-pair"));
+        expect(errorsOf(r)).toEqual([]);
+        expect(r.ok && r.value.journeys[0].stops[2].compare).toEqual({ pairId: "demo-pair", split: 40 });
+      });
+      it("refuses an unknown pair", () => {
+        expect(errorsOf(validateContent(comparing("nope")))).toEqual(['data/journeys/demo-tour.json: stops[2].compare.pairId: no pair "nope" in data/pairs/']);
+      });
+      it("refuses a pair whose reference is another image", () => {
+        const f = comparing("demo-pair");
+        (f.find((x) => x.path === "data/pairs/demo-pair.json")!.raw as ReturnType<typeof fx.pair>).reference = "demo-b";
+        expect(errorsOf(validateContent(f))).toEqual([
+          'data/journeys/demo-tour.json: stops[2].compare.pairId: pair "demo-pair" has reference "demo-b", expected the Journey\'s image "demo"',
+        ]);
+      });
     });
     describe("a Journey through a band set", () => {
       const tour = (f: ReturnType<typeof withSet>) => f.find((x) => x.path === "data/journeys/demo-tour.json")!.raw as ReturnType<typeof fx.journey>;

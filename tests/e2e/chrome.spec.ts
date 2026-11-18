@@ -1,5 +1,6 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
+import { readContent } from "./content";
 
 const source = JSON.parse(readFileSync("data/sources/andromeda-phat-phast-2025.json", "utf8"));
 
@@ -18,11 +19,10 @@ test("the header holds the wordmark home link and the theme toggle", async ({ pa
 test("the footer prints each credit line once, unaltered, after the images that use it", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("contentinfo")).toContainText(source.credit);
-  // Group data/images by their source's credit, in file order, as the footer does.
-  const dir = (d: string) => readdirSync(d).filter((f) => f.endsWith(".json")).sort().map((f) => JSON.parse(readFileSync(`${d}/${f}`, "utf8")));
-  const sources = new Map(dir("data/sources").map((s) => [s.id, s.credit as string]));
+  // Group the images by their source's credit, in load order, as the footer does.
+  const sources = new Map(readContent("sources").map((s) => [s.id, s.credit as string]));
   const lines = new Map<string, string[]>();
-  for (const image of dir("data/images")) {
+  for (const image of readContent("images")) {
     const credit = sources.get(image.sourceId)!;
     lines.set(credit, [...(lines.get(credit) ?? []), image.title]);
   }

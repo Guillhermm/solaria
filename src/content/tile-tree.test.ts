@@ -1,4 +1,5 @@
-import { readdirSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { jpegSize } from "./__fixtures__/jpeg";
@@ -7,6 +8,17 @@ import { tileCount } from "./pyramid";
 
 const TILES = join(process.cwd(), "public", "tiles");
 const images = loadContent({ root: process.cwd(), mode: "development" }).images;
+
+// Since R-03 a new image's tiles live on R2, or here after `npm run build-tiles`, so a tree
+// that git does not track may be absent. A tracked tree is always checked, present or not.
+const tracked = new Set(
+  execFileSync("git", ["ls-files", "public/tiles"], { encoding: "utf8" })
+    .split("\n")
+    .filter(Boolean)
+    .map((p) => p.split("/")[2]),
+);
+const onDisk = images.filter((i) => tracked.has(i.id) || existsSync(join(TILES, i.id)));
+const absent = images.filter((i) => !onDisk.includes(i));
 
 const numeric = (d: string) =>
   readdirSync(d).filter((n) => /^\d+$/.test(n)).map(Number).sort((a, b) => a - b);
@@ -28,7 +40,9 @@ describe("every manifest matches its tile tree", () => {
     expect(images.length).toBeGreaterThan(0);
   });
 
-  it.each(images.map((i) => [i.id, i] as const))("%s", (id, image) => {
+  if (absent.length) it.skip.each(absent.map((i) => [i.id] as const))("%s: no tile tree on disk (untracked since R-03; run npm run build-tiles)", () => {});
+
+  it.each(onDisk.map((i) => [i.id, i] as const))("%s", (id, image) => {
     const { tiles } = image;
     const levels = numeric(join(TILES, id));
     expect(levels).toEqual(Array.from({ length: tiles.maxLevel - tiles.minLevel + 1 }, (_, i) => tiles.minLevel + i));
