@@ -25,12 +25,12 @@ Sprints run back to back. Each one ends with a short report, and the next starts
 | 10 | Search and detail of the week | F-04, F-02 | done |
 | 11 | Mars Journey, installable app, smooth zoom | F-05, F-07, T-02, T-03 | done |
 | 12 | Tiles out of git, weekly rebuild, Pillars Journey with Webb, analytics | R-03, W-01, C-05, L-08 (H-01 blocked) | done |
-| 13 | Moon Journey | J-01 | doing |
+| 13 | Moon Journey, large originals cut through their crop | J-01 | done |
 
 Deferred on 2026-11-17, not needed for now: sky coordinates in search (F-09)
 and offline support (F-08).
 
-Still open: the Moon Journey (J-01); planned: Earth deforestation Journey (J-02).
+Planned: Earth deforestation Journey (J-02).
 Blocked: half-resolution Andromeda (H-01), by the science review of the half file.
 
 ## M0. Plan
@@ -156,7 +156,7 @@ C-05 waited for R2, which now exists: the Webb frame is about 2,566 tiles and 11
 
 | ID | Item | Status |
 |---|---|---|
-| J-01 | Moon Journey: the Apollo 11 landing site from LRO's Narrow Angle Camera, from Mare Tranquillitatis down to the lander and the astronauts' tracks; a Compare of the same site under different sunlight if the science review finds a matching pair | doing |
+| J-01 | Moon Journey: the Apollo 11 landing site from LRO's Narrow Angle Camera, from Mare Tranquillitatis down to the lander and the astronauts' tracks; a Compare of the same site under different sunlight if the science review finds a matching pair. Built with the 22 Jan 2011 orthophoto as the pair, sun from opposite sides (`docs/science/moon-apollo-11.md`) | done |
 | J-02 | Earth Journey: deforestation in Rondônia, Brazil, seen by Landsat across decades (Compare across dates); needs careful science on dates, bands and atmospheric correction | planned |
 | F-01 | Kiosk mode: attract loop, idle reset, no links out | done |
 | F-02 | Detail of the week, rotated at build time (rebuilt weekly by W-01) | done |

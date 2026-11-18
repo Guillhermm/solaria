@@ -1043,6 +1043,11 @@ the ones in the repository today.
   `pillars-hubble-2014-webb-2022`, registered on 15 stars, about 0.02 arcsecond). Webb's tiles
   are cut by the sync workflow, not committed. Science record: `docs/science/pillars.md`,
   Parts 3 to 5 and "Validation of C-05".
+- The Moon Journey at `/moon/`: eight stops over the Apollo 11 landing site in LRO's Narrow Angle
+  Camera mosaic of 5 November 2011 (0.40 m/px), cropped to 1.74 km around the lander (the
+  original is a 510 Mpx strip, cut through its crop). Three stops open the pair
+  `moon-apollo-11-2011` with the 22 January 2011 orthophoto (0.50 m/px), sun from the opposite
+  side. Science record: `docs/science/moon-apollo-11.md`.
 - A Journey stop can show a Compare pair: a stop's `compare: { pairId, split }` names a pair
   whose reference is the Journey's image, and arriving there shows the moving image in Wipe at
   that split, with the side labels and the compare bar (headline, "What differs?", both

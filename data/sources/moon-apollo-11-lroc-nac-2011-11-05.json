@@ -1,0 +1,27 @@
+{
+  "id": "moon-apollo-11-lroc-nac-2011-11-05",
+  "title": "Apollo 11 landing site, LROC NAC M175124932 L/R, map-projected mosaic NAC_ROI_APOLLO11HIB_E006N0235, 2011-11-05",
+  "pageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr_product/NAC_ROI_APOLLO11HIB_E006N0235",
+  "fileUrl": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/EXTRAS/BROWSE/NAC_ROI/APOLLO11HIB/NAC_ROI_APOLLO11HIB_E006N0235.TIF",
+  "releaseId": null,
+  "releasedAt": null,
+  "credit": "NASA/GSFC/Arizona State University",
+  "terms": {
+    "name": "LROC terms of use: PDS archive data are public domain, credit requested",
+    "url": "https://lroc.im-ldi.com/about/terms"
+  },
+  "retrievedAt": "2026-11-18",
+  "file": {
+    "format": "tif",
+    "bytes": 510767323,
+    "sha256": "fa770cd8da012f1c19a3bc1d2aa2d207153c5cf647b2a72926d996bdeca6cd0b",
+    "width": 6950,
+    "height": 73407
+  },
+  "validation": {
+    "status": "approved",
+    "date": "2026-11-18",
+    "notes": "Accepted with caveats by science review (reviewer, mathematician, physicist); fixes applied. docs/science/moon-apollo-11.md, Validation of J-01."
+  },
+  "mock": false
+}

@@ -1,0 +1,235 @@
+{
+  "id": "moon-apollo-11-2011",
+  "title": "Apollo 11 landing site, LROC January and November 2011",
+  "imageIds": [
+    "moon-apollo-11-lroc-nac-ortho-2011-01-22",
+    "moon-apollo-11-lroc-nac-2011-11-05"
+  ],
+  "reference": "moon-apollo-11-lroc-nac-2011-11-05",
+  "headline": "Same place, sun from opposite sides",
+  "labels": [
+    {
+      "full": "22 Jan 2011, afternoon sun from the west",
+      "short": "Jan 2011"
+    },
+    {
+      "full": "5 Nov 2011, morning sun from the east",
+      "short": "Nov 2011"
+    }
+  ],
+  "caveats": [
+    "Aligned on 16 small craters. Across the view 95% of the ground lines up within about 0.8 m (2.1 pixels of the November picture), and around the lander, Little West and West crater within about 0.4 m. Near the edges the ground can be up to about 1 m apart across the divider.",
+    "The lander does not line up: its deck lands about 1.3 m apart across the divider while the ground around it matches. The top stands 3 m above the ground, and the camera looked almost straight down in November (1.1 degrees off vertical) but about 10 degrees off vertical in January; the sunlit side of the lander also switched sides. The cause is partly that viewing angle and partly the lighting, not the ground alignment.",
+    "With the sun on opposite sides, every crater's lit wall and shaded wall swap between the two pictures, and shadows point opposite ways. The lower January sun makes shadows longer.",
+    "The astronauts' trails show clearly in November and are faint in January. In our reading of the two pictures they are still there: the January light, coarser pixels and brightness scaling do not bring them out.",
+    "Brightness cannot be compared. Each picture was reduced to 8 bits with its own scaling, and the lander's deck is clipped to pure white in both.",
+    "Pixels are 0.5 m in January and 0.4 m in November, so the January side looks slightly softer."
+  ],
+  "alignment": "Alignment: 95% of the ground within about 0.8 m; the lander does not line up.",
+  "differs": {
+    "instrument": false,
+    "band": false,
+    "date": true,
+    "illumination": true,
+    "geometry": true,
+    "processing": true
+  },
+  "registration": {
+    "method": "similarity, least squares on 16 small craters matched by inverted-contrast cross-correlation; start from the analytic transform of the two PDS map projections",
+    "transform": "similarity",
+    "controlPoints": [
+      {
+        "label": "small crater, grid cell 00",
+        "moving": {
+          "x": 595.73,
+          "y": 414.02
+        },
+        "reference": {
+          "x": 744.63,
+          "y": 515.48
+        }
+      },
+      {
+        "label": "small crater, grid cell 01",
+        "moving": {
+          "x": 940.39,
+          "y": 751.56
+        },
+        "reference": {
+          "x": 1175.25,
+          "y": 937.91
+        }
+      },
+      {
+        "label": "small crater, grid cell 02",
+        "moving": {
+          "x": 1823.98,
+          "y": 631.08
+        },
+        "reference": {
+          "x": 2279.88,
+          "y": 789.19
+        }
+      },
+      {
+        "label": "small crater, grid cell 03",
+        "moving": {
+          "x": 2897.92,
+          "y": 551.25
+        },
+        "reference": {
+          "x": 3621.91,
+          "y": 690.3
+        }
+      },
+      {
+        "label": "small crater, grid cell 10",
+        "moving": {
+          "x": 757.05,
+          "y": 1006.21
+        },
+        "reference": {
+          "x": 946.34,
+          "y": 1255.48
+        }
+      },
+      {
+        "label": "small crater, grid cell 11",
+        "moving": {
+          "x": 1014.95,
+          "y": 1308.79
+        },
+        "reference": {
+          "x": 1268.48,
+          "y": 1634.53
+        }
+      },
+      {
+        "label": "small crater, grid cell 12",
+        "moving": {
+          "x": 2349.36,
+          "y": 1204.62
+        },
+        "reference": {
+          "x": 2936.62,
+          "y": 1507.38
+        }
+      },
+      {
+        "label": "small crater, grid cell 13",
+        "moving": {
+          "x": 2765.15,
+          "y": 1176.4
+        },
+        "reference": {
+          "x": 3456.05,
+          "y": 1471.84
+        }
+      },
+      {
+        "label": "small crater, grid cell 20",
+        "moving": {
+          "x": 580.66,
+          "y": 1793.17
+        },
+        "reference": {
+          "x": 725.51,
+          "y": 2238.75
+        }
+      },
+      {
+        "label": "small crater, grid cell 21",
+        "moving": {
+          "x": 1087.43,
+          "y": 2372.12
+        },
+        "reference": {
+          "x": 1359.13,
+          "y": 2963.77
+        }
+      },
+      {
+        "label": "small crater, grid cell 22",
+        "moving": {
+          "x": 2421.06,
+          "y": 2272.22
+        },
+        "reference": {
+          "x": 3026.03,
+          "y": 2841.69
+        }
+      },
+      {
+        "label": "small crater, grid cell 23",
+        "moving": {
+          "x": 3044.41,
+          "y": 2441.22
+        },
+        "reference": {
+          "x": 3805.18,
+          "y": 3053.27
+        }
+      },
+      {
+        "label": "small crater, grid cell 30",
+        "moving": {
+          "x": 258.72,
+          "y": 2692.52
+        },
+        "reference": {
+          "x": 323.14,
+          "y": 3362.37
+        }
+      },
+      {
+        "label": "small crater, grid cell 31",
+        "moving": {
+          "x": 1103.97,
+          "y": 3233.42
+        },
+        "reference": {
+          "x": 1380.22,
+          "y": 4040.83
+        }
+      },
+      {
+        "label": "small crater, grid cell 32",
+        "moving": {
+          "x": 1915.96,
+          "y": 3048.09
+        },
+        "reference": {
+          "x": 2395.34,
+          "y": 3810.52
+        }
+      },
+      {
+        "label": "small crater, grid cell 33",
+        "moving": {
+          "x": 3082.25,
+          "y": 2775.97
+        },
+        "reference": {
+          "x": 3852.66,
+          "y": 3471.85
+        }
+      }
+    ],
+    "similarity": {
+      "scale": 1.2500355885315508,
+      "rotationDeg": 0.03945903026646997,
+      "tx": 1.2822116209081287,
+      "ty": -1.8484240338375457
+    },
+    "residualPx": 1.3080238868577443,
+    "maxResidualPx": 1.9099341150269282,
+    "notes": "Pixels of the cropped images (crops in the image records). The two products differ by a shear a similarity cannot take: north-south offset changing by about 5.5 mosaic px (2.2 m) from the west to the east edge. On 740 independent 128 px patches the similarity leaves RMS 1.39 mosaic px (0.56 m), 95th percentile 2.03 px, worst 2.6 px; within 1100 px of the lander-West crater midpoint RMS 0.86 px. An affine would leave 0.45 px. The 3 m tall descent stage sits about 2.7 px east and 1.7 px north of where the orthophoto's deck lands (parallax), so the lander does not line up across the divider. Details: docs/science/moon-apollo-11.md."
+  },
+  "whatDiffers": "The same camera and the same place, ten months apart: LRO's Narrow Angle Camera on 22 January 2011, in the afternoon with the sun in the west about 27 degrees above the horizon, and on 5 November 2011, in the morning with the sun in the east about 49 degrees up. With the sun on opposite sides, shadows point opposite ways and the lit and shaded walls of every crater swap. The lower January sun makes longer shadows, and the astronauts' trails that show clearly in November are faint. The camera also looked from a different angle on each pass, almost straight down in November and about 10 degrees off vertical in January, the pixels are 0.5 m in January and 0.4 m in November, and each picture was processed on its own into its own brightness scale. The differences you see come from the light, the view and the processing, not from changes on the ground.",
+  "validation": {
+    "status": "approved",
+    "date": "2026-11-18",
+    "notes": "Accepted with caveats by science review (reviewer, mathematician, physicist); fixes applied. docs/science/moon-apollo-11.md, Validation of J-01."
+  },
+  "mock": false
+}

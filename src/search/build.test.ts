@@ -74,9 +74,9 @@ describe("the index of the real content", () => {
   const content = loadContent({ root: process.cwd(), mode: "production" });
   const index = buildSearchIndex(content);
 
-  it("holds 13 images, 4 labels and the 19 stops that land on one place (Q1)", () => {
+  it("holds 15 images, 4 labels and the 25 stops that land on one place (Q1)", () => {
     const count = (k: string) => index.entries.filter((e) => e.kind === k).length;
-    expect([count("image"), count("label"), count("stop")]).toEqual([13, 4, 19]);
+    expect([count("image"), count("label"), count("stop")]).toEqual([15, 4, 25]);
     expect(index.entries.some((e) => e.text === "Your turn" || e.text === "The Andromeda Galaxy" || e.text === "One Sun, seven bands")).toBe(false);
   });
 
@@ -105,9 +105,11 @@ describe("the index of the real content", () => {
   it("offers points on the Journey images in roadmap order, a band set as one place, then the rest by id (Q24)", () => {
     expect(index.places.map((p) => p.href)).toEqual([
       "/andromeda-phat-phast-2025/?mode=explore",
+      "/moon-apollo-11-lroc-nac-2011-11-05/?mode=explore",
       "/nili-patera-hirise-2007-06-30/?mode=explore",
       "/pillars-hubble-2014/?mode=explore",
       "/sun-sdo-2024-05-10-aia-94/?mode=light",
+      "/moon-apollo-11-lroc-nac-ortho-2011-01-22/?mode=explore",
       "/nili-patera-hirise-2007-10-13/?mode=explore",
       "/pillars-hubble-1995/?mode=explore",
       "/pillars-webb-2022-nircam/?mode=explore",
