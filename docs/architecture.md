@@ -407,6 +407,9 @@ tsx scripts/generate-tiles.ts <input> <imageId> [--no-pyramid]
 - One build serves one base. Switching from local tiles to R2 means rebuilding with a
   different `TILE_BASE_URL`; a runtime switch would need a fetched config file and is not
   required.
+- On Vercel, `TILE_BASE_URL=https://tiles.solariadata.com` is set for both the Production and the
+  Preview environments. Without it a preview falls back to `/tiles` and finds only the trees still
+  in git, so every image cut since R-03 shows 404s (found on the Moon Journey preview, 2026-11-18).
 - R2 credentials are never read by the app; only the sync script (D-08) reads them.
 
 ## 8. Tile layout to OpenSeadragon
