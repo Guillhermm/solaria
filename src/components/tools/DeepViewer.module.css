@@ -1,0 +1,192 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: 600;
+  letter-spacing: var(--tracking-title);
+  line-height: 1.2;
+}
+
+.lede {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--text-2);
+  line-height: 1.55;
+}
+
+.imageTitle {
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: 400;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* data-theme="dark" on this element keeps the viewer dark in the light theme. */
+.frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--viewer-canvas);
+  color: var(--text);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-panel);
+  overflow: hidden;
+}
+
+.canvas {
+  height: clamp(25rem, 60vh, 44rem);
+  background: var(--viewer-canvas);
+}
+
+.frame[data-fullscreen] {
+  border: none;
+  border-radius: 0;
+}
+
+.frame[data-fullscreen] .canvas {
+  height: 100vh;
+}
+
+.frame[data-fullscreen] .controls {
+  position: absolute;
+  inset-inline: var(--space-4);
+  bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0rem));
+  background: var(--glass);
+  backdrop-filter: blur(1.25rem) saturate(1.3);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-panel);
+}
+
+.status {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-numeric);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  background: var(--glass);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-panel);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--hairline);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.slider {
+  flex: 1 1 16rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.slider input {
+  flex: 1;
+  min-width: 0;
+  height: var(--target);
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.zoomInput {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.zoomInput input {
+  width: 6rem;
+  height: 2.25rem;
+  padding: 0 var(--space-2);
+  font: inherit;
+  font-size: var(--text-numeric);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  text-align: right;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+}
+
+.zoomInput input:focus-visible {
+  border-color: var(--accent);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target);
+  padding: 0 var(--space-4);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.button svg {
+  width: var(--icon);
+  height: var(--icon);
+}
+
+.button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.button:active {
+  border-color: var(--accent-press);
+  color: var(--accent-press);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}
+
+@media (max-width: 40rem) {
+  .canvas {
+    height: 60vh;
+  }
+
+  .controls {
+    padding: var(--space-3);
+  }
+
+  .button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}

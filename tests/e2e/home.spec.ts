@@ -34,3 +34,14 @@ test("the viewer requests its tiles under /tiles/", async ({ page }) => {
     "Andromeda Galaxy (M31), Hubble PHAT+PHAST panorama"
   );
 });
+
+test("the zoom box, reset and fullscreen controls still drive the viewer", async ({ page }) => {
+  await page.goto("/");
+  const status = page.getByText(/^Zoom \d/);
+  await expect(status).toContainText("Zoom 1.00");
+  await page.getByRole("spinbutton", { name: "Zoom percentage" }).fill("300");
+  await expect(status).toContainText("Zoom 3.00");
+  await page.getByRole("button", { name: "Reset view" }).click();
+  await expect(status).toContainText("Zoom 1.00");
+  await expect(page.getByRole("button", { name: "Fullscreen" })).toBeEnabled();
+});

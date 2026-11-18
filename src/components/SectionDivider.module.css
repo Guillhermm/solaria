@@ -1,0 +1,5 @@
+.divider {
+  border: none;
+  border-top: 1px solid var(--hairline-soft);
+  margin-block: var(--space-7);
+}

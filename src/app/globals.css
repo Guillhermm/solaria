@@ -1,38 +1,37 @@
 @import "../styles/tokens.css";
 
-html, body {
-  height: 100%;
-  margin: 0;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-/* Bootstrap reads its own variables; point them at the design tokens until it is removed. */
-:root, [data-theme] {
-  --bs-body-bg: var(--ground);
-  --bs-body-color: var(--text);
-  --bs-body-font-family: var(--font-sans);
-  --bs-emphasis-color: var(--text);
-  --bs-link-color: var(--text);
-  --bs-link-hover-color: var(--accent);
-  --bs-border-color: var(--hairline);
-  --bs-dark-rgb: 12, 15, 22;
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
   background-color: var(--ground);
   color: var(--text);
   font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.theme-switcher {
-  display: grid;
-  place-items: center;
-  width: var(--target);
-  height: var(--target);
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--text);
-  font-size: var(--icon);
+main {
+  flex: 1;
+}
+
+a {
+  color: inherit;
 }
 
 :focus-visible {
@@ -40,168 +39,8 @@ body {
   outline-offset: 2px;
 }
 
-.btn-danger, .btn-info {
-  --bs-btn-color: var(--on-accent);
-  --bs-btn-bg: var(--accent);
-  --bs-btn-border-color: var(--accent);
-  --bs-btn-hover-color: var(--on-accent);
-  --bs-btn-hover-bg: var(--accent-press);
-  --bs-btn-hover-border-color: var(--accent-press);
-  --bs-btn-active-color: var(--on-accent);
-  --bs-btn-active-bg: var(--accent-press);
-  --bs-btn-active-border-color: var(--accent-press);
-}
-
-.controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
-  background: rgba(0, 0, 0, 0.5);
-}
-
-.zoom-controls {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  width: 100%;
-}
-
-.zoom-slider-container {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.zoom-slider {
-  flex: 1;
-  -webkit-appearance: none;
-  height: 6px;
-  background: #ccc;
-  border-radius: 3px;
-  outline: none;
-}
-
-[data-theme='dark'] .zoom-slider {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.zoom-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--accent);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-[data-theme='dark'] .zoom-slider::-webkit-slider-thumb {
-  background: var(--accent);
-}
-
-.zoom-slider::-webkit-slider-thumb:hover {
-  background: var(--accent-press);
-  transform: scale(1.1);
-}
-
-
-[data-theme='dark'] .zoom-slider::-webkit-slider-thumb:hover {
-  background: var(--accent-press);
-}
-
-.zoom-input-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.zoom-input {
-  width: 100%;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 16px;
-  text-align: center;
-}
-
-[data-theme='dark'] .zoom-input {
-  border-color: rgba(255, 255, 255, 0.2);
-  color: white;
-}
-
-.zoom-input:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-
-/* Highlight selected thumbnail */
-.thumbnail-selected {
-  border: 0.25rem solid var(--accent);
-}
-
-[data-theme='dark'] .thumbnail-selected {
-  border-color: var(--accent);
-}
-
-.thumbnail-img {
-  object-fit: cover;
-  width: 100%;
-  height: auto;
-}
-
-.flex-fill {
-  flex: 1 !important;
-  min-width: 0 !important;
-}
-
-.fullscreen-viewer {
-  height: 100vh !important;
-}
-
-.h-400px {
-  height: 400px;
-}
-
-.openseadragon-container .navigator {
-  right: 12px !important;
-  bottom: 12px !important;
-}
-
-.fullscreen-viewer .openseadragon-container .navigator {
-  right: 1.5rem !important;
-  bottom: 16rem !important;
-}
-
-@media (min-width: 768px) {
-  .h-md-500px {
-    height: 500px;
-  }
-
-  .h-md-700px {
-    height: 700px;
-  }
-
-  .fullscreen-viewer .openseadragon-container .navigator {
-    bottom: 6rem !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .controls {
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .zoom-controls {
-    flex-direction: column;
-    width: 100%;
-    gap: 15px;
-  }
-  
-  .zoom-slider-container {
-    width: 100%;
+@media (forced-colors: active) {
+  :focus-visible {
+    outline-color: Highlight;
   }
 }

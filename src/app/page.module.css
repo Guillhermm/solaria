@@ -1,0 +1,21 @@
+.title {
+  margin: 0 0 var(--space-5);
+  font-size: var(--text-display);
+  font-weight: 600;
+  letter-spacing: var(--tracking-display);
+  line-height: 1.05;
+}
+
+.subtitle {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-title);
+  font-weight: 600;
+  letter-spacing: var(--tracking-title);
+  line-height: 1.2;
+}
+
+.intro {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--text-2);
+}

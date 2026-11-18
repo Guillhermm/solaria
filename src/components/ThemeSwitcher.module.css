@@ -1,0 +1,21 @@
+.toggle {
+  display: grid;
+  place-items: center;
+  width: var(--target);
+  height: var(--target);
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.toggle svg {
+  width: var(--icon);
+  height: var(--icon);
+}
+
+.toggle:hover {
+  color: var(--accent);
+}

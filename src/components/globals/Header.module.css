@@ -1,0 +1,25 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-8);
+  border-bottom: 1px solid var(--hairline-soft);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.logo {
+  border-radius: 50%;
+}
+
+@media (max-width: 48rem) {
+  .header {
+    padding-inline: var(--space-4);
+  }
+}

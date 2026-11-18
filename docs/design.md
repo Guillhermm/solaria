@@ -2,7 +2,8 @@
 
 Status: Journeys concept approved on 2026-11-17. Visual direction C "Instrument" chosen on
 2026-11-17, pending final mockup approval. Built so far: the tokens of 6.1 in
-`src/styles/tokens.css`, the Geist fonts and the dark and light themes (V-01).
+`src/styles/tokens.css`, the Geist fonts and the dark and light themes (V-01), and
+Bootstrap replaced by CSS Modules (V-02).
 Date: 2026-11-17. Target: solaria.zenus.systems.
 
 ## 1. Where we start (read from the repo)

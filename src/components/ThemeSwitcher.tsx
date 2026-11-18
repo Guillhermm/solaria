@@ -2,6 +2,7 @@
 
 import { LuMoon, LuSun } from "react-icons/lu";
 import { useTheme } from "@/theme/useTheme";
+import styles from "./ThemeSwitcher.module.css";
 
 const ThemeSwitcher = () => {
   const [theme, toggle] = useTheme();
@@ -10,7 +11,7 @@ const ThemeSwitcher = () => {
   return (
     <button
       type="button"
-      className="theme-switcher"
+      className={styles.toggle}
       onClick={toggle}
       aria-label={`Switch to ${next} theme`}
     >

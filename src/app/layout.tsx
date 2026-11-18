@@ -4,7 +4,6 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import Header from "@/components/globals/Header";
 import Footer from "@/components/globals/Footer";
-import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,11 +19,9 @@ const RootLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
       {/* eslint-disable-next-line @next/next/no-sync-scripts */}
       <script src="/theme-init.js" />
     </head>
-    <body className="d-flex flex-column antialiased">
+    <body>
       <Header />
-      <main className="flex-grow-1 d-flex flex-column gap-3 align-items-start">
-        {children}
-      </main>
+      <main>{children}</main>
       <Footer />
     </body>
   </html>

@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { Button } from "react-bootstrap";
-import { BsAlexa, BsFullscreen, BsFullscreenExit } from "react-icons/bs";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { LuMaximize, LuMinimize, LuRotateCcw } from "react-icons/lu";
 import type OpenSeadragon from "openseadragon";
 import { tileSource } from "@/content/tiles";
-import { DeepViewerProps } from "@/types";
+import type { DeepViewerProps } from "@/types";
+import styles from "./DeepViewer.module.css";
 
-export default function DeepViewer({ title, image, tileBaseUrl }: DeepViewerProps) {
+const DeepViewer = ({ title, image, tileBaseUrl }: DeepViewerProps) => {
   const viewerRef = useRef<OpenSeadragon.Viewer | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -53,6 +53,7 @@ export default function DeepViewer({ title, image, tileBaseUrl }: DeepViewerProp
         navigatorOpacity: 0.8,
       });
       viewerRef.current = viewer;
+      viewer.addHandler("open", sync);
       viewer.addHandler("viewport-change", sync);
     });
 
@@ -64,137 +65,95 @@ export default function DeepViewer({ title, image, tileBaseUrl }: DeepViewerProp
   }, [image, tileBaseUrl]);
 
   const handleZoomTo = useCallback((percent: number) => {
-    if (!viewerRef.current) return;
+    if (!viewerRef.current || Number.isNaN(percent)) return;
     const vp = viewerRef.current.viewport;
     vp.zoomTo(percent / 100, vp.getCenter(), true);
   }, []);
 
   const handleReset = useCallback(() => {
-    if (!viewerRef.current) return;
-    viewerRef.current.viewport.goHome();
+    viewerRef.current?.viewport.goHome();
+  }, []);
+
+  // Esc leaves fullscreen without going through the button, so follow the document.
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(document.fullscreenElement === wrapperRef.current);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
 
   const toggleFullscreen = useCallback(async () => {
     if (!wrapperRef.current) return;
     try {
-      if (!document.fullscreenElement) {
-        await wrapperRef.current.requestFullscreen();
-        setIsFullscreen(true);
-      } else {
-        await document.exitFullscreen();
-        setIsFullscreen(false);
-      }
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await wrapperRef.current.requestFullscreen();
     } catch (err) {
       console.error("Fullscreen toggle error:", err);
     }
-  }, [setIsFullscreen]);
+  }, []);
+
+  const percent = Math.round(scale * 100);
 
   return (
-    <>
-      <h2>{title}</h2>
-      <div className="mb-4">
+    <section className={styles.section} aria-labelledby="deep-viewer-title">
+      <h2 id="deep-viewer-title" className={styles.title}>{title}</h2>
+      <p className={styles.lede}>
         Explore every detail, without waiting: our Deep Viewer splits massive
         images into many small tiles, loading only what you need at your current
         view. Zoom, pan, or select areas, in which the system will quickly fetch
         just the right pieces, so you see crisp detail fast, without overloading
         your browser or network. It is designed to be fast, responsive, and
         intuitive, so you can spend more time discovering and less time waiting.
-      </div>
-      <h3>{image.title}</h3>
-      <div className="deep-viewer-container position-relative" ref={wrapperRef}>
-        <div
-          className={`w-100 mb-4 ${
-            isFullscreen ? "fullscreen-viewer" : "h-400px h-md-500px"
-          }`}
-        >
-          <div ref={containerRef} className="w-100 bg-black h-100" />
-        </div>
-        {/* Zoom / control buttons */}
-        <div
-          className={`zoom-controls-section d-flex flex-column gap-3 flex-lg-row ${
-            isFullscreen
-              ? "position-absolute px-4 pb-4 w-100 left-0 right-0 bottom-0"
-              : ""
-          }`}
-        >
-          <div className="zoom-slider-container">
-            <span>100%</span>
+      </p>
+      <h3 className={styles.imageTitle}>{image.title}</h3>
+      <div
+        ref={wrapperRef}
+        className={styles.frame}
+        data-theme="dark"
+        data-fullscreen={isFullscreen || undefined}
+      >
+        <div ref={containerRef} className={styles.canvas} />
+        <p className={styles.status}>
+          Zoom {scale.toFixed(2)} <span aria-hidden>|</span> Center ({center.x.toFixed(2)},{" "}
+          {center.y.toFixed(2)})
+        </p>
+        <div className={styles.controls}>
+          <div className={styles.slider}>
+            <span aria-hidden>100%</span>
             <input
               type="range"
               min="100"
               max="5000"
-              value={Math.round(scale * 100)}
-              className="zoom-slider"
-              onChange={(e) => {
-                const newPct = parseInt(e.target.value, 10);
-                handleZoomTo(newPct);
-              }}
+              value={percent}
+              aria-label="Zoom"
+              onChange={(e) => handleZoomTo(parseInt(e.target.value, 10))}
             />
-            <span>5000%</span>
+            <span aria-hidden>5000%</span>
           </div>
-          <div className="zoom-input-container">
-            <label htmlFor="zoomInput">Zoom:</label>
+          <label className={styles.zoomInput}>
+            <span>Zoom</span>
             <input
               id="zoomInput"
               type="number"
               min="100"
               max="5000"
-              value={Math.round(scale * 100)}
-              className="zoom-input"
-              onChange={(e) => {
-                const newPct = parseInt(e.target.value, 10);
-                handleZoomTo(newPct);
-              }}
+              value={percent}
+              aria-label="Zoom percentage"
+              onChange={(e) => handleZoomTo(parseInt(e.target.value, 10))}
             />
-            <span>%</span>
-          </div>
-          <Button
-            id="full-screen"
-            onClick={toggleFullscreen}
-            size="lg"
-            className="btn btn-info rounded-0 text-uppercase fw-bold text-white d-flex align-items-center justify-content-center gap-2"
-            title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-          >
-            {isFullscreen ? (
-              <>
-                <BsFullscreenExit />
-                Exit Fullscreen
-              </>
-            ) : (
-              <>
-                <BsFullscreen />
-                Fullscreen
-              </>
-            )}
-          </Button>
-          <Button
-            id="reset"
-            onClick={handleReset}
-            size="lg"
-            className="btn btn-danger rounded-0 text-uppercase fw-bold d-flex align-items-center justify-content-center gap-2"
-            title="Reset View"
-          >
-            <BsAlexa />
-            Reset View
-          </Button>
-        </div>
-        {/* Floating status */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            color: "white",
-            padding: "12px",
-            borderRadius: "4px",
-            zIndex: 1000,
-          }}
-        >
-          Zoom: {scale.toFixed(2)} | Center: ({center.x.toFixed(2)},{" "}
-          {center.y.toFixed(2)})
+            <span aria-hidden>%</span>
+          </label>
+          <button id="full-screen" type="button" className={styles.button} onClick={toggleFullscreen}>
+            {isFullscreen ? <LuMinimize aria-hidden /> : <LuMaximize aria-hidden />}
+            {isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+          </button>
+          <button id="reset" type="button" className={styles.button} onClick={handleReset}>
+            <LuRotateCcw aria-hidden />
+            Reset view
+          </button>
         </div>
       </div>
-    </>
+    </section>
   );
-}
+};
+
+export default DeepViewer;

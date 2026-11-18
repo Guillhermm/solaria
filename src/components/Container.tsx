@@ -1,6 +1,6 @@
-import { ReactNode } from 'react';
-import { Container as BSContainer } from 'react-bootstrap';
+import type { ReactNode } from "react";
+import styles from "./Container.module.css";
 
 export const Container = ({ children }: { children: ReactNode }) => (
-  <BSContainer className="py-5">{children}</BSContainer>
+  <div className={styles.container}>{children}</div>
 );
