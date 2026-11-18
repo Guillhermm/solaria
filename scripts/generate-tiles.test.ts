@@ -5,7 +5,7 @@ import Vips from "wasm-vips";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { jpegSize } from "../src/content/__fixtures__/jpeg";
 import { levelSize, tileCount } from "../src/content/pyramid";
-import { cutPyramid, stitchPoster, tilesBlock, updateManifestTiles, writeThumbnails } from "./generate-tiles";
+import { cropTo, cutPyramid, stitchPoster, tilesBlock, updateManifestTiles, writeThumbnails } from "./generate-tiles";
 
 const W = 1000;
 const H = 300;
@@ -123,5 +123,25 @@ describe("manifest", () => {
 
   it("stops when the manifest does not exist", () => {
     expect(() => updateManifestTiles(join(dir, "missing.json"), {} as never)).toThrow(/hand-written fields come first/);
+  });
+});
+
+describe("cropTo", () => {
+  it("keeps the record's box of the source file", () => {
+    // Each pixel holds its own x.
+    const source = vips.Image.xyz(10, 8).extractBand(0);
+    const out = cropTo(source, { x: 3, y: 2, width: 5, height: 4 });
+    expect([out.width, out.height]).toEqual([5, 4]);
+    expect(out.getpoint(0, 0)).toEqual([3]);
+    expect(out.getpoint(4, 3)).toEqual([7]);
+  });
+
+  it("leaves an image without a crop whole", () => {
+    const source = image(10, 8);
+    expect(cropTo(source, undefined)).toBe(source);
+  });
+
+  it("refuses a box past the input's edge", () => {
+    expect(() => cropTo(image(10, 8), { x: 6, y: 0, width: 5, height: 8 })).toThrow("crop: (6, 0) + 5 x 8 lies outside the input (10 x 8)");
   });
 });

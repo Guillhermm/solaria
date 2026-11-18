@@ -241,6 +241,9 @@ export interface ImageManifest {
   fieldOfView?: Claim<string>;
   orientation?: Claim<string>;
   caveats?: string[]; // what users must see beside the image, from the science review
+  // The box of the source file that was tiled, in source pixels; absent: the whole file.
+  // tiles.width and height equal its size, and generate-tiles cuts it from the input.
+  crop?: { x: number; y: number; width: number; height: number };
   tiles: TilePyramid;
   validation: Validation;
   mock: boolean;
@@ -356,6 +359,8 @@ Why not the alternatives:
 tsx scripts/generate-tiles.ts <input> <imageId> [--no-pyramid]
 ```
 
+- `<input>` is the whole source file. When the image record has a `crop`, only that box is
+  tiled, and the thumbnail and preview are cut from it too.
 - Output: `public/tiles/<imageId>/<level>/<x>/<y>.jpg`, plus `thumbnail.jpg` and
   `preview.jpg` in the same directory.
 - `poster.jpg` is one pyramid level joined from its tiles (`stitchPoster`): the coarsest level
@@ -445,7 +450,8 @@ pans and back (median of 3):
 | 1000 | 6.5 MB | 408 MB | 0 |
 
 1000 would hold up to 256 MB of tiles, which older phones with 2 to 3 GB of memory may not
-spare. The page records the drawer it got in `data-drawer` on the viewer, for the tests.
+spare. The page records the drawer it got in `data-drawer` and the cache size in `data-tile-cache`
+on the viewer, for the tests.
 
 ## 9. Production gate (D-06)
 
@@ -675,9 +681,9 @@ Next's metadata files carry it, and all of them export as static files under
   the token and the constant drift apart.
 - The icons come from one SVG built in `scripts/generate-icons.ts` (`npx tsx
   scripts/generate-icons.ts`): the header's `.mark` (a 10px square, 1.5px border, 1px
-  radius, turned 45 degrees) in `--text` on a `--ground` tile, rasterized with `sharp`,
-  which Next already installs. The "any" icons and the favicon are a rounded tile; the
-  Apple icon is full bleed because iOS rounds it; the maskable icon keeps the mark within
+  radius, turned 45 degrees) in `--text` on a `--ground` tile, rasterized with `sharp` (a
+  devDependency, pinned to the version Next installs). The "any" icons and the favicon are a
+  rounded tile; the Apple icon is full bleed because iOS rounds it; the maskable icon keeps the mark within
   60% of the side, so its corners stay inside the 80% safe zone. The outputs are
   committed; rerun the script after changing the mark or the tokens.
 

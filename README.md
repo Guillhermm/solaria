@@ -34,7 +34,8 @@ in [docs/science/](docs/science/).
   build time. The site is a static export (`out/`).
 - Scripts: `npm run fetch-source -- <sourceId>` downloads an original into `.cache/` and
   checks its size and sha256; `npm run generate-tiles -- <input> <imageId> [--no-pyramid]`
-  cuts the tile pyramid, a thumbnail and a preview, and writes the manifest's `tiles` block.
+  cuts the tile pyramid, a thumbnail and a preview (of the record's `crop` when it has one),
+  and writes the manifest's `tiles` block.
   `npm run validate` runs the content checks and the production gate alone; `next build`
   runs them too and fails on any draft, mock or unverified content.
   `npm run generate-mock` rewrites the synthetic mock content in `data/mock/` (one Compare

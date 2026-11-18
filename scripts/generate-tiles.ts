@@ -4,7 +4,7 @@ import { join } from "node:path";
 import Vips from "wasm-vips";
 import { contentFile } from "../src/content/load";
 import { assertGrid, levelSize, posterLevel, tileCount } from "../src/content/pyramid";
-import type { TilePyramid } from "../src/content/types";
+import type { ImageManifest, TilePyramid } from "../src/content/types";
 
 type VipsImage = InstanceType<Awaited<ReturnType<typeof Vips>>["Image"]>;
 
@@ -23,6 +23,15 @@ const resizeTo = (img: VipsImage, width: number, height: number, label: string) 
     throw new Error(`${label}: libvips returned ${out.width} x ${out.height}, expected ${width} x ${height}`);
   }
   return out;
+};
+
+// The input is the whole source file; an image record with a `crop` tiles only that box of it.
+export const cropTo = (image: VipsImage, crop: ImageManifest["crop"]) => {
+  if (!crop) return image;
+  if (crop.x + crop.width > image.width || crop.y + crop.height > image.height) {
+    throw new Error(`crop: (${crop.x}, ${crop.y}) + ${crop.width} x ${crop.height} lies outside the input (${image.width} x ${image.height})`);
+  }
+  return image.extractArea(crop.x, crop.y, crop.width, crop.height);
 };
 
 export const cutPyramid = async (
@@ -152,7 +161,8 @@ const main = async () => {
   // which holds it in memory; larger originals stay sequential.
   const header = vips.Image.newFromFile(input);
   const access = header.width * header.height <= RANDOM_ACCESS_PIXELS ? "random" : "sequential";
-  const image = vips.Image.newFromFile(input, { access });
+  const { crop } = JSON.parse(readFileSync(manifestPath, "utf8")) as Pick<ImageManifest, "crop">;
+  const image = cropTo(vips.Image.newFromFile(input, { access }), crop);
   let maxLevel = MAX_LEVEL;
   if (noPyramid) maxLevel = await levelsOnDisk(outDir);
   else await cutPyramid(image, outDir, { tileSize: TILE_SIZE, maxLevel });
