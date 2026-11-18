@@ -332,6 +332,13 @@ Where the build differs from sections 1 to 4, and why. Each was the simpler work
   reduced motion they appear at once with the cut. Leaving is a cut either way. The bar is a
   margin of the view, like the Light bar, so the stop is framed clear of it. Test data: the
   mock Journey `data/mock/journeys/mock-compare-tour.json` over the mock pair.
+  After the design gate (design.md 5.6, C5-1 to C5-3): the handle keeps off the current
+  reticle (`stopHandleCenter`, measured when the camera lands and on resize); on a phone the
+  chips carry arrows and share a row with "What differs?"; Home lists Compare for such a
+  Journey (`journeyModes`); a chip that would cover another chip or a side label takes its
+  bracket's other top corner (`flipTags`). Two fixes came with it: `pageRef` is written in a
+  layout effect, so a bar leaving with the stop no longer reframes the stop just left, and a
+  flight retargeted mid-air no longer reports landing before the camera arrives.
 - **The note's place.** The compare bar measures its own edges with a `ResizeObserver` and
   hands them to the note as `--bar-above` and `--bar-below`: on desktop the note opens a
   `--space-2` gap above the bar, below 64rem the same gap below it, its height capped to the

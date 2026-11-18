@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createSync, dividerKey, dividerValueText, handleCenter, splitFromPointer } from "./divider";
+import { createSync, dividerKey, dividerValueText, handleCenter, splitFromPointer, stopHandleCenter } from "./divider";
 
 describe("dividerKey", () => {
   it("moves 1 % with the arrows and 10 % with Shift", () => {
@@ -69,5 +69,26 @@ describe("handleCenter", () => {
   });
   it("is null when nothing is tall enough", () => {
     expect(handleCenter({ top: 0, bottom: 100 }, [{ top: 20, bottom: 80 }], 44, 16)).toBeNull();
+  });
+});
+
+describe("stopHandleCenter", () => {
+  const range = { top: 0, bottom: 800 };
+  const size = 48;
+  const gap = 16;
+
+  it("takes the middle of the free stretch below the marker", () => {
+    // Below the marker: 316 to 584 (the bar at 600 less the gap).
+    expect(stopHandleCenter(range, [{ top: 600, bottom: 800 }], { top: 200, bottom: 300 }, size, gap, 600)).toBe(450);
+  });
+  it("goes above the marker when nothing fits below it", () => {
+    expect(stopHandleCenter(range, [{ top: 0, bottom: 60 }, { top: 400, bottom: 800 }], { top: 250, bottom: 360 }, size, gap, 400)).toBe(155);
+  });
+  it("sits half a gap above the floor when it fits neither below nor above", () => {
+    expect(stopHandleCenter(range, [{ top: 0, bottom: 150 }, { top: 420, bottom: 800 }], { top: 180, bottom: 390 }, size, gap, 420)).toBe(420 - 8 - 24);
+  });
+  it("prefers the nearest stretch below over a taller one further down", () => {
+    const blocked = [{ top: 380, bottom: 400 }, { top: 780, bottom: 800 }];
+    expect(stopHandleCenter(range, blocked, { top: 200, bottom: 300 }, size, gap, 780)).toBe((316 + 364) / 2);
   });
 });

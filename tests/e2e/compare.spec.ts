@@ -232,7 +232,7 @@ test.describe("desktop", () => {
     await expect(note.getByText(pair.whatDiffers)).toBeVisible();
     await expect(note.getByText("Draft", { exact: true })).toBeVisible();
     await expect(note).toContainText("Differs Date, Viewing geometry");
-    await expect(note.getByRole("listitem")).toHaveText([...reference.caveats, ...moving.caveats]);
+    await expect(note.getByRole("listitem")).toHaveText([...new Set([...reference.caveats, ...moving.caveats])]);
     await page.keyboard.press("Escape");
     await expect(note).toBeHidden();
     await expect(open).toBeFocused();
@@ -305,8 +305,8 @@ test.describe("phone", () => {
     const handle = (await divider(page).boundingBox())!;
     expect(handle.width).toBe(48);
     const bar = page.getByTestId("compare-bar");
-    await expect(bar.getByText(`Left: ${pair.labels[0].short}`)).toBeVisible();
-    await expect(bar.getByText(`Right: ${pair.labels[1].short}`)).toBeVisible();
+    // design.md 5.6, C5-2: on a phone the arrow gives the side; the name keeps the word.
+    await expect(bar.getByTestId("compare-chips").locator("> span")).toHaveText([`← ${pair.labels[0].short}`, `${pair.labels[1].short} →`], { useInnerText: true, ignoreCase: true });
     const sheet = page.getByTestId("sheet");
     await expect(sheet.getByText(`Left, ${pair.labels[0].short}: ${before.credit}`)).toBeVisible();
     await expect(sheet.getByText(`Right, ${pair.labels[1].short}: ${after.credit}`)).toBeVisible();
@@ -358,7 +358,7 @@ test.describe("the Hubble 1995 and 2014 pair", () => {
     await expect(page.getByTestId("divider").getByText(right.full)).toBeVisible();
     await page.getByRole("button", { name: "What differs?" }).click();
     const note = page.getByRole("dialog", { name: /What differs\?/ });
-    await expect(note.getByRole("listitem")).toHaveText([...hubble.caveats, ...[hubble.reference, hubble.imageIds.find((i: string) => i !== hubble.reference)].flatMap((id) => read(`data/images/${id}.json`).caveats)]);
+    await expect(note.getByRole("listitem")).toHaveText([...new Set([...hubble.caveats, ...[hubble.reference, hubble.imageIds.find((i: string) => i !== hubble.reference)].flatMap((id) => read(`data/images/${id}.json`).caveats)])]);
     await page.keyboard.press("Escape");
     const credits = page.getByTestId("compare-bar").getByRole("list", { name: "Credits" }).getByRole("listitem");
     await expect(credits.nth(0)).toContainText(`Left, ${left.short}: `);
@@ -405,8 +405,7 @@ test.describe("the note and the bar", () => {
     test("the chips show with the note closed; the note opens below the bar, fits the screen and fades while it has more", async ({ page }) => {
       await page.goto("/pillars-hubble-2014/?mode=compare");
       await ready(page);
-      await expect(page.getByText("Left: 2014")).toBeVisible();
-      await expect(page.getByText("Right: 1995")).toBeVisible();
+      await expect(page.getByTestId("compare-chips").locator("> span")).toHaveText(["← 2014", "1995 →"], { useInnerText: true });
       const { bar, note } = await openNote(page);
       expect(Math.abs(note.y - (bar.y + bar.height) - GAP)).toBeLessThanOrEqual(1);
       expect(note.y + note.height).toBeLessThanOrEqual(844 - 12 + 1);

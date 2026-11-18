@@ -45,9 +45,19 @@ const CompareBar = ({ layout, layouts, onLayout, headline, draft, credits, chips
         </p>
         {children}
       </div>
-      <p className={styles.chips} aria-hidden>
-        <span>Left: {chips[0]}</span>
-        <span>Right: {chips[1]}</span>
+      {/* Below 40rem the arrow gives the side (design.md 5.6, C5-2). Hidden from assistive
+          technology, as before: the credits list names both sides. */}
+      <p className={styles.chips} aria-hidden data-testid="compare-chips">
+        <span>
+          <span className={styles.chipWord}>Left: </span>
+          <span className={styles.chipArrow}>← </span>
+          {chips[0]}
+        </span>
+        <span>
+          <span className={styles.chipWord}>Right: </span>
+          {chips[1]}
+          <span className={styles.chipArrow}> →</span>
+        </span>
       </p>
       {blink && (
         <div className={styles.row}>

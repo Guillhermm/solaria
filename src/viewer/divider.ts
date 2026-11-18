@@ -48,11 +48,8 @@ export interface Span {
   bottom: number;
 }
 
-// design.md 15.5, D17: the handle's center on the divider. It stays at the middle of `range`
-// where a handle of `size` fits there with `gap` around it; otherwise it moves to the middle of
-// the tallest free stretch between the overlays that cross the divider (`blocked`). Null when
-// no stretch is tall enough.
-export const handleCenter = (range: Span, blocked: Span[], size: number, gap: number): number | null => {
+// The stretches of `range` clear of every blocked span by `gap`, tall enough for the handle.
+const freeStretches = (range: Span, blocked: Span[], size: number, gap: number) => {
   const walls = blocked.map((b) => ({ top: b.top - gap, bottom: b.bottom + gap })).sort((a, b) => a.top - b.top);
   const free: Span[] = [];
   let from = range.top;
@@ -61,10 +58,30 @@ export const handleCenter = (range: Span, blocked: Span[], size: number, gap: nu
     from = Math.max(from, w.bottom);
   }
   if (from < range.bottom) free.push({ top: from, bottom: range.bottom });
-  const fits = free.filter((f) => f.bottom - f.top >= size);
+  return free.filter((f) => f.bottom - f.top >= size);
+};
+
+// design.md 15.5, D17: the handle's center on the divider. It stays at the middle of `range`
+// where a handle of `size` fits there with `gap` around it; otherwise it moves to the middle of
+// the tallest free stretch between the overlays that cross the divider (`blocked`). Null when
+// no stretch is tall enough.
+export const handleCenter = (range: Span, blocked: Span[], size: number, gap: number): number | null => {
+  const fits = freeStretches(range, blocked, size, gap);
   const middle = (range.top + range.bottom) / 2;
   if (fits.some((f) => middle - size / 2 >= f.top && middle + size / 2 <= f.bottom)) return middle;
   if (!fits.length) return null;
   const tallest = fits.reduce((a, b) => (b.bottom - b.top > a.bottom - a.top ? b : a));
   return (tallest.top + tallest.bottom) / 2;
+};
+
+// design.md 5.6, C5-1: at a Journey stop the handle keeps off the current stop's marker. It
+// takes the middle of the nearest free stretch below the marker where the handle fits with
+// `gap` around it, else the nearest one above, else it sits `gap / 2` above `floor` (the top of
+// the stop card on a phone, of the compare bar on desktop).
+export const stopHandleCenter = (range: Span, blocked: Span[], mark: Span, size: number, gap: number, floor: number): number => {
+  const fits = freeStretches(range, [...blocked, mark], size, gap);
+  const below = fits.find((f) => f.top >= mark.bottom);
+  const above = fits.filter((f) => f.bottom <= mark.top).at(-1);
+  const pick = below ?? above;
+  return pick ? (pick.top + pick.bottom) / 2 : floor - gap / 2 - size / 2;
 };

@@ -208,10 +208,14 @@
   color: var(--text-2);
 }
 
-.chips span {
+.chips > span {
   padding: var(--space-1) var(--space-2);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-control);
+}
+
+.chipArrow {
+  display: none;
 }
 
 .showing {
@@ -292,6 +296,47 @@
 
   .bar {
     padding: var(--space-1) var(--space-2);
+  }
+
+  /* C5-2: one row for the headline, one for the chips with "What differs?" at its end, so the
+     bar stays under 5.5rem. */
+  .bar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0 var(--space-2);
+    align-items: center;
+  }
+
+  .row {
+    display: contents;
+  }
+
+  .layouts,
+  .headline {
+    grid-column: 1 / -1;
+  }
+
+  .headline {
+    padding-block: var(--space-1);
+  }
+
+  .chips {
+    grid-row: 2;
+    grid-column: 1;
+    min-width: 0;
+  }
+
+  .whatButton {
+    grid-row: 2;
+    grid-column: 2;
+    padding-inline: var(--space-2);
+  }
+
+  .chipWord {
+    display: none;
+  }
+
+  .chipArrow {
+    display: inline;
   }
 }
 

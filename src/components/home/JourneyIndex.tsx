@@ -3,7 +3,7 @@ import Link from "next/link";
 import { LuArrowRight } from "react-icons/lu";
 import type { ImageManifest, Journey, Source } from "@/content/types";
 import { coverCrop } from "@/home/thumbnail";
-import { stopNumber } from "@/viewer/story";
+import { journeyModes, stopNumber } from "@/viewer/story";
 import { formatInt } from "@/viewer/view";
 import styles from "./JourneyIndex.module.css";
 
@@ -56,7 +56,7 @@ const JourneyIndex = ({ entries, tileBaseUrl }: { entries: JourneyEntry[]; tileB
               <h3 className={styles.title}>{journey.title}</h3>
               <p className={styles.summary}>{journey.summary}</p>
               <p className={styles.meta}>
-                {journey.stops.length} stops · Story, Explore{journey.bandSetId ? ", Light" : ""} · {image.observatory.value}
+                {journey.stops.length} stops · {journeyModes(journey)} · {image.observatory.value}
               </p>
             </div>
             <p className={styles.size}>

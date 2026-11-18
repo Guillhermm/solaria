@@ -91,3 +91,23 @@ export const mergeMarks = (marks: Mark[], min: number, chip: (mark: Mark, text: 
   }
   return groups;
 };
+
+// A chip that sits beside its bracket's top right corner, or mirrored to the top left one.
+export interface Tag {
+  index: number;
+  right: Box;
+  left: Box;
+}
+
+// design.md 5.6, C-05 polish: the current stop's chip moves to its bracket's other top corner
+// when it would cover another marker's chip or a side label; another marker's chip moves when a
+// side label would cover it. Returns the stops whose chip moves.
+export const flipTags = (current: Tag | null, others: Tag[], labels: Box[]): Set<number> => {
+  const flipped = new Set<number>();
+  for (const t of others) if (labels.some((l) => overlaps(t.right, l)) && !labels.some((l) => overlaps(t.left, l))) flipped.add(t.index);
+  if (current) {
+    const shown = [...others.map((t) => (flipped.has(t.index) ? t.left : t.right)), ...labels];
+    if (shown.some((b) => overlaps(current.right, b)) && !shown.some((b) => overlaps(current.left, b))) flipped.add(current.index);
+  }
+  return flipped;
+};

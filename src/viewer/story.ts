@@ -196,3 +196,8 @@ export const stopCompare = <P extends { pair: { id: string } }>(
   if (!compare || !view) return null;
   return { view, split: dragged?.stop === index ? dragged.split : compare.split };
 };
+
+// The modes a Journey's Home card lists (design.md 5.6, C5-3): Light with a band set, Compare
+// when a stop shows a pair.
+export const journeyModes = (journey: { bandSetId?: string; stops: readonly Stop[] }) =>
+  ["Story", "Explore", ...(journey.stops.some((s) => s.compare) ? ["Compare"] : []), ...(journey.bandSetId ? ["Light"] : [])].join(", ");

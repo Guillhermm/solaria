@@ -96,3 +96,6 @@ export const sides = <L>(pair: { imageIds: [string, string]; reference: string; 
   const ref = pair.imageIds.indexOf(pair.reference);
   return { left: pair.labels[ref], right: pair.labels[1 - ref] };
 };
+
+// Two images from one telescope often share a caveat word for word; the note lists it once.
+export const pairCaveats = (...lists: (string[] | undefined)[]) => [...new Set(lists.flatMap((l) => l ?? []))];

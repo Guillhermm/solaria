@@ -12,6 +12,7 @@ import {
   stopNumber,
   stopOf,
   stopTarget,
+  journeyModes,
   stopCompare,
   storySearch,
   viewBounds,
@@ -201,5 +202,13 @@ describe("stopCompare", () => {
   it("keeps a divider dragged at this stop, and only at this stop", () => {
     expect(stopCompare(stops, 1, pairs, { stop: 1, split: 72 })?.split).toBe(72);
     expect(stopCompare(stops, 1, pairs, { stop: 0, split: 72 })?.split).toBe(30);
+  });
+});
+
+describe("journeyModes", () => {
+  it("lists Compare when a stop shows a pair, and Light with a band set", () => {
+    expect(journeyModes({ stops: [stop("a")] })).toBe("Story, Explore");
+    expect(journeyModes({ stops: [stop("a"), { ...stop("b"), compare: { pairId: "p", split: 50 } }] })).toBe("Story, Explore, Compare");
+    expect(journeyModes({ bandSetId: "s", stops: [stop("a")] })).toBe("Story, Explore, Light");
   });
 });

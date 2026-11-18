@@ -296,6 +296,27 @@ aim); tapping a stop opens the Journey at that stop.
   the image right of the story column, and the stop's split is a share of that area; on a
   phone the handle keeps clear of the stop card. Divider and bar fade in over 700 ms with the
   flight, like a band, at once under reduced motion; leaving the stop removes them.
+- Design gate on C-05 (2026-11-18, Pillars draft): the as-built note above is accepted, with
+  these decisions on top of it.
+  - C5-1, the handle keeps off the stop. At a compare stop the current marker (bracket, ticks
+    and chip) joins the divider handle's `avoid` list, measured when the flight lands and on
+    resize, never during the flight. The handle takes the free stretch below the marker when
+    one fits (handle plus 1rem each side), else the one above, else it sits 0.5rem above the
+    sheet (phone) or the compare bar (desktop). Once the user pans, it stays where it is. Today
+    it sits on the reticle's center on a phone (stop 06 hides the four stars the stop is about)
+    and on the bracket's lower corners on desktop.
+  - C5-2, a shorter phone bar. Below 40rem the chips row also carries "What differs?" at its
+    end, and the chips read "← Hubble 2014" and "Webb 2022 →" (the arrow gives the side; the
+    chips stay hidden from assistive technology, whose users get both sides from the credits
+    list). Target: the bar at most 5.5rem tall, the headline still in it. Today "What differs?" has a row of its own (the Sprint 8 finding
+    again) and the image keeps 242 of 844 px at a compare stop.
+  - C5-3, Home names Compare. A Journey with a compare stop lists "Story, Explore, Compare"
+    on its Home card, as one with a band set lists Light.
+  - Polish: the current stop's chip covers a co-located marker's number (stop 03 over 07),
+    and the left side label covers marker 02's number at stop 04; a label or chip that would
+    cover another marker's tag moves to the bracket's other top corner.
+  - As built (2026-11-18): C5-1 to C5-3 and the polish item as written. Between 40rem and
+    64rem the chips still read "Left: 2014".
 
 ### 5.7 Light mode (replaces Spectral Gallery)
 
