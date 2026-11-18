@@ -84,6 +84,12 @@ in [docs/science/](docs/science/).
   checked note per band.
 - The Sun Journey at `/sun/`: seven stops through the SDO bands; each stop can switch the band,
   with a crossfade (a cut under reduced motion), and the rail stays in hand to switch freely.
+- The Mars Journey at `/nili-patera/`: six stops over the Nili Patera dune field from two
+  HiRISE orthorectified images (30 June and 13 October 2007), ending on what changed: the sand
+  ripples shifted, the dunes did not measurably move. The same pair opens in Compare with the
+  alignment limit and a "what differs" note. Both images are cut to the part they share; an
+  image record's `crop` gives the offset of its pixels in the source product, and the
+  science record is `docs/science/mars-nili-patera.md`.
 - Feature labels in Explore and Light: the Feature labels button (above Reset view) draws
   the validated labels of `data/labels/` on the image, as rings or measured circles with
   chips placed clear of the controls; a chip opens its description, and About this image

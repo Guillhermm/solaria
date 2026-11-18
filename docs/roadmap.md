@@ -149,7 +149,7 @@ C-05 waits for R2: the Webb frame is about 2,566 tiles and 110 MB (estimated), t
 | F-02 | Detail of the week, rotated at build time (the weekly scheduled rebuild is planned, waiting on the host decision) | done |
 | F-03 | Labeled features on images, each label validated | done |
 | F-04 | Search by feature name, then by coordinates (image pixels; sky coordinates planned) | done |
-| F-05 | Mars Journey from HiRISE orthorectified pairs only | todo |
+| F-05 | Mars Journey from HiRISE orthorectified pairs only | done |
 | F-06 | Installable app: web app manifest, favicon and icon set from the header mark (`scripts/generate-icons.ts`) | done |
 | F-07 | Offline support with a service worker that never serves stale tiles or pages | planned |
 | T-01 | Fix the two intermittent e2e failures (tile-outage retry toast, story cut) | done |

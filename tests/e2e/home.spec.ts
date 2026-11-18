@@ -168,9 +168,16 @@ test.describe("desktop", () => {
     await page.goto("/");
     const index = page.getByRole("region", { name: "Journeys" });
     const rows = index.getByRole("listitem");
-    await expect(rows).toHaveCount(2);
+    await expect(rows).toHaveCount(3);
+    const mars = JSON.parse(readFileSync("data/journeys/nili-patera.json", "utf8"));
+    const marsRow = rows.nth(1);
+    await expect(marsRow.getByRole("heading", { level: 3 })).toHaveText(mars.title);
+    await expect(marsRow).toContainText(mars.summary);
+    await expect(marsRow).toContainText("6 stops · Story, Explore · Mars Reconnaissance Orbiter");
+    await expect(marsRow).toContainText("3 934 × 5 747 px");
+    await expect(marsRow.getByRole("link", { name: `Begin ${mars.title}` })).toHaveAttribute("href", "/nili-patera/");
     const sun = JSON.parse(readFileSync("data/journeys/sun.json", "utf8"));
-    const second = rows.nth(1);
+    const second = rows.nth(2);
     await expect(second.getByRole("heading", { level: 3 })).toHaveText(sun.title);
     await expect(second).toContainText(sun.summary);
     await expect(second).toContainText("7 stops · Story, Explore, Light · SDO");
@@ -194,7 +201,7 @@ test.describe("desktop", () => {
     await expect(row).toContainText("42 208 × 9 870 px");
     await expect(row.getByRole("link", { name: `Begin ${journey.title}` })).toHaveAttribute("href", "/andromeda/");
     await expect(index.getByRole("heading", { name: "More journeys will appear here" })).toHaveCount(0);
-    await expect(index.getByText(/Planned|Pillars|Mars/)).toHaveCount(0);
+    await expect(index.getByText(/Planned|Pillars/)).toHaveCount(0);
     // design.md 6.4: the thumbnail keeps its true shape inside the slot.
     const shape = await row.locator("img").evaluate((el) => {
       const img = el as HTMLImageElement;

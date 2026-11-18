@@ -51,10 +51,10 @@ describe("search vectors on Home (Q16)", () => {
     expect(search(index, "sun").live).toBe("7 results");
   });
 
-  it("the: 11 matches, 8 shown, with the overflow line", () => {
-    expect(names("the")).toEqual(["The bright center", "The companion galaxy M32", ...SUN.slice(0, 6).map(sunTitle)]);
-    expect(lines("the")).toEqual(["Showing 8 of 11. Type more to narrow."]);
-    expect(search(index, "the").live).toBe("11 results");
+  it("the: 14 matches, 8 shown, with the overflow line", () => {
+    expect(names("the")).toEqual(["The bright center", "The companion galaxy M32", "The ripples moved", "The dunes stayed", ...SUN.slice(0, 4).map(sunTitle)]);
+    expect(lines("the")).toEqual(["Showing 8 of 14. Type more to narrow."]);
+    expect(search(index, "the").live).toBe("14 results");
   });
 
   it("pillars", () => expect(names("pillars")).toEqual(["Pillars of Creation, Hubble 1995 (WFPC2)", "Pillars of Creation, Hubble 2014 (WFC3)"]));
@@ -136,12 +136,14 @@ describe("isSky (Q25)", () => {
 });
 
 describe("points on Home (Q24)", () => {
-  it("2048, 2048 gives Andromeda, the Sun band set, then Pillars 2014", () => {
+  it("2048, 2048 gives Andromeda, Mars, the Sun band set, Mars again, then Pillars 2014", () => {
     const r = search(index, "2048, 2048");
     expect(groups("2048, 2048")).toEqual(["Go to a point"]);
     expect(r.rows.map((x) => [x.kind, x.text, x.context, x.href])).toEqual([
       ["point", "Go to 2048, 2048", "Andromeda Galaxy (M31), Hubble PHAT+PHAST panorama", "/andromeda-phat-phast-2025/?mode=explore&x=2048&y=2048&z=4"],
+      ["point", "Go to 2048, 2048", "Nili Patera dunes, HiRISE, 2007-06-30", "/nili-patera-hirise-2007-06-30/?mode=explore&x=2048&y=2048&z=4"],
       ["point", "Go to 2048, 2048", "The Sun in seven SDO channels, 2024-05-10 12:00 UTC", "/sun-sdo-2024-05-10-aia-94/?mode=light&x=2048&y=2048&z=4"],
+      ["point", "Go to 2048, 2048", "Nili Patera dunes, HiRISE, 2007-10-13", "/nili-patera-hirise-2007-10-13/?mode=explore&x=2048&y=2048&z=4"],
       ["point", "Go to 2048, 2048", "Pillars of Creation, Hubble 2014 (WFC3)", "/pillars-hubble-2014/?mode=explore&x=2048&y=2048&z=4"],
     ]);
   });

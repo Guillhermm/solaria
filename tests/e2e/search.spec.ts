@@ -404,7 +404,7 @@ test.describe("behavior at 1440x900", () => {
     await expect(status).toHaveText("2 results");
     await input(page).fill("the");
     await expect(options(page)).toHaveCount(8);
-    await expect(dialog(page).getByTestId("search-line")).toHaveText(["Showing 8 of 11. Type more to narrow."]);
+    await expect(dialog(page).getByTestId("search-line")).toHaveText(["Showing 8 of 14. Type more to narrow."]);
     await input(page).fill("your turn");
     await expect(options(page)).toHaveCount(0);
     await expect(dialog(page).getByTestId("search-line")).toHaveText([
@@ -509,7 +509,9 @@ test.describe("behavior at 1440x900", () => {
     await input(page).fill("2048, 2048");
     await expect(options(page).getByTestId("search-context")).toHaveText([
       "Andromeda Galaxy (M31), Hubble PHAT+PHAST panorama",
+      "Nili Patera dunes, HiRISE, 2007-06-30",
       "The Sun in seven SDO channels, 2024-05-10 12:00 UTC",
+      "Nili Patera dunes, HiRISE, 2007-10-13",
       "Pillars of Creation, Hubble 2014 (WFC3)",
     ]);
   });

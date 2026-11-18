@@ -1,25 +1,25 @@
 {
-  "id": "nili-patera-hirise-2007-10-13",
-  "sourceId": "nili-patera-hirise-2007-10-13",
-  "title": "Nili Patera dunes, HiRISE, 2007-10-13",
+  "id": "nili-patera-hirise-2007-06-30",
+  "sourceId": "nili-patera-hirise-2007-06-30",
+  "title": "Nili Patera dunes, HiRISE, 2007-06-30",
   "target": {
     "value": {
       "name": "Nili Patera dune field, Mars",
       "type": "dune field"
     },
-    "source": "https://www.uahirise.org/PSP_005684_1890",
+    "source": "https://www.uahirise.org/PSP_004339_1890",
     "status": "supported"
   },
   "observatory": {
     "value": "Mars Reconnaissance Orbiter",
-    "source": "https://www.uahirise.org/PSP_005684_1890",
+    "source": "https://www.uahirise.org/PSP_004339_1890",
     "status": "verified"
   },
   "instruments": {
     "value": [
       "HiRISE"
     ],
-    "source": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_017700_017799/ESP_017762_1890_ESP_018039_1890/PSP_005684_1890_RED_C_01_ORTHO.LBL",
+    "source": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_017700_017799/ESP_017762_1890_ESP_018039_1890/PSP_004339_1890_RED_C_01_ORTHO.LBL",
     "status": "verified"
   },
   "bands": {
@@ -32,32 +32,32 @@
         }
       }
     ],
-    "source": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_017700_017799/ESP_017762_1890_ESP_018039_1890/PSP_005684_1890_RED_C_01_ORTHO.LBL",
+    "source": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_017700_017799/ESP_017762_1890_ESP_018039_1890/PSP_004339_1890_RED_C_01_ORTHO.LBL",
     "status": "verified"
   },
   "colorMapping": {
     "value": {
       "kind": "grayscale"
     },
-    "source": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_017700_017799/ESP_017762_1890_ESP_018039_1890/PSP_005684_1890_RED_C_01_ORTHO.LBL",
+    "source": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_017700_017799/ESP_017762_1890_ESP_018039_1890/PSP_004339_1890_RED_C_01_ORTHO.LBL",
     "status": "supported"
   },
   "productType": {
     "value": "single exposure",
-    "source": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_017700_017799/ESP_017762_1890_ESP_018039_1890/PSP_005684_1890_RED_C_01_ORTHO.LBL",
+    "source": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_017700_017799/ESP_017762_1890_ESP_018039_1890/PSP_004339_1890_RED_C_01_ORTHO.LBL",
     "status": "supported"
   },
   "observedAt": {
     "value": {
-      "start": "2007-10-13",
-      "end": "2007-10-13"
+      "start": "2007-06-30",
+      "end": "2007-06-30"
     },
-    "source": "https://www.uahirise.org/PSP_005684_1890",
+    "source": "https://www.uahirise.org/PSP_004339_1890",
     "status": "verified"
   },
   "processing": {
     "value": "Orthorectified by the HiRISE team onto a terrain model, equirectangular map projection, one 8-bit stretch per image.",
-    "source": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_017700_017799/ESP_017762_1890_ESP_018039_1890/PSP_005684_1890_RED_C_01_ORTHO.LBL",
+    "source": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_017700_017799/ESP_017762_1890_ESP_018039_1890/PSP_004339_1890_RED_C_01_ORTHO.LBL",
     "status": "verified"
   },
   "pixelScale": {
@@ -65,22 +65,23 @@
       "value": 1.0114,
       "unit": "m/px"
     },
-    "source": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_017700_017799/ESP_017762_1890_ESP_018039_1890/PSP_005684_1890_RED_C_01_ORTHO.LBL",
+    "source": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_017700_017799/ESP_017762_1890_ESP_018039_1890/PSP_004339_1890_RED_C_01_ORTHO.LBL",
     "status": "verified"
   },
   "fieldOfView": {
-    "value": "about 4 x 6 km (the part both images cover)",
+    "value": "about 3.4 x 5.4 km for the part both images cover (the picture is its 4 x 6 km bounding box)",
     "source": "docs/science/mars-nili-patera.md",
     "status": "supported"
   },
   "orientation": {
     "value": "North is up",
-    "source": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_017700_017799/ESP_017762_1890_ESP_018039_1890/PSP_005684_1890_RED_C_01_ORTHO.LBL",
+    "source": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_017700_017799/ESP_017762_1890_ESP_018039_1890/PSP_004339_1890_RED_C_01_ORTHO.LBL",
     "status": "verified"
   },
   "caveats": [
     "Cut from a larger product: add (667, 4310) to a pixel of this image to get its pixel in the original file.",
-    "This image has its own 8-bit brightness stretch, so brightness cannot be compared with the other date."
+    "This image has its own 8-bit brightness stretch, so brightness cannot be compared with the other date.",
+    "Three thin black bars, two near the top of the view and one in the upper left, are gaps in the data, not features."
   ],
   "footprint": [
     [
@@ -126,9 +127,9 @@
     }
   },
   "validation": {
-    "status": "draft",
-    "date": null,
-    "notes": "Awaiting science review. Docs: docs/science/mars-nili-patera.md."
+    "status": "approved",
+    "date": "2026-11-17",
+    "notes": "Accepted with caveats by science review; fixes applied. docs/science/mars-nili-patera.md, Validation."
   },
   "mock": false
 }

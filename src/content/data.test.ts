@@ -42,11 +42,11 @@ describe("the real data directory", () => {
 
   it("loads the mock and the Hubble pairs and both band sets in development", () => {
     const c = loadContent({ root: process.cwd(), mode: "development" });
-    expect(c.pairs.map((p) => p.id)).toEqual(["pillars-hubble-1995-2014", "mock-compare", "nili-patera-hirise-2007"]);
+    expect(c.pairs.map((p) => p.id)).toEqual(["nili-patera-hirise-2007", "pillars-hubble-1995-2014", "mock-compare"]);
     const mars = c.images.filter((i) => i.id.startsWith("nili-patera-hirise-"));
     expect(mars.map((i) => [i.crop, i.tiles.width, i.tiles.height, i.validation.status])).toEqual([
-      [{ x: 667, y: 4310, width: 3934, height: 5747 }, 3934, 5747, "draft"],
-      [{ x: 667, y: 4310, width: 3934, height: 5747 }, 3934, 5747, "draft"],
+      [{ x: 667, y: 4310, width: 3934, height: 5747 }, 3934, 5747, "approved"],
+      [{ x: 667, y: 4310, width: 3934, height: 5747 }, 3934, 5747, "approved"],
     ]);
     expect(c.journeys.find((j) => j.slug === "nili-patera")?.stops).toHaveLength(6);
     expect(c.bandSets.map((b) => [b.id, b.mock, b.validation.status])).toEqual([
@@ -97,7 +97,10 @@ describe("the real data directory", () => {
 
   it("publishes the approved Hubble pair and its images", () => {
     const prod = loadContent({ root: process.cwd(), mode: "production" });
-    expect(prod.pairs.map((p) => [p.id, p.validation.status])).toEqual([["pillars-hubble-1995-2014", "approved"]]);
+    expect(prod.pairs.map((p) => [p.id, p.validation.status])).toEqual([
+      ["nili-patera-hirise-2007", "approved"],
+      ["pillars-hubble-1995-2014", "approved"],
+    ]);
     expect(prod.images.map((i) => i.id)).toEqual(expect.arrayContaining(["pillars-hubble-1995", "pillars-hubble-2014"]));
   });
 

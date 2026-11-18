@@ -1,0 +1,46 @@
+{
+  "id": "nili-patera-hirise-2007",
+  "title": "Nili Patera dunes, June and October 2007",
+  "imageIds": [
+    "nili-patera-hirise-2007-06-30",
+    "nili-patera-hirise-2007-10-13"
+  ],
+  "reference": "nili-patera-hirise-2007-06-30",
+  "headline": "June and October 2007",
+  "labels": [
+    {
+      "full": "30 June 2007, HiRISE",
+      "short": "Jun 2007"
+    },
+    {
+      "full": "13 October 2007, HiRISE",
+      "short": "Oct 2007"
+    }
+  ],
+  "caveats": [
+    "The two images share one map grid and line up to about 0.3 m on bedrock (0.55 m for 95% of it). The ripple pattern on the sand shifted a typical 2 m, well above that, and in the opposite direction to the shift that lighting causes on bedrock, so it is a real change.",
+    "The sun was higher in October, so shading differs. Both images were mapped on a terrain model from 2010; where the sand has changed height since, the slightly different viewing angle can leave a small shift without anything having moved."
+  ],
+  "alignment": "Alignment: about 0.3 m on bedrock, 0.55 m for 95% of it.",
+  "differs": {
+    "instrument": false,
+    "band": false,
+    "date": true,
+    "illumination": true,
+    "geometry": true,
+    "processing": true
+  },
+  "registration": {
+    "method": "none: both images were orthorectified by the HiRISE team onto one grid",
+    "transform": "none",
+    "residualPx": 0.545,
+    "notes": "Identity transform. Measured on 344 bedrock tiles by cross-correlation (128 px tiles, high-pass): median 0.27 m (0.263 px), 95th percentile 0.55 m (0.545 px), RMS about 0.39 px, worst tile 1.19 px at 1.0114 m/px. residualPx is the 95th percentile. Details: docs/science/mars-nili-patera.md."
+  },
+  "whatDiffers": "Same camera and filter, 105 days apart (30 June and 13 October 2007). The sun was lower in June (54 degrees from straight overhead) than in October (39), and its direction differs; the season moved from late autumn to winter, so shadows and shading are not the same. Each image has its own brightness stretch, so brightness cannot be compared. The views differ by about 4 degrees; where the sand has changed height since the 2010 terrain model used to map both, this can leave a small shift. Only part of each image overlaps the other. On the sand, the ripple pattern shifted a typical 2 m toward the west-southwest (our measurement; the published study reports ripples moving up to 4.5 m); the dune fronts moved less than these images can measure, apart from new avalanches.",
+  "validation": {
+    "status": "approved",
+    "date": "2026-11-17",
+    "notes": "Accepted with caveats by science review; fixes applied. docs/science/mars-nili-patera.md, Validation."
+  },
+  "mock": false
+}

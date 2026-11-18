@@ -8,7 +8,7 @@
   "credit": "NASA/JPL-Caltech/UArizona",
   "terms": {
     "name": "HiRISE usage policy: public domain, credit requested",
-    "url": "https://www.uahirise.org/PSP_004339_1890"
+    "url": "https://www.uahirise.org/media/usage.php"
   },
   "retrievedAt": "2026-11-17",
   "file": {
@@ -19,9 +19,9 @@
     "height": 15282
   },
   "validation": {
-    "status": "draft",
-    "date": null,
-    "notes": "Awaiting science review. Docs: docs/science/mars-nili-patera.md."
+    "status": "approved",
+    "date": "2026-11-17",
+    "notes": "Accepted with caveats by science review; fixes applied. docs/science/mars-nili-patera.md, Validation."
   },
   "mock": false
 }

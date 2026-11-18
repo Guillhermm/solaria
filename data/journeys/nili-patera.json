@@ -2,7 +2,7 @@
   "slug": "nili-patera",
   "imageId": "nili-patera-hirise-2007-06-30",
   "title": "Nili Patera, ripples on Mars",
-  "summary": "Six stops over a Martian dune field, from the dunes down to ripples a few meters apart, and how they moved in 15 weeks.",
+  "summary": "Six stops over a Martian dune field, from the dunes down to ripples a few meters apart, and what changed in 15 weeks.",
   "stops": [
     {
       "id": "where",
@@ -24,17 +24,17 @@
         }
       ],
       "validation": {
-        "status": "draft",
-        "date": null,
-        "notes": "Awaiting science review. Docs: docs/science/mars-nili-patera.md."
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Accepted with caveats by science review; fixes applied. docs/science/mars-nili-patera.md, Validation."
       }
     },
     {
       "id": "barchans",
       "title": "Dunes and the wind",
-      "body": "These crescent-shaped dunes are barchans. Each has a gentle side and a steep side, called the slip face. Here the slip faces point southwest.\n\nSand is blown up the gentle side and slides down the steep one, so the wind here blows mainly from the northeast.",
+      "body": "Many of these crescent-shaped dunes are barchans. Each has a gentle side and a steep side, called the slip face. Here the slip faces point southwest.\n\nSand is blown up the gentle side and slides down the steep one, so the dunes' shape tells us the wind here blows mainly from the northeast.",
       "viewport": {
-        "x": 1033,
+        "x": 1180,
         "y": 3290,
         "z": 6
       },
@@ -45,6 +45,10 @@
       },
       "sources": [
         {
+          "label": "Bridges et al. 2012, Nature 485",
+          "url": "https://doi.org/10.1038/nature11022"
+        },
+        {
           "label": "HiRISE image page, PSP_005684",
           "url": "https://www.uahirise.org/PSP_005684_1890"
         },
@@ -54,19 +58,19 @@
         }
       ],
       "validation": {
-        "status": "draft",
-        "date": null,
-        "notes": "Awaiting science review. Docs: docs/science/mars-nili-patera.md."
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Accepted with caveats by science review; fixes applied. docs/science/mars-nili-patera.md, Validation."
       }
     },
     {
       "id": "ripples",
       "title": "Ripples",
-      "body": "Zoom in on a dune surface. The fine stripes are ripples of sand, about 4.6 meters from one crest to the next. That is only a few pixels, so this is about the finest pattern the picture can show.",
+      "body": "Zoom in on a dune surface. The fine stripes are ripples of sand, about 4.6 meters from one crest to the next. That is a few pixels, near the limit of what this picture resolves.",
       "viewport": {
         "x": 1313,
         "y": 1000,
-        "z": 20
+        "z": 10
       },
       "sources": [
         {
@@ -79,19 +83,19 @@
         }
       ],
       "validation": {
-        "status": "draft",
-        "date": null,
-        "notes": "Awaiting science review. Docs: docs/science/mars-nili-patera.md."
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Accepted with caveats by science review; fixes applied. docs/science/mars-nili-patera.md, Validation."
       }
     },
     {
       "id": "ripples-moved",
       "title": "The ripples moved",
-      "body": "Compare this view with the same place on 13 October 2007, 105 days later. Across the sand, the ripples shifted about 2 meters toward the west-southwest, measured between these two images. The published study of this pair reports ripples moving up to 4.5 meters in that time.\n\nThe light also changed: the sun was higher in October, so shading differs between the two views.",
+      "body": "We measured how far the ripple pattern on the sand shifted between this view and the same place on 13 October 2007, 105 days later: typically about 2 meters (our measurement), toward the west-southwest. That is close to half the ripple spacing, so you cannot follow a single crest from one date to the next; the pattern as a whole moved. The published study of this pair reports ripples moving up to 4.5 meters in that time.\n\nThe light and the view also changed: each picture has its own brightness stretch, the sun was higher in October, the season moved from late autumn to winter, the camera looked from a slightly different angle, and the two pictures overlap only in part. The pair note lists these. None of them explains a shift of the sand pattern to the west-southwest.",
       "viewport": {
         "x": 1313,
         "y": 1000,
-        "z": 12
+        "z": 10
       },
       "sources": [
         {
@@ -112,24 +116,24 @@
         }
       ],
       "validation": {
-        "status": "draft",
-        "date": null,
-        "notes": "Awaiting science review. Docs: docs/science/mars-nili-patera.md."
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Accepted with caveats by science review; fixes applied. docs/science/mars-nili-patera.md, Validation."
       }
     },
     {
       "id": "dunes-stay",
       "title": "The dunes stayed",
-      "body": "The dunes themselves barely moved in these 15 weeks. Their steep faces advanced less than this picture can measure. The study puts the movement of the steep front at 0.18 to 0.92 meters a year.\n\nWhat did change are avalanches: new streaks of sand run down some slip faces in October.",
+      "body": "The dunes themselves barely moved in these 15 weeks. Their steep faces advanced less than this picture can measure.\n\nOver the following two and a half years (941 days), the study measured 11 steep dune fronts moving 0.18 to 0.92 meters a year, which is 5 to 26 centimeters in 15 weeks: too little for a 1 meter pixel.\n\nWhat did change are avalanches: new streaks of sand run down some slip faces in October.",
       "viewport": {
         "x": 1140,
         "y": 3323,
         "z": 16
       },
       "marker": {
-        "x": 1140,
-        "y": 3323,
-        "r": 45
+        "x": 1170,
+        "y": 3355,
+        "r": 60
       },
       "sources": [
         {
@@ -142,15 +146,15 @@
         }
       ],
       "validation": {
-        "status": "draft",
-        "date": null,
-        "notes": "Awaiting science review. Docs: docs/science/mars-nili-patera.md."
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Accepted with caveats by science review; fixes applied. docs/science/mars-nili-patera.md, Validation."
       }
     },
     {
       "id": "your-turn",
       "title": "Your turn",
-      "body": "Drag to move and zoom in anywhere. Look for ripples, slip faces and avalanche streaks, then open Compare to wipe between June and October and see the sand surface move while the dunes stay put.",
+      "body": "Drag to move and zoom in anywhere. Look for ripples, slip faces and avalanche streaks, then open Compare and wipe between June and October: the ripple pattern changes while the dunes stay put, and new avalanche streaks appear. Remember the light changed too.",
       "viewport": {
         "x": 1967,
         "y": 2873,
@@ -167,16 +171,16 @@
         }
       ],
       "validation": {
-        "status": "draft",
-        "date": null,
-        "notes": "Awaiting science review. Docs: docs/science/mars-nili-patera.md."
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Accepted with caveats by science review; fixes applied. docs/science/mars-nili-patera.md, Validation."
       }
     }
   ],
   "validation": {
-    "status": "draft",
-    "date": null,
-    "notes": "Awaiting science review. Docs: docs/science/mars-nili-patera.md."
+    "status": "approved",
+    "date": "2026-11-17",
+    "notes": "Accepted with caveats by science review; fixes applied. docs/science/mars-nili-patera.md, Validation."
   },
   "mock": false
 }

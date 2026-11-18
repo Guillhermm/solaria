@@ -21,7 +21,7 @@ const JourneyIndex = ({ entries, tileBaseUrl }: { entries: JourneyEntry[]; tileB
     </h2>
     {entries.length > 0 && (
       <ol className={styles.list}>
-        {entries.map(({ journey, image, source }, i) => (
+        {entries.map(({ journey, image }, i) => (
           <li key={journey.slug} className={styles.row}>
             <span className={styles.number}>{stopNumber(i)}</span>
             <span className={styles.frame} data-theme="dark">
@@ -41,7 +41,7 @@ const JourneyIndex = ({ entries, tileBaseUrl }: { entries: JourneyEntry[]; tileB
               </p>
             </div>
             <p className={styles.size}>
-              {formatInt(source.file.width)} × {formatInt(source.file.height)} px
+              {formatInt(image.tiles.width)} × {formatInt(image.tiles.height)} px
             </p>
             <Link className={styles.begin} href={`/${journey.slug}/`} aria-label={`Begin ${journey.title}`}>
               Begin

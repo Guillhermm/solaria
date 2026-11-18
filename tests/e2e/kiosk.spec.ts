@@ -5,6 +5,7 @@ import { expect, type Page, test } from "@playwright/test";
 // dark theme; time runs on Playwright's clock.
 const read = (path: string) => JSON.parse(readFileSync(path, "utf8"));
 const andromeda = read("data/journeys/andromeda.json");
+const mars = read("data/journeys/nili-patera.json");
 const sun = read("data/journeys/sun.json");
 const COPY = "Still exploring? Returning to the start in 10 s.";
 
@@ -161,6 +162,10 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
     test("K5: after the last stop the loop goes on to the next Journey, and from the last back to the first", async ({ page }) => {
       await page.clock.install();
       await page.goto(`/${andromeda.slug}/?mode=story&stop=${andromeda.stops.length}&kiosk=1`);
+      await ready(page);
+      await page.clock.runFor(8_500);
+      await expect(page).toHaveURL(new RegExp(`/${mars.slug}/\\?mode=story&stop=1`));
+      await page.goto(`/${mars.slug}/?mode=story&stop=${mars.stops.length}&kiosk=1`);
       await ready(page);
       await page.clock.runFor(8_500);
       await expect(page).toHaveURL(new RegExp(`/${sun.slug}/\\?mode=story&stop=1`));
