@@ -296,8 +296,8 @@ Where the build differs from sections 1 to 4, and why. Each was the simpler work
 - **Tiler access.** `generate-tiles` opens files up to 100 megapixels for random access:
   each pyramid level reads the original again, which the sequential TIFF reader refused on the
   1995 file ("out of order read").
-- **Hubble registration (C-03).** 15 fit stars and 3 held out, picked by the Second
-  Foundation mathematician (`docs/science/pillars.md`, part 2). `register-pair` reproduces
+- **Hubble registration (C-03).** 15 fit stars and 3 held out, picked in science review
+  (`docs/science/pillars.md`, part 2). `register-pair` reproduces
   scale 2.48041, rotation +7.3167 degrees, translation (1922.68, 290.55), RMS 2.50 px and
   worst 6.07 px (2014 pixels), and a test holds it there. One similarity for the whole
   mosaic, by decision; the per-chip offsets are in `registration.notes`. Footprint: the

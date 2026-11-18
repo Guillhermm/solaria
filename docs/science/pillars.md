@@ -1,13 +1,12 @@
 # Pillars of Creation: sources and registration
 
-Science records for the Hubble 1995 and 2014 Compare pair (C-02, C-03), copied from the
-reviewer's and the mathematician's notes of 2026-11-17. Paths to the scratch work refer to the
-session that produced them and are not in this repository.
+Science records for the Hubble 1995 and 2014 Compare pair (C-02, C-03), from the source
+check and the registration of 2026-11-17. Working files are not in this repository.
 
 ## Part 1. Pillars of Creation: sources for Compare C-02 (checked 2026-11-17)
 
 Statuses: verified (read at primary page or measured on the downloaded file), supported, no source found.
-Raw pages saved in the scratchpad `raw/`, downloads in `dl/`.
+Pages and downloads were kept outside the repository.
 
 ### 1. Hubble 2014 (WFC3), left side of the pair
 
@@ -92,7 +91,7 @@ Traps: ESA says weic2216b is the "Full View". Webb's frame is tall (4.21 x 7.30 
 
 ## Part 2. Pillars of Creation: 1995 WFPC2 registered onto 2014 WFC3 (2026-11-17)
 
-Mathematician, Second Foundation. Status: **verified** (measured on the downloaded originals, refit two ways).
+Registration check. Status: **verified** (measured on the downloaded originals, refit two ways).
 
 ### Inputs
 
@@ -101,7 +100,7 @@ Mathematician, Second Foundation. Status: **verified** (measured on the download
 | reference (2014) | heic1501a.tif | 6780 x 7071 RGB 8-bit | eaaae93a1d671808add79216c5c12a229218fb5d8a7c8e8931ba01b3d8a46b2a |
 | moving (1995) | STScI-01EVVG1MZH7Z68H34YMACHEHZE.tif (saved as wfpc2_1995.tif) | 1518 x 1497 RGB 8-bit | 0387db9501a19a261a1286e5e9819d75c0fad083d0966b2deac6da2ffcd9e4e5 |
 
-Downloads in `scratchpad/pillars-originals/`, scripts in `scratchpad/regwork/` (Python -I, NumPy/SciPy/Pillow in `scratchpad/venv-reg/`).
+Measured on the downloaded originals with NumPy, SciPy and Pillow, outside the repository.
 
 ### Conventions
 

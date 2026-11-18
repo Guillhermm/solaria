@@ -21,7 +21,7 @@
   "validation": {
     "status": "draft",
     "date": null,
-    "notes": "Awaiting science review (second-foundation:validate). Facts and their statuses from docs/science/pillars.md."
+    "notes": "Awaiting science review. Facts and their statuses from docs/science/pillars.md."
   },
   "mock": false
 }

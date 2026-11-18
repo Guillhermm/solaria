@@ -116,7 +116,7 @@ describe("crops", () => {
 describe("overlapBounds", () => {
   it("is the moving image's box on the reference when it lies inside", () => {
     const b = overlapBounds(wholeImage(MOVING), S, REFERENCE)!;
-    // Corners from the mathematician's record: x from 1449.8 to 5657.3, y from 290.5 to 4453.0.
+    // Corners from the registration record (docs/science/pillars.md): x from 1449.8 to 5657.3, y from 290.5 to 4453.0.
     expect(b.x).toBeCloseTo(1449.8, 0);
     expect(b.y).toBeCloseTo(290.5, 0);
     expect(b.x + b.width).toBeCloseTo(5657.3, 0);

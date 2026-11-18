@@ -26,7 +26,7 @@
     "processing": false
   },
   "registration": {
-    "method": "similarity, least squares on 15 star control points (Second Foundation mathematician, 2026-11-17)",
+    "method": "similarity, least squares on 15 star control points (science review, 2026-11-17)",
     "transform": "similarity",
     "controlPoints": [
       {
@@ -209,7 +209,7 @@
   "validation": {
     "status": "draft",
     "date": null,
-    "notes": "Awaiting science review (second-foundation:validate): the headline, the labels and the note are claims."
+    "notes": "Awaiting science review: the headline, the labels and the note are claims."
   },
   "mock": false
 }
