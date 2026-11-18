@@ -569,8 +569,8 @@ r = width / height of the image file:
   overview and the zoom controls on desktop, under the top bar below 64rem). Stops are equal
   columns in `imageIds` order, each labeled with the wavelength as the manifest states it
   ("171 Å"); the current stop also names its region in small capitals (hidden on a phone).
-  Under the title, "Shows" and the band's validated note. The spoken value spells the unit out: "171 angstroms, extreme ultraviolet". Left,
-  Right, Up, Down, Page Up and Page Down move one band; Home and End go to the ends. A pointer
+  Under the title, "Shows" and the band's validated note. The spoken value spells the unit
+  out: "171 angstroms, extreme ultraviolet". Left, Right, Up, Down, Page Up and Page Down move one band; Home and End go to the ends. A pointer
   can press anywhere on the rail, labels included, and drags a continuous position; on release
   it settles on the nearer stop in 160 ms (at once under reduced motion), so the URL and the
   slider value always name one band. Under the rail: the shown band's image title, the "What

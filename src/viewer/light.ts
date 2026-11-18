@@ -60,6 +60,13 @@ export const crossfade = (position: number, count: number): number[] => {
   return Array.from({ length: count }, (_, i) => (i === lower ? 1 : i === lower + 1 ? t : 0));
 };
 
+// The bands on screen, whose credits show: the stop's fade pair, else the two around the position.
+export const shownBands = (position: number, count: number, fade?: { from: number; to: number } | null): number[] => {
+  if (fade) return [...new Set([fade.from, fade.to])];
+  const p = clamp(position, 0, count - 1);
+  return [...new Set([Math.floor(p), Math.ceil(p)])];
+};
+
 // Bands next to the position keep loading while hidden, so a drag finds their tiles ready.
 export const preloaded = (position: number, count: number): boolean[] =>
   Array.from({ length: count }, (_, i) => Math.abs(i - position) < 2);

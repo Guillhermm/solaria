@@ -29,10 +29,8 @@ const loading = (position: number, fade: Fade | null, count: number) =>
 
 // A hidden image keeps the "fully loaded" flag it had when it was hidden and skips its update
 // until the view moves (OpenSeadragon 5.0.1, TiledImage.update), so one shown again without a
-// pan would draw nothing. This flag is the one its own setters raise.
-const refresh = (item: OpenSeadragon.TiledImage) => {
-  (item as unknown as { _needsUpdate: boolean })._needsUpdate = true;
-};
+// pan would draw nothing. Setting its clip, unchanged, is the public way to ask for that update.
+const refresh = (item: OpenSeadragon.TiledImage) => item.setClip(item.getClip());
 
 // Light (design.md 5.7, 7.4): every band of the set is a tiled image in one viewer on one
 // pixel grid, in rail order, so the world's first image is the page's own and keeps the home

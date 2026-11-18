@@ -93,6 +93,31 @@ test.describe("desktop", () => {
     await expect(rail(page)).toHaveAttribute("aria-valuenow", "0");
   });
 
+  // A hidden band skips its tiles while the view moves; shown again after the view rests, it
+  // must load and draw them.
+  test("a band hidden through a pan draws its tiles when shown again", async ({ page }) => {
+    await page.goto(`${PATH}?mode=light`);
+    await ready(page);
+    await settled(page);
+    await rail(page).focus();
+    await page.keyboard.press("End");
+    await settled(page);
+    const v = await box(page.getByTestId("viewer"));
+    await page.mouse.move(v.x + v.width / 2, v.y + v.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(v.x + v.width / 2 + 40, v.y + v.height / 2 + 20, { steps: 5 });
+    await page.mouse.up();
+    await settled(page);
+    await page.waitForTimeout(1500);
+    await rail(page).focus();
+    await page.keyboard.press("Home");
+    await expect(rail(page)).toHaveAttribute("aria-valuenow", "0");
+    await settled(page);
+    await page.waitForTimeout(300);
+    const a = await disc(page);
+    expect(a.n > 0 && a.r > a.g * 1.5 && a.r > a.b * 1.5, JSON.stringify(a)).toBe(true);
+  });
+
   test("dragging the rail crossfades between neighbors and settles on the nearer band", async ({ page }) => {
     await page.goto(`${PATH}?mode=light`);
     await ready(page);

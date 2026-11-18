@@ -566,8 +566,8 @@ npm run sync-r2 -- [--dir public/tiles] [--apply]
 
 Light reuses the Compare layer pattern (`docs/architecture-compare.md`, sections 1 and 9).
 
-- **Where.** A band set is offered on the page of its first image, `imageIds[0]`, never on a
-  Journey. The page receives every band's manifest and credit (`LightView`), so the client
+- **Where.** A band set is offered on the page of its first image, `imageIds[0]`, and on a
+  Journey only through its `bandSetId` (below). The page receives every band's manifest and credit (`LightView`), so the client
   needs nothing else.
 - **One viewer, one grid.** The first band is the world's first image and keeps the home
   bounds; the others are added at `x 0, y 0, width 1` with `setAutoRefigureSizes(false)` and
@@ -579,8 +579,10 @@ Light reuses the Compare layer pattern (`docs/architecture-compare.md`, sections
   opacity 0, so `preloaded()` keeps the bands within one stop of the position loading. The
   navigator mirrors every band and copies its opacity, so the overview crossfades too; its
   mirrors are put in the same order. A band shown again without a pan would keep the stale
-  "fully loaded" flag OpenSeadragon gave it while hidden and draw nothing, so the layer raises
-  the image's update flag when it becomes visible (5.0.1 internals, one line).
+  "fully loaded" flag OpenSeadragon gave it while hidden and draw nothing (5.0.1,
+  `TiledImage.update`), so the layer sets the image's clip, unchanged, when it becomes visible:
+  the public call that asks for that update. Mirrors are matched to their bands through the
+  navigator's `_originalForNavigator`, which has no public equivalent.
 - **Loading.** The page counts as loading while any image at non-zero opacity waits for
   tiles (all modes), not only the first.
 - **Validation.** A band set's images carry one band each. Where every band states a
@@ -621,5 +623,7 @@ Light reuses the Compare layer pattern (`docs/architecture-compare.md`, sections
 - Below the desktop width the bar sits under the top bar; its bottom edge is a top margin of
   the view, so the fit and the stops frame what is below it. In Story on a phone the bar keeps
   only the rail (the stop card carries the band's text).
-- Band-dependent text (the bar, the credit, About) renders once the viewer opens, so the
-  static HTML and the first client render agree whichever band a link asks for.
+- Band-dependent text (the bar, the band credits, About) renders once the viewer opens, so the
+  static HTML and the first client render agree whichever band a link asks for; until then the
+  page image's own credit shows.
+- While a stop's fade runs, the credits of both bands in it show.

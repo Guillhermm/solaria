@@ -10,6 +10,7 @@ import {
   positionFromPointer,
   preloaded,
   railKey,
+  shownBands,
   stopCenter,
   wavelengthLabel,
 } from "./light";
@@ -195,5 +196,17 @@ describe("stopBand", () => {
   it("starts on the first band when no stop picked one yet", () => {
     expect(stopBand([-1, 2], 0)).toBe(0);
     expect(stopBand([], 0)).toBe(0);
+  });
+});
+
+describe("shownBands", () => {
+  it("names one band at a stop and both between two", () => {
+    expect(shownBands(2, 7)).toEqual([2]);
+    expect(shownBands(2.3, 7)).toEqual([2, 3]);
+    expect(shownBands(9, 7)).toEqual([6]);
+  });
+  it("names both ends of a stop's fade, wherever the rail already is", () => {
+    expect(shownBands(1, 7, { from: 6, to: 1 })).toEqual([6, 1]);
+    expect(shownBands(4, 7, { from: 4, to: 4 })).toEqual([4]);
   });
 });

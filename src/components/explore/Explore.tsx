@@ -42,7 +42,7 @@ import { overviewHeightRem, shapeOf } from "@/viewer/overview";
 import { keyAction, zoomAnnouncement } from "@/viewer/keys";
 import { type SheetState, stepSheet } from "@/viewer/sheet";
 import { type CompareOptions, type CompareState, DEFAULT_SPLIT, type Layout, type Mode, LAYOUTS, parseCompareParams, parseViewerParams, serializeViewerParams } from "@/viewer/url";
-import { bandValueText, type LightOptions, type LightState, nearestStop, parseLightParams, stopBand, wavelengthLabel } from "@/viewer/light";
+import { bandValueText, type LightOptions, type LightState, nearestStop, parseLightParams, shownBands, stopBand, wavelengthLabel } from "@/viewer/light";
 import { sides } from "@/viewer/compare";
 import { dividerValueText } from "@/viewer/divider";
 import { reticleSide } from "@/viewer/route";
@@ -961,13 +961,13 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   const rightLabel = pairSides?.right.full ?? "";
   const modeSwitch = offered.length > 1;
   // Light shows the band nearest the rail's position: its image's About panel and credit. While
-  // two bands blend, both credits show.
+  // two bands blend, on the rail or in a stop's fade, both credits show.
   // What the bands put on screen waits for the viewer: the static HTML cannot know the band a
   // link or a stop asks for, and the first render must match it.
   const lightShown = opened ? lightActive : null;
   const shownInfo = lightShown ? lightShown.bands[band].info : info;
   const lightCredits = lightShown
-    ? [...new Set([Math.floor(position), Math.ceil(position)].map((i) => lightShown.bands[Math.min(i, bandCount - 1)].info.credit))]
+    ? [...new Set(shownBands(position, bandCount, fade).map((i) => lightShown.bands[i].info.credit))]
     : [];
   const lightDraft = !!lightShown && (lightShown.set.validation.status !== "approved" || lightShown.bands[band].image.validation.status !== "approved");
   const pageTitle = lightActive ? lightActive.set.title : image.title;
