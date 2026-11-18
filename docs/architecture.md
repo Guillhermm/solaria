@@ -485,3 +485,34 @@ Each leaves `npm test`, `npm run build` and the end-to-end suite green.
    equals the source id, and delete the unused `public/tiles/hubble-mosaic` set, which
    the viewer never loads (it stays recoverable from history). Stops and URLs use image
    pixels with zoom relative to fit.
+
+## 12. R2 sync (D-08)
+
+Status: built and unit-tested with a mocked `fetch`; **not yet run against a real bucket**
+(R-01 creates it).
+
+```
+npm run sync-r2 -- [--dir public/tiles] [--apply]
+```
+
+- Dry run is the default. It lists each file it would upload with its size and whether it
+  is `new` or `changed`, then a total. `--apply` uploads.
+- Credentials come from `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` and
+  `R2_BUCKET`, read from the environment only. Output never contains a value, only the
+  names of missing variables. A dry run without them makes no request and treats every
+  file as new; `--apply` without them stops.
+- No dependency: R2's S3 API is called with `fetch`, signed with AWS Signature Version 4
+  (`node:crypto`, `signRequest`, about 30 lines) against `https://<account>.r2.cloudflarestorage.com/<bucket>`,
+  region `auto`. A unit test reproduces two signatures published in the AWS documentation
+  (the `get-vanilla` suite case and the S3 GET Object example with a Range header).
+- Incremental: it lists the bucket (ListObjectsV2, paged) and skips a file whose size equals
+  the object's and whose MD5 equals its ETag. A multipart ETag never matches, so such an
+  object is uploaded again. Nothing is ever deleted from the bucket.
+- Each object gets `Content-Type` by extension and `Cache-Control: public, max-age=31536000,
+  immutable`. Keys are the paths under `public/tiles/` (`<imageId>/<level>/<x>/<y>.jpg`),
+  so `TILE_BASE_URL` is the bucket's public origin. Immutable caching assumes a changed
+  tile tree gets a new image id; regenerating under the same id needs a cache purge.
+- `mock-*` directories and dotfiles are skipped.
+- Uploads run eight at a time; a failure is reported and the exit code is 1, and a rerun
+  uploads only what is missing.
+
