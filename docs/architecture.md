@@ -835,3 +835,21 @@ immutable caching, new-id convention, staging skip.
   cannot hold the decoded image (about 6.7 GB as RGBA, over wasm32's 4 GB). Test on the
   43 MB `Reduced Res 2` PNG from the same page first; reopen the input per level if needed.
 - The palette plus `tRNS` gives an alpha channel; flatten it onto black before JPEG.
+
+## Security headers (Vercel)
+
+`vercel.json` sets the headers on every route: a Content-Security-Policy, HSTS,
+`X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`,
+`X-Frame-Options: DENY` (with CSP `frame-ancestors 'none'`) and a Permissions-Policy that
+disables camera, microphone, geolocation, payment and USB. `/manifest.webmanifest` is served as
+`application/manifest+json`.
+
+- **CSP.** `default-src 'self'`; images and `fetch` may also reach `https://tiles.solariadata.com`.
+  The theme script is the external `/theme-init.js`, so it needs no hash. `script-src` keeps
+  `'unsafe-inline'` because the static export inlines Next's hydration scripts, whose content
+  changes every build, and a static export has no per-request nonce. `style-src` keeps it for
+  the inline `style` attributes. No `unsafe-eval`.
+- **R2 CORS.** The tile bucket must send `Access-Control-Allow-Origin` for the site origin, or
+  `fetch` of tile metadata is blocked.
+- **Test.** `scripts/vercel-config.test.ts` parses `vercel.json` and asserts these.
+- **Planned.** `robots.txt` and a sitemap are not built yet.
