@@ -709,3 +709,126 @@ tiles or pages, so none ships; offline support is F-08, planned.
 The local static server (`scripts/serve-static.ts`) serves `.webmanifest` as
 `application/octet-stream`; Chrome reads the manifest either way, and the production host
 should send `application/manifest+json`.
+
+## 15. Deeper Andromeda zoom (H-01)
+
+Status: **planned**. Nothing here is built; the code is unchanged. Checked on 2026-11-17.
+
+### Which product
+
+| Product | Pixels | Bytes | Form | Terms |
+|---|---|---|---|---|
+| Quarter (tiled today) | 42208 x 9870 | 1,041,048,470 (TIFF) | RGB | NASA media guidelines; ESA copy CC BY 4.0 |
+| **Half** | 84416 x 19739 | 1,012,761,025 (PNG) | 8-bit indexed: 256-color palette plus `tRNS` | NASA media guidelines |
+| Full | 39478 x 168831 per filter | 33,969,249,668 (F475W, `.fits.gz`) | float64 science data, one filter per file | CC BY 4.0; cite Chen et al. 2025, DOI 10.17909/aa43-mt38 |
+
+- Half: `https://assets.science.nasa.gov/content/dam/science/missions/hubble/releases/2025/01/STScI-01JGY8ZEDHYMGM99RF1RQ45YWY.tif/jcr:content/renditions/Half%20Res%20(For%20Display).png`,
+  listed on the NASA asset page. That server answers `HEAD` on renditions with 404, so size
+  and header were read with a 4 KB ranged `GET` (206, `Content-Range: .../1012761025`):
+  `IHDR` 84416 x 19739, bit depth 8, color type 3, then `PLTE` (768 bytes) and `tRNS`. Only the
+  quarter TIFF on the same path answers `HEAD` (200, 1041048470 bytes). NASA lists no full
+  resolution rendition.
+- Full: MAST high-level science product PHAST,
+  `https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:HLSP/phast/hlsp_phast_hst_acs_m31-all_f475w_v1.0_drz.fits.gz`
+  (`HEAD` 200) and the same name with `f814w`; 51 GB each uncompressed (archive.stsci.edu/hlsp/phast).
+  The size comes from the first 64 KB of the file (`NAXIS1`, `NAXIS2`, `BITPIX = -64`). These are
+  drizzled single-filter frames in electrons per second, not a color picture: showing them means our own stretch and
+  color composite, which is new image processing and a scientific claim, and two 33 GB downloads.
+  Out of reach for this machine and this team.
+- **Caveat on the half file.** A 256-color palette can band in smooth regions, where the RGB
+  quarter file does not. Before tiling, compare one region of both (H-01 step 1). If it bands,
+  the quarter set stays and this plan stops.
+
+### Tiles and storage (256 px JPEG)
+
+Counts use the formula in section 8, keeping level 0 at 660 px wide. Bytes extrapolate the
+measured quarter set: levels 0 to 6 total 163 MB; level 6 averages 20.2 KB a tile (28% are
+under 3 KB, mostly empty sky). Deeper levels hold more detail and noise, so 20 to 30 KB a tile
+is assumed for the new levels. Estimates, not measurements.
+
+| Set | maxLevel | Tiles | Deepest level | Size |
+|---|---|---|---|---|
+| Quarter (today) | 6 | 8,668 | 165 x 39 | 163 MB (measured) |
+| Half | 7 | 34,408 | 330 x 78 | 0.7 to 0.9 GB |
+| Full (if a color product existed) | 8 | 136,708 | 660 x 155 | 2.7 to 4.0 GB |
+
+R2 free tier, per month: 10 GB-month of Standard storage, 1 million Class A operations
+(`PutObject`, `ListObjects`), 10 million Class B (`GetObject`), egress free
+(developers.cloudflare.com/r2/pricing). Every tile set today is 260 MB; with the half set and the
+Webb frame (C-05, about 110 MB) the bucket holds about 1.3 GB. Uploading the half set is about
+34,500 Class A operations, once. Even the full set would fit. Running cost: **$0 a month**.
+It grows only past 10 GB ($0.015 per GB-month) or past 10 million uncached reads.
+
+### Static tiles on R2 or a tile function on Vercel
+
+Static tiles on R2 behind Cloudflare's cache win, and the sources agree:
+
+- **Same preprocessing either way.** A Vercel function bundle is capped at 250 MB uncompressed
+  (vercel.com/docs/functions/limitations) and a PNG cannot be read by region, so a function
+  would still need a pre-tiled pyramid in storage. It would add a hop and compute on top of
+  the same files.
+- **Latency.** Hobby functions run in one region, `iad1` by default (same page). A cached
+  tile is served from the Cloudflare location nearest the visitor; a miss goes to one upper
+  tier next to the bucket with Smart Tiered Cache (developers.cloudflare.com/r2/buckets/public-buckets).
+  Vercel can cache function responses at its CDN too, so hits are comparable; misses are not.
+- **Cost.** Hobby includes 1 million invocations, 4 hours of Active CPU and 10 GB of Fast
+  Origin Transfer a month (vercel.com/docs/limits/fair-use-guidelines). At 100 to 300 tiles a
+  visit (an assumption; section 8 measured 148 refetches in one zoom), that is 3,000 to 10,000
+  visits before the cap. R2 egress is free.
+- **Bundling tiles with the site does not scale.** GitHub Pages caps a site at 1 GB
+  (docs.github.com, GitHub Pages limits); the half set alone nearly fills it. Vercel CLI
+  deployments are limited to 15,000 files on Hobby (vercel.com/docs/limits). Either host
+  works with R2.
+- Not confirmed in Cloudflare's docs: that an edge cache hit costs no Class B operation. It
+  does not change the verdict; 10 million reads is the ceiling either way.
+
+### Pipeline
+
+Disk budget: **1.3 GB peak**. This Mac has 1.5 GiB free, so free at least 3 GB first for
+margin, or run on another machine.
+
+1. Download only the first 100 MB of the half PNG (`curl -r 0-99999999`) and of the quarter
+   TIFF, decode the rows that arrived, and compare one region for banding. Ask the science
+   review whether the half file may be shown. Stop here if not.
+2. Download the half PNG in full (1.01 GB) outside the repo; record its sha256 in
+   `data/sources/andromeda-phat-phast-2025-half.json`.
+3. Write `data/images/andromeda-phat-phast-2025-half.json` and keep it in `data/staging/`
+   until validated, so sync skips it.
+4. Tile in pieces, each synced and deleted before the next, so tiles on disk stay under
+   200 MB: levels 0 to 6 (about 165 MB, also yields poster, preview and thumbnail), then
+   level 7 in four bands of about 83 columns (about 6,400 tiles, 130 to 190 MB each).
+   Needs the H-01 script change.
+5. After each piece: `npm run sync-r2 -- --apply`. It already lists the bucket and uploads
+   only what is missing, so deleting a synced piece locally does not upload it again
+   (section 12). Delete the piece, run the next.
+6. Scale the Journey stops, labels and weekly detail of the image by 2 to the new pixel space
+   (19739 is one pixel short of 2 x 9870, under 0.01%), and get them validated.
+7. Build with `TILE_BASE_URL=https://<tiles domain>` (section 7) and check a preview.
+
+**Ready now:** `sync-r2` (built, unit-tested, never run on a real bucket), `TILE_BASE_URL`,
+immutable caching, new-id convention, staging skip.
+
+**The maintainer must:**
+
+- Create the R2 bucket and an API token scoped to it with Object Read and Write; put
+  `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` and `R2_BUCKET` in the shell
+  environment only (R-01).
+- Give the bucket a custom domain. `r2.dev` URLs are rate-limited and for development only,
+  and a custom domain must be a Cloudflare zone in the same account; partial (CNAME) setup
+  needs a Business plan (developers.cloudflare.com/dns/zone-setups/partial-setup).
+  `zenus.systems` is on GoDaddy name servers today, so either move it to Cloudflare (free plan)
+  or use another domain that is. This choice is the maintainer's.
+- Add a CORS rule allowing `GET` from the site's origin (R-01).
+
+### Script change (H-01, follow-up)
+
+`generate-tiles` cannot cut this file today:
+
+- `MAX_LEVEL` is fixed at 6; the half set needs 7. Add `--max-level`.
+- It cuts every level in one run and keeps them; add a level and column range so a piece
+  fits the disk budget.
+- It opens files over 100 Mpx sequentially and resizes the same image per level, then reads
+  tiles column by column. Whether that works for a 1.67 Gpx PNG is unverified, and wasm-vips
+  cannot hold the decoded image (about 6.7 GB as RGBA, over wasm32's 4 GB). Test on the
+  43 MB `Reduced Res 2` PNG from the same page first; reopen the input per level if needed.
+- The palette plus `tRNS` gives an alpha channel; flatten it onto black before JPEG.

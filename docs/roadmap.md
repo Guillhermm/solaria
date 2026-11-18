@@ -140,6 +140,7 @@ C-05 waits for R2: the Webb frame is about 2,566 tiles and 110 MB (estimated), t
 |---|---|---|---|---|
 | R-01 | Create the R2 bucket, public domain for tiles, CORS for the site | todo | D-08 | Tiles load from R2 in a preview build |
 | R-02 | Switch production to R2; stop committing new tiles (ignore rule) | todo | R-01 | New images never enter git |
+| H-01 | Half-resolution Andromeda on R2 (owner: Guilherme): `generate-tiles` gets `--max-level` and a level and column range, is tested on a PNG, then the set is tiled in pieces and synced (architecture.md section 15) | todo | R-01, S-04 | Half set loads from R2 in a preview build and its stops are validated |
 
 ## Later
 
