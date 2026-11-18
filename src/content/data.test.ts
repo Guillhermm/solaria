@@ -62,6 +62,12 @@ describe("the real data directory", () => {
       [304, "extreme ultraviolet"], [1700, "ultraviolet"], [6173, "visible"],
     ]);
     expect(images[0].bands.value[0].shows).toContain("about 6.3 million K");
+    // HMI's continuum is computed from 12 filtergrams; each AIA frame is one exposure.
+    expect(images.map((i) => [i.productType.value, i.productType.status])).toEqual([
+      ...Array(6).fill(["single exposure", "supported"]),
+      ["stack", "supported"],
+    ]);
+    expect(images[6].processing?.value).toBe("Continuum intensity computed from 12 filtergrams over 45 s (Couvidat et al. 2016)");
     expect(images[6].bands.value[0].shows).not.toContain("beside");
     expect(images[5].bands.value[0].shows).not.toContain("just above");
     for (const i of images) {

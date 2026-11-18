@@ -39,6 +39,22 @@ const RouteOverlay = ({ stops, image, current, onGo }: RouteOverlayProps) => {
   const marks = drawn ? routeMarks(stops, image, drawn) : [];
   const { travelled, ahead } = splitRoute(marks, current);
   const settled = travelled.slice(0, -1);
+  // Stops at one place (a Journey that changes band without moving) would stack their tags:
+  // the current stop's tag goes first, and a tag that would overlap one already placed is left
+  // out. Every stop keeps its button and its label for screen readers.
+  const placed: { x: number; y: number; width: number; height: number }[] = [];
+  const shownTags = new Set<number>();
+  if (drawn) {
+    for (const m of [...marks].sort((a, b) => (a.index === current ? -1 : b.index === current ? 1 : a.index - b.index))) {
+      const side = (m.index === current ? CURRENT_REM : MARK_REM) * drawn.rem;
+      const tag = { width: TAG.width * drawn.rem, height: TAG.height * drawn.rem };
+      const at = tagPlacement(m, drawn, side / 2, tag, 0.1875 * drawn.rem);
+      const box = { x: at.x, y: at.y, ...tag };
+      if (placed.some((p) => box.x < p.x + p.width && p.x < box.x + box.width && box.y < p.y + p.height && p.y < box.y + box.height)) continue;
+      placed.push(box);
+      shownTags.add(m.index);
+    }
+  }
   const lastLeg = travelled.slice(-2);
 
   return (
@@ -82,9 +98,11 @@ const RouteOverlay = ({ stops, image, current, onGo }: RouteOverlayProps) => {
                   <path className={styles.bracketHalo} d={bracketPath(side, 7)} />
                   <path d={bracketPath(side, 7)} />
                 </svg>
-                <span className={styles.tag} style={{ left: at.x - m.x, top: at.y - m.y }} aria-hidden>
-                  {stopNumber(m.index)}
-                </span>
+                {shownTags.has(m.index) && (
+                  <span className={styles.tag} style={{ left: at.x - m.x, top: at.y - m.y }} aria-hidden>
+                    {stopNumber(m.index)}
+                  </span>
+                )}
               </button>
             );
           })}

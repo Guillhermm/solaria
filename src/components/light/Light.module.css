@@ -1,7 +1,10 @@
 /* Light (docs/design.md 5.7 and 7.4): a neutral rail, one tick and one text label per band.
    No color on the rail: a rainbow would imply visible color for bands that have none. */
 
+/* One column no wider than the bar: an auto column would grow to the rail's or the caption's
+   max-content and push the bar past a phone's edge. */
 .bar {
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-1);
 }
 
@@ -138,6 +141,27 @@
   }
 
   .bar[data-compact] .detail {
+    display: none;
+  }
+
+  /* The bar stays a strip: the caption and "What differs?" share one row, the caption cut to
+     its width (the full title is in About), and the band's note moves into the sheet. */
+  .row {
+    flex-wrap: nowrap;
+  }
+
+  .row > p {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .row > button {
+    flex: none;
+    margin-inline-start: 0;
+  }
+
+  .shows {
     display: none;
   }
 

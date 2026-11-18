@@ -156,3 +156,44 @@ test.describe("phone", () => {
     await expect(rail(page)).toHaveAttribute("aria-valuetext", spoken(band(bandAt(3))));
   });
 });
+
+test.describe("phone, Light mode", () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+
+  test("the image fits between the bar and the sheet; the bar is a strip; the band's note is in the sheet", async ({ page }) => {
+    await page.goto(`/${set.imageIds[0]}/?mode=light&band=${set.imageIds[1]}`);
+    await ready(page);
+    await page.waitForFunction(() => !document.querySelector("main[data-loading]"));
+    await page.waitForTimeout(400);
+    const bar = await box(page.getByTestId("light-bar"));
+    const sheet = await box(page.getByTestId("sheet"));
+    expect(bar.height).toBeLessThanOrEqual(150);
+    expect(bar.x + bar.width).toBeLessThanOrEqual(390);
+    await expect(page.getByTestId("light-rail").locator("li").last()).toBeInViewport({ ratio: 1 });
+    await expect(page.getByRole("button", { name: "What differs?" })).toBeInViewport({ ratio: 1 });
+    // The caption and "What differs?" share one row.
+    const caption = await box(page.getByTestId("light-showing"));
+    const what = await box(page.getByRole("button", { name: "What differs?" }));
+    expect(Math.abs(caption.y + caption.height / 2 - (what.y + what.height / 2))).toBeLessThanOrEqual(2);
+    await expect(page.getByTestId("light-shows")).toBeHidden();
+    await expect(page.getByTestId("sheet-shows")).toHaveText(`Shows ${images[1].bands.value[0].shows}`);
+    // The rows the viewer drew in the middle column: nothing under the sheet or the bar.
+    const drawn = await page.evaluate(() => {
+      const c = document.querySelector<HTMLCanvasElement>('[data-testid="viewer"] .openseadragon-canvas canvas')!;
+      const r = c.getBoundingClientRect();
+      const k = c.width / r.width;
+      const col = c.getContext("2d")!.getImageData(Math.round(c.width / 2), 0, 1, c.height).data;
+      let first = -1, last = -1;
+      for (let y = 0; y < c.height; y++) if (col[y * 4 + 3] > 0) {
+        if (first < 0) first = y;
+        last = y;
+      }
+      return { top: r.top + first / k, bottom: r.top + (last + 1) / k };
+    });
+    // Within 2 px: the margin is whole pixels and the canvas rows are device pixels.
+    expect(drawn.bottom).toBeLessThanOrEqual(sheet.y + 2);
+    expect(drawn.top).toBeGreaterThanOrEqual(bar.y + bar.height - 1);
+    expect(drawn.bottom - drawn.top).toBeGreaterThan(200);
+  });
+});
+

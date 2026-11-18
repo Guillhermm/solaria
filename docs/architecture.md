@@ -623,6 +623,15 @@ Light reuses the Compare layer pattern (`docs/architecture-compare.md`, sections
 - Below the desktop width the bar sits under the top bar; its bottom edge is a top margin of
   the view, so the fit and the stops frame what is below it. In Story on a phone the bar keeps
   only the rail (the stop card carries the band's text).
+- On a phone, in every mode, the sheet's measured top is the bottom margin of the view, and
+  below the desktop width the Light bar's bottom is the top margin. A view at the fit (opened
+  without a view, or after Home) follows a new frame and a container resize; a story stop is
+  framed again; a view the user moved stays put. On a phone the Light bar keeps the rail and
+  one row (caption and "What differs?"); the band's note moves into the sheet.
+- A stop marker other than the current one hides where the Light bar or the overview card
+  covers it, or inside the current reticle; overview tags that would overlap are left out.
+- The Journeys index shows a band-set Journey with the thumbnail of the band its first stop
+  opens on, tagged "Light". Mock fixtures never appear in the footer or About credits.
 - Band-dependent text (the bar, the band credits, About) renders once the viewer opens, so the
   static HTML and the first client render agree whichever band a link asks for; until then the
   page image's own credit shows.

@@ -87,8 +87,20 @@ wavelengths and times from [HDR]). The grid check above is internal and not show
 | Color tables and names | verified | [CN] |
 | Observed 2024-05-10 | verified | [HDR] |
 | Pixel scale 0.6 arcsec/px, orientation north up | verified | [HDR], section 3 |
-| Product type "single exposure" | supported | [HDR], one frame per channel |
+| Product type, AIA: "single exposure" | supported | [HDR] (one FSN, T_OBS and EXPTIME per frame), [L12] section 3 |
+| Product type, HMI: "stack" | supported | [C16] sections 2.1, 2.2.1 and 2.9 |
+| Processing, HMI: "Continuum intensity computed from 12 filtergrams over 45 s (Couvidat et al. 2016)" | supported | [C16] |
 | Release date | none | no source states one |
+
+Product types. Each AIA header names one frame serial number, one observation time and one
+exposure time (between 1.0 and 2.9 s; automatic exposure control varies the duration, not the
+number of exposures, [L12] section 3), so "single exposure" holds; the app states no exposure
+time. HMI's continuum intensity is not an exposure: the standard 45 s sequence takes 12
+filtergrams, two at each of six wavelengths, which are combined into the observables and the
+continuum is reconstructed from the line ([C16] sections 2.1, 2.2.1 and 2.9). "Stack" is the
+nearest allowed value, and `processing` says what the frame is. The quick-look series this frame
+comes from (QLOOK 1) is not documented by a source that could be read; that it uses the same
+algorithm rests on its 45 s cadence, time grid and CONTENT keyword: supported.
 
 ## 6. Band notes and the set note, as shown
 

@@ -173,9 +173,20 @@ test.describe("desktop", () => {
     const second = rows.nth(1);
     await expect(second.getByRole("heading", { level: 3 })).toHaveText(sun.title);
     await expect(second).toContainText(sun.summary);
-    await expect(second).toContainText("7 stops · Story, Explore · SDO");
+    await expect(second).toContainText("7 stops · Story, Explore, Light · SDO");
+    // The thumbnail is the band the Journey opens on.
+    await expect(second.locator("img")).toHaveAttribute("src", new RegExp(`/${sun.stops[0].band}/thumbnail\\.jpg$`));
     await expect(second).toContainText("4 096 × 4 096 px");
     await expect(second.getByRole("link", { name: `Begin ${sun.title}` })).toHaveAttribute("href", "/sun/");
+    // A square thumbnail is contained in the wide slot, whole.
+    const sunShape = await second.locator("img").evaluate((el) => {
+      const img = el as HTMLImageElement;
+      const box = img.getBoundingClientRect();
+      const frame = img.parentElement!.getBoundingClientRect();
+      return { drawn: box.width / box.height, file: img.naturalWidth / img.naturalHeight, inside: box.top >= frame.top - 0.5 && box.bottom <= frame.bottom + 0.5 };
+    });
+    expect(sunShape.drawn).toBeCloseTo(sunShape.file, 1);
+    expect(sunShape.inside).toBe(true);
     const row = rows.nth(0);
     await expect(row.getByRole("heading", { level: 3 })).toHaveText(journey.title);
     await expect(row).toContainText(journey.summary);

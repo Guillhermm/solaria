@@ -130,7 +130,7 @@ const LightBar = ({ stops, position, onPosition, showing, shows, draft, credits,
           ))}
         </ol>
       </div>
-      <div className={`${compare.row} ${styles.detail}`}>
+      <div className={`${compare.row} ${styles.row} ${styles.detail}`}>
         <p className={compare.headline} data-testid="light-showing">
           {showing}
           {draft && <span className={compare.draft}>Draft</span>}

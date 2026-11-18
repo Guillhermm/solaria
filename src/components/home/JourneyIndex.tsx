@@ -37,7 +37,7 @@ const JourneyIndex = ({ entries, tileBaseUrl }: { entries: JourneyEntry[]; tileB
               <h3 className={styles.title}>{journey.title}</h3>
               <p className={styles.summary}>{journey.summary}</p>
               <p className={styles.meta}>
-                {journey.stops.length} stops · Story, Explore · {image.observatory.value}
+                {journey.stops.length} stops · Story, Explore{journey.bandSetId ? ", Light" : ""} · {image.observatory.value}
               </p>
             </div>
             <p className={styles.size}>

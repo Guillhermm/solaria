@@ -68,6 +68,7 @@ interface Camera {
   fly: (view: Viewport) => void;
   syncMargins: () => void;
   schedule: () => void;
+  moved: () => void; // the user moved the view: it no longer follows the fit
 }
 
 const noSubscribe = () => () => {};
@@ -159,8 +160,6 @@ const routeKey = (search: string, journey: Journey | undefined, image: Size, com
 
 const MODE_NAMES: Record<Mode, string> = { story: "Story", explore: "Explore", compare: "Compare", light: "Light" };
 
-// design.md 5.4: on a phone the camera frames each stop in the top 60 % of the screen.
-const PHONE_STORY_FRAME = 0.6;
 const PHONE = "(max-width: 40rem)";
 const RETICLE_REM = 5.5;
 const REDUCED = "(prefers-reduced-motion: reduce)";
@@ -320,11 +319,17 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     const { width, height } = image.tiles;
 
     // The fit leaves the rulers clear: they are margins of the view, not part of it. In Story
-    // the column on desktop, and the sheet below the frame on a phone, are margins too.
+    // the column on desktop is a margin too, and on a phone, in every mode, so is the sheet:
+    // the view ends where the sheet's measured top begins. Opened to About, the sheet covers
+    // the image on purpose, and the view keeps the margin it had.
+    let sheetBottom = 0;
     const measureMargins = () => {
       const top = rulerTopRef.current;
       const left = rulerLeftRef.current;
-      const phoneStory = pageRef.current.story && window.matchMedia(PHONE).matches;
+      const sheet = sheetRef.current;
+      if (sheet && window.matchMedia(PHONE).matches) {
+        if (root.dataset.sheet !== "full") sheetBottom = Math.max(0, Math.round(host.clientHeight - sheet.offsetTop));
+      } else sheetBottom = 0;
       // Below the desktop width the Light bar sits under the top bar, over the image: the fit and
       // the stops frame what is below it.
       const bar = root.querySelector<HTMLElement>("[data-testid='light-bar']");
@@ -333,7 +338,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         top: Math.max(top?.offsetParent ? top.offsetTop + top.offsetHeight : 0, barBottom),
         left: left?.offsetParent ? left.offsetLeft + left.offsetWidth : 0,
         right: 0,
-        bottom: phoneStory ? Math.round(host.clientHeight * (1 - PHONE_STORY_FRAME)) : 0,
+        bottom: sheetBottom,
       };
     };
     let margins = measureMargins();
@@ -362,12 +367,26 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       const { journey: j, story: inStory, stop: at } = pageRef.current;
       if (j && inStory) {
         const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+        // Another stop's marker gives way where a panel covers it, or where it sits inside the
+        // current stop's reticle (stops that change band without moving). All rects are read
+        // before any marker is written.
+        const hostBox = host.getBoundingClientRect();
+        const panels = ["[data-testid='light-bar']", "[data-testid='readout']"]
+          .map((q) => root.querySelector<HTMLElement>(q)?.closest("section, div[class]")?.getBoundingClientRect())
+          .filter((r): r is DOMRect => !!r && r.width > 0);
+        const here = stopTarget(j.stops[at]);
+        const reticle = (RETICLE_REM * rem) / 2;
         j.stops.forEach((s, i) => {
           const el = marksRef.current[i];
           const target = stopTarget(s);
           if (!el || !target) return;
           const sx = margins.left + (target.x - bounds.x * width) * scale;
           const sy = margins.top + (target.y - bounds.y * width) * scale;
+          const px = hostBox.left + sx;
+          const py = hostBox.top + sy;
+          const covered = panels.some((r) => px >= r.left && px <= r.right && py >= r.top && py <= r.bottom);
+          const stacked = !!here && Math.hypot(target.x - here.x, target.y - here.y) * scale < reticle;
+          el.style.visibility = i !== at && (covered || stacked) ? "hidden" : "";
           el.style.translate = `${sx.toFixed(1)}px ${sy.toFixed(1)}px`;
           if (i === at) el.style.setProperty("--side", `${reticleSide(RETICLE_REM * rem, scale, s.marker?.r)}px`);
         });
@@ -417,6 +436,8 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       const span = journey ? zoomSpan(journey.stops) : 1;
       // A flight's second leg waits for the first to land; any user gesture drops it.
       let nextLeg: (() => void) | null = null;
+      let fitted = false;
+      let flying = false;
       const springs = () => {
         const vp = opened.viewport as unknown as Record<"centerSpringX" | "centerSpringY" | "zoomSpring", { animationTime: number }>;
         return [vp.centerSpringX, vp.centerSpringY, vp.zoomSpring];
@@ -437,6 +458,8 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       });
       const fly = (view: Viewport) => {
         nextLeg = null;
+        fitted = false;
+        flying = true;
         const vp = opened.viewport;
         const b = vp.getBounds();
         const px = viewerPx();
@@ -456,6 +479,14 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         if (Object.entries(next).some(([k, v]) => margins[k as keyof typeof margins] !== v)) {
           margins = next;
           (opened.viewport as unknown as { setMargins: (m: typeof margins) => void }).setMargins(margins);
+          // A view at the fit stays at the fit of the new frame (a sheet or a bar that grows
+          // after the image opened, or a story card of another length); a story stop is framed
+          // again, in flight or at once; a view the user moved is left where it is.
+          const { story: inStory, paused: held, journey: j, stop: at } = pageRef.current;
+          if (inStory && !held && j) {
+            if (flying) fly(j.stops[at].viewport);
+            else fitImageBounds(viewBounds(j.stops[at].viewport, size, viewerPx()), 0);
+          } else if (fitted) opened.viewport.goHome(true);
         }
         schedule();
       };
@@ -464,7 +495,16 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         nextLeg = null;
         if (pageRef.current.story && !pageRef.current.paused) setPaused(true);
       };
-      cameraRef.current = { fly, syncMargins, schedule };
+      const moved = () => {
+        fitted = false;
+      };
+      cameraRef.current = { fly, syncMargins, schedule, moved };
+      // Whether the view is the fit: true after opening without a view and after Home, false
+      // once the user or a flight moves it. Only a fitted view follows a new frame.
+      opened.addHandler("home", () => {
+        fitted = true;
+      });
+      for (const name of ["canvas-press", "canvas-scroll", "canvas-pinch"] as const) opened.addHandler(name, moved);
       for (const name of ["canvas-press", "canvas-scroll", "canvas-pinch"] as const) opened.addHandler(name, pause);
       opened.navigator?.addHandler("canvas-press", pause);
       opened.canvas.setAttribute("role", "application");
@@ -482,6 +522,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         key.preventDefault();
         if (action.kind !== "fullscreen") pause();
         const vp = opened.viewport;
+        if (action.kind === "zoom" || action.kind === "pan") moved();
         if (action.kind === "zoom") vp.zoomBy(action.factor);
         else if (action.kind === "pan") {
           const b = vp.getBounds();
@@ -519,6 +560,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         const light = bandSets.length ? { sets: bandSets.map((b) => ({ id: b.set.id, imageIds: b.set.imageIds })) } : undefined;
         const { view, mode: asked } = parseViewerParams(window.location.search, { width, height }, modesFor(journey, compare, light), compare, light);
         fitOverlapRef.current = asked === "compare" && !view;
+        fitted = !(journey && asked === "story") && !fitOverlapRef.current && (!view || view.z === 1);
         syncMargins();
         if (journey && asked === "story") {
           fitImageBounds(viewBounds(journey.stops[parseStop(window.location.search, journey.stops.length)].viewport, size, viewerPx()), 0);
@@ -541,6 +583,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           leg();
           return;
         }
+        flying = false;
         // design.md 7.1: in Explore the URL follows the view 400 ms after it settles; in Story
         // it holds the stop.
         clearTimeout(urlTimer);
@@ -557,7 +600,13 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       });
       viewer.addHandler("viewport-change", schedule);
       // Crossing the phone breakpoint shows or hides the rulers and the column.
-      viewer.addHandler("resize", syncMargins);
+      // OpenSeadragon rescales the zoom after its own resize handler runs, so the fit is
+      // restored a frame later.
+      viewer.addHandler("resize", () => requestAnimationFrame(() => {
+        if (cancelled) return;
+        syncMargins();
+        if (fitted) opened.viewport.goHome(true);
+      }));
       document.fonts.ready.then(schedule);
       // The rulers draw with theme tokens, so a theme switch repaints them.
       themeObserver = new MutationObserver(schedule);
@@ -595,6 +644,15 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   });
 
   useLightLayer({ opened, view: lightActive, position, fade, tileBaseUrl });
+
+  // The phone sheet's height is a margin of the view; it changes with peek, min and the content.
+  useEffect(() => {
+    const sheet = sheetRef.current;
+    if (!sheet) return;
+    const observer = new ResizeObserver(() => cameraRef.current?.syncMargins());
+    observer.observe(sheet);
+    return () => observer.disconnect();
+  }, []);
 
   // The Light bar's height is a margin of the view below the desktop width; it changes as the
   // bar appears, wraps or folds to the rail in Story.
@@ -927,6 +985,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       const vp = viewerRef.current?.viewport;
       if (!vp) return;
       pauseStory();
+      cameraRef.current?.moved();
       vp.zoomBy(factor);
       vp.applyConstraints();
     },
@@ -1290,6 +1349,13 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
 
         {/* Phones: the full validated credit stays in the sheet; a tap opens About. In Compare
             both images are credited. */}
+        {/* Phones: the band's note sits in the sheet, so the Light bar stays a strip. Story's card
+            already says it. */}
+        {!infoOpen && !story && lightShown?.bands[band].image.bands.value[0].shows && (
+          <p className={styles.sheetShows} data-testid="sheet-shows">
+            <span className={styles.key}>Shows</span> {lightShown.bands[band].image.bands.value[0].shows}
+          </p>
+        )}
         {!infoOpen && (
           <button type="button" className={styles.sheetCredit} onClick={openFromCredit}>
             {active && pairSides ? (

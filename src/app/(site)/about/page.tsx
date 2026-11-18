@@ -19,7 +19,8 @@ const External = ({ href, children }: { href: string; children: ReactNode }) => 
 // Every credit field is copied from data/sources at build time and shown as the record has it.
 const credits = () => {
   const { images, sources } = getContent();
-  return sources.map((source) => ({ source, images: images.filter((i) => i.sourceId === source.id) }));
+  // Mock fixtures (development and the end-to-end build only) are never credited.
+  return sources.filter((s) => !s.mock).map((source) => ({ source, images: images.filter((i) => i.sourceId === source.id) }));
 };
 
 const andromeda = () => getContent().sources.find((s) => s.id === "andromeda-phat-phast-2025");

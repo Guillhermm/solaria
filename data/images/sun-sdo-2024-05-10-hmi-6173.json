@@ -45,7 +45,7 @@
     "status": "verified"
   },
   "productType": {
-    "value": "single exposure",
+    "value": "stack",
     "source": "docs/science/sun-sdo.md#5",
     "status": "supported"
   },
@@ -56,6 +56,11 @@
     },
     "source": "docs/science/sun-sdo.md#5",
     "status": "verified"
+  },
+  "processing": {
+    "value": "Continuum intensity computed from 12 filtergrams over 45 s (Couvidat et al. 2016)",
+    "source": "docs/science/sun-sdo.md#5",
+    "status": "supported"
   },
   "pixelScale": {
     "value": {

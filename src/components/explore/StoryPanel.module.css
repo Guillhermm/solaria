@@ -132,6 +132,19 @@
   list-style: none;
 }
 
+/* The list scrolls under Next and Previous: a fade in the column's ground at its bottom edge
+   says there is more, instead of a hard cut through a line of text. */
+.stops::after {
+  content: "";
+  position: sticky;
+  bottom: 0;
+  display: block;
+  height: 2rem;
+  margin-top: -2rem;
+  background: linear-gradient(to bottom, transparent, var(--ground));
+  pointer-events: none;
+}
+
 .stop {
   border-bottom: 1px solid var(--hairline-soft);
 }
@@ -412,6 +425,12 @@
   }
 
   .panel[data-collapsed] :is(.body, .sources, .nav) {
+    display: none;
+  }
+}
+
+@media (max-width: 40rem) {
+  .stops::after {
     display: none;
   }
 }

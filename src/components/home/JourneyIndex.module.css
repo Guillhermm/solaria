@@ -51,6 +51,9 @@
 .frame {
   grid-area: frame;
   display: grid;
+  /* A definite cell, so the image's max-height of 100% resolves: a square thumbnail is
+     contained, never cut to its lower half. */
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   place-items: center;
   width: 10.5rem;
   height: 4rem;

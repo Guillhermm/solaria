@@ -14,10 +14,11 @@ const external = [
   { href: "https://www.spaceappschallenge.org/2025/find-a-team/solaria4/", label: "Space Apps entry" },
 ];
 
-// Credit lines come unaltered from the validated source records (data/sources).
+// Credit lines come unaltered from the validated source records (data/sources). Mock fixtures,
+// loaded in development and the end-to-end build, are never credited.
 const credits = () => {
   const { images, sources } = getContent();
-  return images.flatMap((image) => {
+  return images.filter((image) => !image.mock).flatMap((image) => {
     const source = sources.find((s) => s.id === image.sourceId);
     return source ? [{ id: image.id, title: image.title, credit: source.credit }] : [];
   });

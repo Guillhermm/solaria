@@ -93,3 +93,13 @@ for (const width of [1440, 390]) {
     expect(edges.begin).toBe(edges.header[1]);
   });
 }
+
+for (const path of ["/", "/about/"]) {
+  test(`${path} has one header and one footer, and credits no mock fixture`, async ({ page }) => {
+    await page.goto(path);
+    await expect(page.locator("header")).toHaveCount(1);
+    await expect(page.locator("footer")).toHaveCount(1);
+    // The end-to-end build loads the mock content too; it must never reach a credit line.
+    await expect(page.getByText(/Not NASA data|Mock (Compare|Light)/)).toHaveCount(0);
+  });
+}

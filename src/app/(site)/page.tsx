@@ -9,7 +9,8 @@ import styles from "./page.module.css";
 const entries = (): JourneyEntry[] => {
   const { journeys, images, sources } = getContent();
   return journeys.flatMap((journey) => {
-    const image = images.find((i) => i.id === journey.imageId);
+    // A Journey through a band set shows the band it opens on.
+    const image = images.find((i) => i.id === (journey.stops[0]?.band ?? journey.imageId));
     const source = image && sources.find((s) => s.id === image.sourceId);
     return image && source ? [{ journey, image, source }] : [];
   });

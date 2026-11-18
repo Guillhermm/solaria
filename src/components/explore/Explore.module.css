@@ -797,7 +797,8 @@
 }
 
 .grip,
-.sheetCredit {
+.sheetCredit,
+.sheetShows {
   display: none;
 }
 
@@ -1102,4 +1103,20 @@
     right: var(--edge);
     justify-content: flex-start;
   }
+}
+
+@media (max-width: 40rem) {
+  .sheetShows {
+    display: block;
+    flex: none;
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--text);
+  }
+}
+
+.sheetShows .key {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
 }
