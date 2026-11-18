@@ -17,6 +17,11 @@ export const stripMockTiles = (outDir: string) => {
 };
 
 if (process.argv[1]?.endsWith("strip-mock-tiles.ts")) {
+  // The end-to-end build keeps them: it is built with the mock content (src/content/load.ts).
+  if (process.env.SOLARIA_CONTENT === "development") {
+    console.log("SOLARIA_CONTENT=development: mock tiles kept");
+    process.exit(0);
+  }
   const removed = stripMockTiles(process.argv[2] ?? "out");
   console.log(`Removed ${removed.length} mock tile trees from the build output`);
 }

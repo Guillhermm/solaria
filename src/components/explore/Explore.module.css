@@ -1046,3 +1046,57 @@
     display: none;
   }
 }
+
+/* Compare (design.md 5.6). The layer sits over the image and under the chrome. */
+.compareLayer {
+  position: absolute;
+  inset: 0;
+  --labels-top: var(--below-bar);
+  pointer-events: none;
+}
+
+/* Side by side: the left viewer takes the left half, the second viewer the right half. */
+.root[data-layout="side"] .canvas {
+  right: 50%;
+}
+
+.side {
+  position: absolute;
+  inset: 0 0 0 50%;
+  background: var(--viewer-canvas);
+}
+
+/* Desktop: between the overview card and the zoom controls, so it covers neither. */
+.compareBar {
+  --ov-w: 16.75rem;
+  position: absolute;
+  bottom: var(--bottom);
+  left: calc(var(--left) + var(--ov-w) + var(--space-3));
+  right: calc(var(--edge) + var(--target) + var(--space-3));
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.root[data-shape="wide"] .compareBar {
+  --ov-w: 23.25rem;
+}
+
+.root[data-shape="tall"] .compareBar {
+  --ov-w: 0rem;
+}
+
+.sheetCreditLine {
+  display: block;
+}
+
+/* Narrower screens: the bar moves under the top bar, across the width. */
+@media (max-width: 63.99rem) {
+  .compareBar {
+    top: var(--below-bar);
+    bottom: auto;
+    left: var(--left);
+    right: var(--edge);
+    justify-content: flex-start;
+  }
+}

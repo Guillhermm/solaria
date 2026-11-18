@@ -253,3 +253,37 @@ Each leaves `npm test`, `npm run build` and the end-to-end suite green.
    `viewport-change`, which fires per animation frame; the end-to-end pixel probe runs
    after a zoom animation, not only at rest.
 5. **Webb waits on R2.** If R-01 slips, C-05 slips; the Hubble pair ships without it.
+
+## 9. As built (Sprint 7)
+
+Where the build differs from sections 1 to 4, and why. Each was the simpler working option.
+
+- **Home bounds stay the reference's.** The moving image is added with
+  `world.setAutoRefigureSizes(false)` (OpenSeadragon 5.0.1), so `viewport.getHomeZoom()`
+  keeps meaning the reference fit and the existing readout, URL and constraint code needed no
+  change. Removing the moving image refigures the sizes again. Content past the reference
+  frame cannot be panned to; Compare is about the overlap.
+- **Cropping polygons instead of `setClip` and opacity.** The navigator copies a clip and an
+  opacity onto its mirror of the reference (`Navigator._matchBounds`, `_matchOpacity`), which
+  cut the overview and made it blink. Both images are cut with `setCroppingPolygons` only:
+  the reference with the rectangle left of the divider, the moving image with its footprint
+  right of it; Blink and Side by side hide an image with an empty polygon. The navigator's
+  mirror of the moving image is removed as it arrives, so the overview maps the reference.
+- **Canvas drawer on a page that offers Compare.** Spike on the rotated mock pair, headless
+  Chromium with software GL, 1200 x 700: WebGL 25.6 ms per frame plain and 41.0 ms with the
+  crops (its Context2d second pass stalls on `ReadPixels`); canvas 16.6 and 16.5 ms. Both
+  map the moving image's control points onto the reference within 1.3e-13 px. Other pages
+  keep OpenSeadragon's default drawer. Not measured on a phone GPU.
+- **Labels live in the pair manifest.** `labels: [{ full, short }, { full, short }]` in
+  `imageIds` order, validated with the pair; the UI composes no claim from image fields.
+- **Labels below 64rem.** Under the desktop width the side labels give way to the "Left: ..."
+  chips in the compare bar (design 5.6 asks for that on a phone; tablets follow it).
+- **Both credits sit in the compare bar** on desktop and tablet, and in the sheet on a phone;
+  the single credit at the top left is hidden in Compare.
+- **Blink** hides each image in turn every 800 ms, has Pause and Swap (WCAG 2.2.2), and never
+  blinks on its own under reduced motion (Swap only).
+- **End-to-end build.** Playwright builds with `SOLARIA_CONTENT=development`, which loads the
+  mock content and keeps the mock tiles, so the suite runs Compare on the mock pair. A plain
+  `npm run build` is unchanged and stays behind the gate.
+- **The mock pair** is drawn at 4096 x 2048 (scene units times 4) so OpenSeadragon's
+  `maxZoomPixelRatio` of 1.1 still lets a viewer zoom past the fit.

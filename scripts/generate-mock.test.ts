@@ -9,6 +9,7 @@ import {
   MOCK_PAIR,
   MOCK_SIMILARITY,
   MOVING,
+  REFERENCE,
   SPECS,
   mockControlPoints,
   mockImage,
@@ -60,7 +61,7 @@ describe("the rotated Compare mock", () => {
   it("draws each star where its control point says, in both images", () => {
     const ref = referencePixels();
     for (const cp of mockControlPoints()) {
-      expect(ref[(Math.floor(cp.reference.y) * 1024 + Math.floor(cp.reference.x)) * 3]).toBe(255);
+      expect(ref[(Math.floor(cp.reference.y) * REFERENCE.width + Math.floor(cp.reference.x)) * 3]).toBe(255);
       // The moving image is cool: a star there is bright in blue.
       expect(at(cp.moving.x, cp.moving.y)[2]).toBeGreaterThan(200);
     }

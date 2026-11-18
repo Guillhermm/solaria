@@ -168,6 +168,13 @@ export interface ComparePair extends ImageGroup {
   imageIds: [string, string];
   reference: string; // one of imageIds: the unrotated frame; the other image moves onto it
   headline: string; // a short validated label shown in the compare bar
+  // What each side is called, in imageIds order: `full` beside the divider, `short` on a phone.
+  labels: [PairLabel, PairLabel];
+}
+
+export interface PairLabel {
+  full: string; // e.g. "2014, Hubble WFC3"
+  short: string; // e.g. "2014"
 }
 
 // Light: the same field in several bands, in rail order (at least two).

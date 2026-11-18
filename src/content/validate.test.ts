@@ -269,6 +269,11 @@ describe("pairs and band sets", () => {
     ]);
     expect(run("pair", (g) => delete g.headline)).toEqual(["data/pairs/demo-pair.json: headline: missing"]);
   });
+  it("need a full and a short label for each image", () => {
+    expect(run("pair", (g) => g.labels.pop())[0]).toContain("labels: expected two labels, in imageIds order");
+    expect(run("pair", (g) => (g.labels[1].short = "")))
+      .toEqual(['data/pairs/demo-pair.json: labels[1].short: expected a non-empty string, got ""']);
+  });
   it("reject an empty or missing note", () => {
     expect(run("pair", (g) => (g.whatDiffers = " "))[0]).toContain("whatDiffers: expected a non-empty string");
     expect(run("pair", (g) => delete g.whatDiffers)).toEqual(["data/pairs/demo-pair.json: whatDiffers: missing"]);

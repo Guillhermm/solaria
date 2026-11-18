@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import * as fx from "./__fixtures__/content";
-import { ContentError, loadContent } from "./load";
+import { ContentError, contentMode, loadContent } from "./load";
 
 const roots: string[] = [];
 
@@ -121,5 +121,14 @@ describe("loadContent", () => {
       (files[1].raw as ReturnType<typeof fx.image>).mock = true;
       expect(() => loadContent({ root: root(files), mode: "production" })).toThrow(/data\/images\/demo\.json: mock/);
     });
+  });
+});
+
+describe("contentMode", () => {
+  it("is production for a production build unless the end-to-end build asks for development", () => {
+    expect(contentMode({ NODE_ENV: "production" })).toBe("production");
+    expect(contentMode({ NODE_ENV: "production", SOLARIA_CONTENT: "development" })).toBe("development");
+    expect(contentMode({ NODE_ENV: "production", SOLARIA_CONTENT: "yes" })).toBe("production");
+    expect(contentMode({ NODE_ENV: "development" })).toBe("development");
   });
 });

@@ -11,6 +11,7 @@ export default defineConfig({
     url: ORIGIN,
     reuseExistingServer: false,
     timeout: 300_000,
-    env: { NEXT_TELEMETRY_DISABLED: "1" },
+    // The end-to-end build includes the mock content (the Compare pair); see src/content/load.ts.
+    env: { NEXT_TELEMETRY_DISABLED: "1", SOLARIA_CONTENT: "development" },
   },
 });

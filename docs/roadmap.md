@@ -110,7 +110,7 @@ measures 0.016.
 
 | ID | Item | Status | Depends | Done when |
 |---|---|---|---|---|
-| C-01 | Compare mode in OpenSeadragon: wipe and side by side, synced at any zoom | todo | X-02, D-09 | Works on mock pair; drop `@img-comparison-slider/react` |
+| C-01 | Compare mode in OpenSeadragon: wipe and side by side, synced at any zoom | done | X-02, D-09 | Works on mock pair; drop `@img-comparison-slider/react` |
 | C-02 | Pillars of Creation, Hubble 1995 (WFPC2) vs 2014 (WFC3): source, fetch, tile | todo | D-08 | Sources and credits recorded |
 | C-03 | Register the pair from star control points; record transform and residual | todo | C-02 | Residual recomputed independently |
 | C-04 | "What differs?" note for the pair | todo | C-03 | Validated |

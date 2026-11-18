@@ -7,6 +7,16 @@
   ],
   "reference": "mock-compare-before",
   "headline": "Synthetic: the disc grows",
+  "labels": [
+    {
+      "full": "Before, synthetic",
+      "short": "Before"
+    },
+    {
+      "full": "After, synthetic",
+      "short": "After"
+    }
+  ],
   "differs": {
     "instrument": false,
     "band": false,
@@ -26,8 +36,8 @@
           "y": 74.58655252185066
         },
         "reference": {
-          "x": 260,
-          "y": 120
+          "x": 1040,
+          "y": 480
         }
       },
       {
@@ -37,8 +47,8 @@
           "y": 189.16662433160695
         },
         "reference": {
-          "x": 330,
-          "y": 360
+          "x": 1320,
+          "y": 1440
         }
       },
       {
@@ -48,8 +58,8 @@
           "y": 46.36635197985842
         },
         "reference": {
-          "x": 470,
-          "y": 90
+          "x": 1880,
+          "y": 360
         }
       },
       {
@@ -59,8 +69,8 @@
           "y": 196.93337536627925
         },
         "reference": {
-          "x": 520,
-          "y": 400
+          "x": 2080,
+          "y": 1600
         }
       },
       {
@@ -70,8 +80,8 @@
           "y": 139.71477672069673
         },
         "reference": {
-          "x": 640,
-          "y": 300
+          "x": 2560,
+          "y": 1200
         }
       },
       {
@@ -81,8 +91,8 @@
           "y": 133.99686933363597
         },
         "reference": {
-          "x": 730,
-          "y": 300
+          "x": 2920,
+          "y": 1200
         }
       },
       {
@@ -92,8 +102,8 @@
           "y": 167.95473965017638
         },
         "reference": {
-          "x": 820,
-          "y": 380
+          "x": 3280,
+          "y": 1520
         }
       },
       {
@@ -103,19 +113,19 @@
           "y": 129.52984564510132
         },
         "reference": {
-          "x": 410,
-          "y": 250
+          "x": 1640,
+          "y": 1000
         }
       }
     ],
     "similarity": {
-      "scale": 2,
+      "scale": 8,
       "rotationDeg": 7.3000000000000025,
-      "tx": 193.73772902831223,
-      "ty": -38.88050966214735
+      "tx": 774.9509161132489,
+      "ty": -155.5220386485894
     },
-    "residualPx": 3.014577520672848e-14,
-    "maxResidualPx": 5.684341886080802e-14
+    "residualPx": 1.2058310082691391e-13,
+    "maxResidualPx": 2.2737367544323206e-13
   },
   "whatDiffers": "Synthetic. The second image has pixels twice as coarse, is turned 7.3 degrees and misses a stepped corner. The disc is larger and shifted; the stars and the grid do not move.",
   "validation": {

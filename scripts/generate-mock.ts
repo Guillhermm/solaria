@@ -44,15 +44,21 @@ interface Spec {
   color: string;
   width?: number; // default W x H
   height?: number;
+  maxLevel?: number; // default MAX_LEVEL
 }
 
 // The Compare mock mirrors the Hubble pair's geometry: the moving image has coarser pixels
 // (scale 2), is turned 7.3 degrees, and misses a stepped corner, as the WFPC2 mosaic does.
 // It also reaches past the top and bottom of the reference frame, as Webb will.
+// The scene is drawn in units of a 1024 x 512 grid; the reference renders it K times larger,
+// so OpenSeadragon lets a viewer zoom in past the fit (its pixel-ratio limit is 1.1).
+const K = 4;
+export const REFERENCE = { width: W * K, height: H * K };
+const REFERENCE_MAX_LEVEL = 4;
 export const MOVING = { width: 400, height: 240 };
-const MOVING_CENTER_ON_REFERENCE = { x: 560, y: 250 };
+const MOVING_CENTER_ON_REFERENCE = { x: 560 * K, y: 250 * K };
 const ROTATION = 7.3;
-const SCALE = 2;
+const SCALE = 2 * K;
 const turn = applySimilarity({ scale: SCALE, rotationDeg: ROTATION, tx: 0, ty: 0 }, { x: MOVING.width / 2, y: MOVING.height / 2 });
 export const MOCK_SIMILARITY: Similarity = {
   scale: SCALE,
@@ -83,7 +89,7 @@ const STARS = [
 ];
 const STAR_R = 5;
 
-// The sky both images show, in reference pixels: a gradient, a 3 px grid, stars and a disc.
+// The sky both images show, in scene units: a gradient, a grid, stars and a disc.
 export const scene = (x: number, y: number, disc: Disc) => {
   if (STARS.some((s) => (x - s.x) ** 2 + (y - s.y) ** 2 <= STAR_R ** 2)) return 255;
   if ((x - disc.x) ** 2 + (y - disc.y) ** 2 <= disc.r ** 2) return disc.value;
@@ -103,8 +109,11 @@ const tinted = (px: Uint8Array, o: number, v: number, tint: [number, number, num
 };
 
 export const referencePixels = () => {
-  const px = new Uint8Array(W * H * 3);
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) tinted(px, (y * W + x) * 3, scene(x + 0.5, y + 0.5, BEFORE_DISC), WARM);
+  const { width, height } = REFERENCE;
+  const px = new Uint8Array(width * height * 3);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) tinted(px, (y * width + x) * 3, scene((x + 0.5) / K, (y + 0.5) / K, BEFORE_DISC), WARM);
+  }
   return px;
 };
 
@@ -119,7 +128,7 @@ export const movingPixels = () => {
       for (let j = 0; j < 3; j++) {
         for (let i = 0; i < 3; i++) {
           const q = applySimilarity(MOCK_SIMILARITY, { x: x + (i + 0.5) / 3, y: y + (j + 0.5) / 3 });
-          sum += scene(q.x, q.y, AFTER_DISC);
+          sum += scene(q.x / K, q.y / K, AFTER_DISC);
         }
       }
       tinted(px, (y * width + x) * 3, sum / 9, COOL);
@@ -130,11 +139,14 @@ export const movingPixels = () => {
 
 export const mockControlPoints = () => {
   const back = invertSimilarity(MOCK_SIMILARITY);
-  return STARS.map((s, i) => ({ label: `star ${String.fromCharCode(65 + i)}`, moving: applySimilarity(back, s), reference: { ...s } }));
+  return STARS.map((s, i) => {
+    const reference = { x: s.x * K, y: s.y * K };
+    return { label: `star ${String.fromCharCode(65 + i)}`, moving: applySimilarity(back, reference), reference };
+  });
 };
 
 export const COMPARE_SPECS: Spec[] = [
-  { id: "mock-compare-before", title: "Mock Compare, before", disc: BEFORE_DISC, tint: WARM, band: "mock-gray", color: "gray" },
+  { id: "mock-compare-before", title: "Mock Compare, before", disc: BEFORE_DISC, tint: WARM, band: "mock-gray", color: "gray", ...REFERENCE, maxLevel: REFERENCE_MAX_LEVEL },
   { id: "mock-compare-after", title: "Mock Compare, after", disc: AFTER_DISC, tint: COOL, band: "mock-gray", color: "gray", ...MOVING },
 ];
 
@@ -202,6 +214,7 @@ export const MOCK_PAIR: ComparePair = {
   imageIds: ["mock-compare-before", "mock-compare-after"],
   reference: "mock-compare-before",
   headline: "Synthetic: the disc grows",
+  labels: [{ full: "Before, synthetic", short: "Before" }, { full: "After, synthetic", short: "After" }],
   differs: { instrument: false, band: false, date: true, illumination: false, geometry: true, processing: false },
   registration: mockRegistration(),
   whatDiffers:
@@ -236,11 +249,12 @@ const main = async () => {
     const image = vips.Image.newFromMemory(pixels(spec), width, height, 3, vips.BandFormat.uchar);
     const png = Buffer.from(image.writeToBuffer(".png"));
     const outDir = join("public", "tiles", spec.id);
-    await cutPyramid(image, outDir, { tileSize: TILE, maxLevel: MAX_LEVEL });
+    const maxLevel = spec.maxLevel ?? MAX_LEVEL;
+    await cutPyramid(image, outDir, { tileSize: TILE, maxLevel });
     const sizes = await writeThumbnails(image, outDir);
     const sha256 = createHash("sha256").update(png).digest("hex");
     writeJson(join("data", "mock", "sources", `${spec.id}.json`), mockSource(spec, { bytes: png.length, sha256 }));
-    writeJson(join("data", "mock", "images", `${spec.id}.json`), mockImage(spec, tilesBlock(width, height, TILE, MAX_LEVEL, sizes)));
+    writeJson(join("data", "mock", "images", `${spec.id}.json`), mockImage(spec, tilesBlock(width, height, TILE, maxLevel, sizes)));
   }
   writeJson(join("data", "mock", "pairs", `${MOCK_PAIR.id}.json`), MOCK_PAIR);
   writeJson(join("data", "mock", "band-sets", `${MOCK_BAND_SET.id}.json`), MOCK_BAND_SET);

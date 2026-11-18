@@ -61,17 +61,17 @@
     "format": "jpg",
     "tileSize": 256,
     "overlap": 0,
-    "width": 1024,
-    "height": 512,
+    "width": 4096,
+    "height": 2048,
     "minLevel": 0,
-    "maxLevel": 2,
+    "maxLevel": 4,
     "thumbnail": {
       "width": 512,
       "height": 256
     },
     "preview": {
-      "width": 1024,
-      "height": 512
+      "width": 2048,
+      "height": 1024
     }
   },
   "validation": {

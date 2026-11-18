@@ -2,7 +2,7 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type OpenSeadragon from "openseadragon";
 import { applySimilarity } from "@/content/registration";
-import { clipHalfPlane, movingCrop, overlapBounds, placement, referenceClip, splitToReferenceX, wholeImage } from "./compare";
+import { clipHalfPlane, movingCrop, overlapBounds, placement, referenceClip, sides, splitToReferenceX, wholeImage } from "./compare";
 
 const S = { scale: 2.48041, rotationDeg: 7.3167, tx: 1922.68, ty: 290.55 };
 const MOVING = { width: 1518, height: 1497 };
@@ -128,5 +128,13 @@ describe("overlapBounds", () => {
   });
   it("is null when they do not overlap", () => {
     expect(overlapBounds(wholeImage({ width: 10, height: 10 }), { scale: 1, rotationDeg: 0, tx: 500, ty: 0 }, { width: 200, height: 100 })).toBeNull();
+  });
+});
+
+describe("sides", () => {
+  it("puts the reference's label on the left, whatever the order of imageIds", () => {
+    const labels: [string, string] = ["1995", "2014"];
+    expect(sides({ imageIds: ["a", "b"], reference: "b", labels })).toEqual({ left: "2014", right: "1995" });
+    expect(sides({ imageIds: ["a", "b"], reference: "a", labels })).toEqual({ left: "1995", right: "2014" });
   });
 });

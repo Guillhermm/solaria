@@ -13,10 +13,10 @@
   "retrievedAt": "2026-11-17",
   "file": {
     "format": "png",
-    "bytes": 18642,
-    "sha256": "8d8cc3405b744590be8a12d76b3aec3c4df1a024b142bbf074deedc9448c8afb",
-    "width": 1024,
-    "height": 512
+    "bytes": 245585,
+    "sha256": "cd8e0395a0433d00cc72920193543ddb37307f00d8994c2532c69a1b903c16ad",
+    "width": 4096,
+    "height": 2048
   },
   "validation": {
     "status": "draft",

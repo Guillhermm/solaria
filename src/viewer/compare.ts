@@ -93,3 +93,9 @@ export const overlapBounds = (footprint: Polygon[], s: Similarity, reference: Si
   const y = Math.min(...ys);
   return { x, y, width: Math.max(...xs) - x, height: Math.max(...ys) - y };
 };
+
+// The reference sits left of the divider, the moving image right; labels follow imageIds.
+export const sides = <L>(pair: { imageIds: [string, string]; reference: string; labels: [L, L] }) => {
+  const ref = pair.imageIds.indexOf(pair.reference);
+  return { left: pair.labels[ref], right: pair.labels[1 - ref] };
+};

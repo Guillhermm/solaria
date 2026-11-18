@@ -96,6 +96,7 @@ export const pair = (): ComparePair => ({
   imageIds: ["demo", "demo-b"],
   reference: "demo",
   headline: "Same field, years apart",
+  labels: [{ full: "2014, demo camera", short: "2014" }, { full: "1995, demo camera", short: "1995" }],
   ...group(),
   registration: similarityRegistration(),
 });

@@ -34,8 +34,10 @@ test("the non-endorsement line has the science review's wording", async ({ page 
 
 test("credits and terms are copied unaltered from the source record", async ({ page }) => {
   await page.goto("/about/");
-  const credits = page.locator("#credits");
-  const field = (name: string) => credits.locator("dl > div", { has: page.locator(`dt:text-is("${name}")`) }).locator("dd");
+  // The end-to-end build also lists the mock sources; this test reads the Andromeda record.
+  const credits = page.locator("#credits dl").filter({ hasText: source.title });
+  await expect(credits).toHaveCount(1);
+  const field = (name: string) => credits.locator(":scope > div", { has: page.locator(`dt:text-is("${name}")`) }).locator("dd");
   await expect(field("Title")).toHaveText(source.title);
   await expect(field("Credit")).toHaveText(source.credit);
   await expect(field("Release")).toHaveText(`${source.releaseId}, ${source.releasedAt}`);

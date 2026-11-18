@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import type { CompareView } from "@/components/compare/types";
 import Explore from "@/components/explore/Explore";
 import { getContent } from "@/content/load";
 import { resolveTileBase } from "@/content/tiles";
@@ -39,12 +40,25 @@ const ViewerPage = async ({ params }: Params) => {
   const source = getContent().sources.find((s) => s.id === image.sourceId);
   if (!source) throw new Error(`data/sources/${image.sourceId}.json is missing for image ${image.id}`);
 
+  // Compare is offered on the page of a pair's reference image, never on a Journey (yet).
+  const content = getContent();
+  const pairs: CompareView[] = journey
+    ? []
+    : content.pairs
+        .filter((p) => p.reference === image.id)
+        .flatMap((pair) => {
+          const moving = content.images.find((i) => i.id === pair.imageIds.find((id) => id !== image.id));
+          const movingSource = moving && content.sources.find((s) => s.id === moving.sourceId);
+          return moving && movingSource ? [{ pair, moving, movingInfo: infoFor(moving, movingSource) }] : [];
+        });
+
   return (
     <Explore
       image={image}
       info={infoFor(image, source)}
       tileBaseUrl={resolveTileBase(process.env.TILE_BASE_URL)}
       journey={journey}
+      pairs={pairs}
     />
   );
 };

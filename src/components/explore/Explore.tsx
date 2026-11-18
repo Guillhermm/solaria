@@ -26,13 +26,19 @@ import {
 } from "react-icons/lu";
 import type OpenSeadragon from "openseadragon";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
+import CompareBar from "@/components/compare/CompareBar";
+import Divider from "@/components/compare/Divider";
+import type { CompareView } from "@/components/compare/types";
+import { type Opened, useCompareLayer } from "@/components/compare/useCompareLayer";
 import { tileSource } from "@/content/tiles";
 import type { ImageManifest, Journey, Viewport } from "@/content/types";
 import type { Info } from "@/viewer/info";
 import { overviewHeightRem, shapeOf } from "@/viewer/overview";
 import { keyAction, zoomAnnouncement } from "@/viewer/keys";
 import { type SheetState, stepSheet } from "@/viewer/sheet";
-import { type Mode, parseViewerParams, serializeViewerParams } from "@/viewer/url";
+import { type CompareOptions, type CompareState, DEFAULT_SPLIT, type Layout, type Mode, LAYOUTS, parseCompareParams, parseViewerParams, serializeViewerParams } from "@/viewer/url";
+import { sides } from "@/viewer/compare";
+import { dividerValueText } from "@/viewer/divider";
 import { reticleSide } from "@/viewer/route";
 import { type Bounds, flightPlan, parseStop, stepStop, stopNumber, stopOf, stopTarget, storySearch, viewBounds, zoomSpan } from "@/viewer/story";
 import { formatInt, formatZoom, homeView, osdFromView, type Size, viewFromOsd } from "@/viewer/view";
@@ -48,6 +54,7 @@ interface ExploreProps {
   info: Info;
   tileBaseUrl: string;
   journey?: Journey; // a Journey page: Story first, then Explore on the same image
+  pairs?: CompareView[]; // Compare pairs this image is the reference of, the default first
 }
 
 interface Camera {
@@ -80,8 +87,12 @@ const settledView = (viewer: OpenSeadragon.Viewer, size: Size) => {
   return viewFromOsd(vp.getCenter(), vp.getZoom(), vp.getHomeZoom(), size);
 };
 
-const viewUrl = (viewer: OpenSeadragon.Viewer, size: Size) =>
-  `${window.location.pathname}${serializeViewerParams({ mode: "explore", view: settledView(viewer, size) })}`;
+// The page's mode and compare state come along, so a view change never leaves Compare.
+const viewUrl = (viewer: OpenSeadragon.Viewer, size: Size, compare?: { state: CompareState; defaultPair: string }) =>
+  `${window.location.pathname}${serializeViewerParams(
+    { mode: compare ? "compare" : "explore", view: settledView(viewer, size), compare: compare?.state },
+    compare?.defaultPair,
+  )}`;
 
 // The URL is the one record of the mode and the stop (design.md 2, "every view is a place").
 // Components read it through useSyncExternalStore, so the static HTML and the first render agree.
@@ -102,14 +113,31 @@ const subscribeUrl = (onChange: () => void) => {
   };
 };
 
+// Re-reads a media query (the desktop width, reduced motion) when it flips.
+const subscribeMedia = (onChange: () => void) => {
+  const lists = ["(min-width: 64rem)", "(prefers-reduced-motion: reduce)"].map((q) => window.matchMedia(q));
+  for (const l of lists) l.addEventListener("change", onChange);
+  return () => {
+    for (const l of lists) l.removeEventListener("change", onChange);
+  };
+};
+
 const STORY_MODES: readonly Mode[] = ["story", "explore"];
 const EXPLORE_MODES: readonly Mode[] = ["explore"];
+const COMPARE_MODES: readonly Mode[] = ["explore", "compare"];
+// design.md 5.6: Side by side is desktop only.
+const DESKTOP = "(min-width: 64rem)";
 
-// "story:2" or "explore": only what the page renders from, so a view change alone does not
-// re-render it.
-const routeKey = (search: string, journey: Journey | undefined, image: Size) => {
-  const { mode } = parseViewerParams(search, image, journey ? STORY_MODES : EXPLORE_MODES);
-  return mode === "story" && journey ? `story:${parseStop(search, journey.stops.length)}` : mode;
+const modesFor = (journey: Journey | undefined, compare: CompareOptions | undefined) =>
+  journey ? STORY_MODES : compare ? COMPARE_MODES : EXPLORE_MODES;
+
+// "story:2", "explore" or "compare:<pair>:<layout>": only what the page renders from, so a
+// view or divider change alone does not re-render it.
+const routeKey = (search: string, journey: Journey | undefined, image: Size, compare: CompareOptions | undefined) => {
+  const state = parseViewerParams(search, image, modesFor(journey, compare), compare);
+  if (state.mode === "story" && journey) return `story:${parseStop(search, journey.stops.length)}`;
+  if (state.mode === "compare" && state.compare) return `compare:${state.compare.pair}:${state.compare.layout}`;
+  return state.mode;
 };
 
 // design.md 5.4: on a phone the camera frames each stop in the top 60 % of the screen.
@@ -118,7 +146,10 @@ const PHONE = "(max-width: 40rem)";
 const RETICLE_REM = 5.5;
 const REDUCED = "(prefers-reduced-motion: reduce)";
 
-const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
+const NO_PAIRS: CompareView[] = [];
+const BLINK_MS = 800;
+
+const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: ExploreProps) => {
   const rootRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
@@ -137,12 +168,34 @@ const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
   const liveRef = useRef<HTMLParagraphElement>(null);
   const failuresRef = useRef(0);
   const { width: imageWidth, height: imageHeight } = image.tiles;
+  const pairIds = pairs.map((p) => p.pair.id).join(" ");
+  const desktop = useSyncExternalStore(subscribeMedia, () => window.matchMedia(DESKTOP).matches, () => true);
+  const compareOptions = useCallback(
+    (): CompareOptions | undefined => (pairIds ? { pairs: pairIds.split(" "), side: window.matchMedia(DESKTOP).matches } : undefined),
+    [pairIds],
+  );
   const route = useSyncExternalStore(
     subscribeUrl,
-    () => routeKey(window.location.search, journey, { width: imageWidth, height: imageHeight }),
+    () => routeKey(window.location.search, journey, { width: imageWidth, height: imageHeight }, compareOptions()),
     () => (journey ? "story:0" : "explore"),
   );
-  const mode: Mode = route.startsWith("story") ? "story" : "explore";
+  const mode: Mode = route.startsWith("story") ? "story" : route.startsWith("compare") ? "compare" : "explore";
+  const [, routePair, routeLayout] = route.split(":");
+  const comparing = mode === "compare";
+  const active = comparing ? (pairs.find((p) => p.pair.id === routePair) ?? null) : null;
+  const layout: Layout = comparing && LAYOUTS.includes(routeLayout as Layout) ? (routeLayout as Layout) : "wipe";
+  // The divider starts where the link puts it. Only compare mode renders it, and the static
+  // HTML is always Explore, so the server's default never reaches the page.
+  const [split, setSplit] = useState(() => {
+    if (typeof window === "undefined" || !pairIds) return DEFAULT_SPLIT;
+    return parseCompareParams(window.location.search, { pairs: pairIds.split(" "), side: false }).split;
+  });
+  const [opened, setOpened] = useState<Opened | null>(null);
+  const [blinkPlaying, setBlinkPlaying] = useState(true);
+  const [showMoving, setShowMoving] = useState(false);
+  const sideRef = useRef<HTMLDivElement>(null);
+  // Read once when the viewer opens: a link without a view fits where the two images overlap.
+  const fitOverlapRef = useRef(false);
   const stop = mode === "story" ? Number(route.split(":")[1]) : 0;
   const story = mode === "story" && !!journey;
   // The last stop the story showed, kept while Explore is open so Story resumes there.
@@ -169,9 +222,10 @@ const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
   const storyId = useId();
 
   const size = { width: image.tiles.width, height: image.tiles.height };
-  const pageRef = useRef({ story, stop, paused, journey });
+  const compareUrl = active ? { state: { pair: active.pair.id, layout, split }, defaultPair: pairs[0].pair.id } : undefined;
+  const pageRef = useRef({ story, stop, paused, journey, compareUrl, split });
   useEffect(() => {
-    pageRef.current = { story, stop, paused, journey };
+    pageRef.current = { story, stop, paused, journey, compareUrl, split };
   });
   const home = homeView(size);
   const shape = shapeOf(size);
@@ -296,6 +350,9 @@ const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
         minZoomImageRatio: 1,
         animationTime: reduce ? 0 : 1.2,
         viewportMargins: margins,
+        // Compare crops and clips the images on every frame; the WebGL drawer does that in a
+        // second, Context2d pass, which cost more than the canvas drawer in the Sprint 7 spike.
+        ...(pairs.length ? { drawer: "canvas" } : {}),
         gestureSettingsMouse: { clickToZoom: false, dblClickToZoom: true },
       });
       viewerRef.current = viewer;
@@ -391,7 +448,9 @@ const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
         });
         // A shared link restores its view; anything invalid in it was already clamped or dropped.
         // A Journey link opens on its stop.
-        const { view, mode: asked } = parseViewerParams(window.location.search, { width, height }, journey ? STORY_MODES : EXPLORE_MODES);
+        const compare = pairs.length ? { pairs: pairs.map((p) => p.pair.id), side: window.matchMedia(DESKTOP).matches } : undefined;
+        const { view, mode: asked } = parseViewerParams(window.location.search, { width, height }, modesFor(journey, compare), compare);
+        fitOverlapRef.current = asked === "compare" && !view;
         syncMargins();
         if (journey && asked === "story") {
           fitImageBounds(viewBounds(journey.stops[parseStop(window.location.search, journey.stops.length)].viewport, size, viewerPx()), 0);
@@ -404,6 +463,8 @@ const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
         }
         host.dataset.open = "";
         schedule();
+        // design.md 5.8: Compare is hidden where the drawer cannot rotate an image.
+        if (pairs.length && opened.drawer.canRotate()) setOpened({ OSD, viewer: opened, margins: () => margins });
       });
       opened.addHandler("animation-finish", () => {
         if (nextLeg) {
@@ -415,7 +476,7 @@ const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
         // design.md 7.1: in Explore the URL follows the view 400 ms after it settles; in Story
         // it holds the stop.
         clearTimeout(urlTimer);
-        if (!pageRef.current.story) urlTimer = window.setTimeout(() => replaceUrl(viewUrl(opened, { width, height })), 400);
+        if (!pageRef.current.story) urlTimer = window.setTimeout(() => replaceUrl(viewUrl(opened, { width, height }, pageRef.current.compareUrl)), 400);
         // design.md 7.1: the zoom is announced once it settles, never per frame; a stop
         // announces its title instead, unless the user has taken the camera.
         clearTimeout(liveTimer);
@@ -445,12 +506,57 @@ const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
       clearTimeout(liveTimer);
       clearTimeout(slowTimer);
       themeObserver?.disconnect();
+      setOpened(null);
       viewer?.destroy();
       viewerRef.current = null;
       cameraRef.current = null;
       navHost.replaceChildren();
     };
-  }, [image, tileBaseUrl, navId, toggleFullscreen, attempt, journey]);
+  }, [image, tileBaseUrl, navId, toggleFullscreen, attempt, journey, pairs]);
+
+  useCompareLayer({
+    opened,
+    view: active,
+    reference: size,
+    layout,
+    split,
+    showMoving,
+    tileBaseUrl,
+    sideHost: sideRef,
+    fitOverlap: fitOverlapRef,
+  });
+
+  // The divider is mirrored to the URL once it rests, like the view (design.md 7.1).
+  useEffect(() => {
+    if (!comparing) return;
+    const timer = window.setTimeout(() => {
+      const viewer = viewerRef.current;
+      const c = pageRef.current.compareUrl;
+      if (viewer && c) replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }, c));
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [comparing, split, imageWidth, imageHeight]);
+
+  // design.md 5.6: Blink toggles every 800 ms, never under reduced motion, and can be paused.
+  const reducedMotion = useSyncExternalStore(subscribeMedia, () => window.matchMedia(REDUCED).matches, () => false);
+  const blinking = comparing && layout === "blink" && blinkPlaying && !reducedMotion;
+  useEffect(() => {
+    if (!blinking) return;
+    const timer = window.setInterval(() => setShowMoving((v) => !v), BLINK_MS);
+    return () => clearInterval(timer);
+  }, [blinking]);
+
+  const setCompare = useCallback(
+    (next: Partial<CompareState> & { mode?: Mode }) => {
+      const viewer = viewerRef.current;
+      if (!viewer || !pairs.length) return;
+      const { mode: to = "compare", ...rest } = next;
+      const now = pageRef.current.compareUrl?.state ?? { pair: pairs[0].pair.id, layout: "wipe" as Layout, split: pageRef.current.split };
+      const state = { ...now, ...rest };
+      replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }, to === "compare" ? { state, defaultPair: pairs[0].pair.id } : undefined));
+    },
+    [pairs, imageWidth, imageHeight],
+  );
 
   // Markers move with the image; a new stop or mode places them again at once.
   useEffect(() => {
@@ -506,7 +612,7 @@ const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
   const share = useCallback(async () => {
     const viewer = viewerRef.current;
     if (!viewer) return;
-    const url = new URL(viewUrl(viewer, { width: image.tiles.width, height: image.tiles.height }), window.location.href).href;
+    const url = new URL(viewUrl(viewer, { width: image.tiles.width, height: image.tiles.height }, pageRef.current.compareUrl), window.location.href).href;
     replaceUrl(url);
     try {
       // Phones get the system share sheet; elsewhere the link goes to the clipboard.
@@ -582,6 +688,22 @@ const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
     setPaused(false);
     replaceUrl(viewUrl(viewer, { width: imageWidth, height: imageHeight }));
   }, [stop, imageWidth, imageHeight]);
+
+  // design.md 7.1: C and E switch between Compare and Explore on a pair's reference page.
+  useEffect(() => {
+    if (!pairs.length || !opened) return;
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const target = e.target as HTMLElement;
+      if (target.closest?.("input, textarea, select, [contenteditable], [role='slider']")) return;
+      if (!comparing && (e.key === "c" || e.key === "C")) setCompare({ mode: "compare" });
+      else if (comparing && (e.key === "e" || e.key === "E")) setCompare({ mode: "explore" });
+      else return;
+      e.preventDefault();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [pairs, opened, comparing, setCompare]);
 
   const flyOnStory = useRef(false);
   const toStory = useCallback(() => {
@@ -670,6 +792,13 @@ const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
   }, []);
 
   // The column's mission line: validated manifest fields only (design.md 5.3).
+  const pairSides = active ? sides(active.pair) : null;
+  const pairDraft = !!active && active.pair.validation.status !== "approved";
+  const leftLabel = pairSides?.left.full ?? "";
+  const rightLabel = pairSides?.right.full ?? "";
+  const compareAvailable = !!opened && pairs.length > 0;
+  const layouts: Layout[] = desktop ? ["wipe", "side", "blink"] : ["wipe"];
+
   const mission = info.fields
     .filter((f) => !f.draft && (f.label === "Observatory" || f.label === "Released"))
     .flatMap((f) => f.values);
@@ -684,9 +813,27 @@ const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
       data-mode={mode}
       data-journey={journey ? "" : undefined}
       data-paused={(story && paused) || undefined}
+      data-layout={comparing ? layout : undefined}
       onKeyDown={onKeyDown}
     >
       <div ref={canvasRef} className={styles.canvas} data-theme="dark" data-testid="viewer" />
+      {comparing && layout === "side" && <div ref={sideRef} className={styles.side} data-theme="dark" data-testid="viewer-side" />}
+
+      {active && pairSides && layout !== "blink" && (
+        <div className={styles.compareLayer} data-theme="dark">
+          {layout === "wipe" ? (
+            <Divider
+              split={split}
+              onChange={setSplit}
+              labels={[leftLabel, rightLabel]}
+              valueText={dividerValueText(split, [leftLabel, rightLabel])}
+              draft={pairDraft}
+            />
+          ) : (
+            <Divider split={50} labels={[leftLabel, rightLabel]} draft={pairDraft} />
+          )}
+        </div>
+      )}
 
       {/* Placed every frame by paint(); they never take a gesture from the image. */}
       {story && journey && (
@@ -730,7 +877,7 @@ const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
               {shortTitle(image.title)}
             </span>
           </h1>
-          {!journey && <span className={styles.mode}>Explore</span>}
+          {!journey && !pairs.length && <span className={styles.mode}>Explore</span>}
         </div>
         {/* Desktop: the pill takes the place of the title bar, which Story leaves to the column. */}
         {story && journey && paused && (
@@ -740,6 +887,16 @@ const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
           </button>
         )}
         <div className={`${styles.bar} ${styles.glass} ${styles.fade}`}>
+          {compareAvailable && (
+            <div className={styles.modes} role="group" aria-label="Mode">
+              <button type="button" aria-pressed={!comparing} onClick={comparing ? () => setCompare({ mode: "explore" }) : undefined}>
+                Explore
+              </button>
+              <button type="button" aria-pressed={comparing} onClick={comparing ? undefined : () => setCompare({ mode: "compare" })}>
+                Compare
+              </button>
+            </div>
+          )}
           {journey && (
             <div className={styles.modes} role="group" aria-label="Mode">
               <button type="button" aria-pressed={story} onClick={story ? undefined : toStory}>
@@ -768,10 +925,41 @@ const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
         </div>
       </header>
 
+      {active && pairSides && (
+        <div className={styles.compareBar}>
+          <CompareBar
+            layout={layout}
+            layouts={layouts}
+            onLayout={(l) => setCompare({ layout: l })}
+            headline={active.pair.headline}
+            draft={pairDraft}
+            chips={[pairSides.left.short, pairSides.right.short]}
+            credits={[
+              { label: `Left, ${pairSides.left.short}:`, credit: info.credit },
+              { label: `Right, ${pairSides.right.short}:`, credit: active.movingInfo.credit },
+            ]}
+            blink={
+              layout === "blink"
+                ? {
+                    // Under reduced motion it never blinks on its own: Swap only.
+                    playing: reducedMotion ? null : blinking,
+                    showing: showMoving ? rightLabel : leftLabel,
+                    onToggle: () => setBlinkPlaying((p) => !p),
+                    onSwap: () => {
+                      setBlinkPlaying(false);
+                      setShowMoving((v) => !v);
+                    },
+                  }
+                : null
+            }
+          />
+        </div>
+      )}
+
       {/* Credit and notes stack under the top bar, clear of the overview in every shape. */}
       <div className={styles.topLeft}>
         {/* The credit never fades: the license asks that every user can see it. */}
-        <p className={`${styles.credit} ${styles.glass}`}>{info.credit}</p>
+        {!active && <p className={`${styles.credit} ${styles.glass}`}>{info.credit}</p>}
         <div className={styles.toasts} role="status">
           {toast && (
             <div className={`${styles.toast} ${styles.glass}`}>
@@ -891,10 +1079,18 @@ const Explore = ({ image, info, tileBaseUrl, journey }: ExploreProps) => {
           </button>
         )}
 
-        {/* Phones: the full validated credit stays in the sheet; a tap opens About. */}
+        {/* Phones: the full validated credit stays in the sheet; a tap opens About. In Compare
+            both images are credited. */}
         {!infoOpen && (
           <button type="button" className={styles.sheetCredit} onClick={openFromCredit}>
-            {info.credit}
+            {active && pairSides ? (
+              <>
+                <span className={styles.sheetCreditLine}>Left, {pairSides.left.short}: {info.credit}</span>
+                <span className={styles.sheetCreditLine}>Right, {pairSides.right.short}: {active.movingInfo.credit}</span>
+              </>
+            ) : (
+              info.credit
+            )}
           </button>
         )}
 

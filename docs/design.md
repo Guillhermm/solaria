@@ -88,7 +88,7 @@ as an attract loop, any touch takes control, 90 s idle returns to the loop with 
 ```
 /                      Home: hero with loupe and panorama strip, Journeys index
 /[slug]                Image viewer; the slug is the image id (mode via ?mode=story|explore|compare|light;
-                       explore and story are built). A Journey slug (/andromeda) opens Story on
+                       explore, story and compare are built). A Journey slug (/andromeda) opens Story on
                        its image, ?mode=story&stop=N (N from 1), and Explore on the same page
                        viewport via ?x=&y=&z=  (image pixels; z is zoom relative to fit)
 /about                 What Solaria is, credits, data sources, accessibility statement

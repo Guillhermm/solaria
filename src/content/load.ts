@@ -47,12 +47,14 @@ export const loadContent = (opts: { root: string; mode: Mode }): Content => {
   return result.value;
 };
 
+// SOLARIA_CONTENT=development builds the static site with the mock and staged content, for
+// the end-to-end tests; nothing else sets it, so a plain build stays behind the gate.
+export const contentMode = (env: Record<string, string | undefined>): Mode =>
+  env.SOLARIA_CONTENT === "development" || env.NODE_ENV !== "production" ? "development" : "production";
+
 let cached: Content | undefined;
 
 export const getContent = (): Content => {
-  cached ??= loadContent({
-    root: process.cwd(),
-    mode: process.env.NODE_ENV === "production" ? "production" : "development",
-  });
+  cached ??= loadContent({ root: process.cwd(), mode: contentMode(process.env) });
   return cached;
 };
