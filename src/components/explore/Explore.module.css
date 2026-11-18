@@ -1,11 +1,10 @@
 /* Explore mode (docs/design.md 5.5): the image fills the window; everything else floats on
-   glass. The canvas, rulers, overview and readout keep the dark values in either theme. */
+   one glass that follows the theme. Only the image canvas stays dark in both themes. */
 
 .root {
   --ruler: 1.375rem;
   --ruler-left: 2.75rem;
   --edge: 0.75rem;
-  --readout-h: 2.25rem;
   --inset-top: env(safe-area-inset-top, 0rem);
   --inset-bottom: env(safe-area-inset-bottom, 0rem);
   --top: calc(var(--inset-top) + var(--ruler) + var(--edge));
@@ -51,7 +50,8 @@
   display: block;
   font-family: var(--font-mono);
   font-size: var(--text-label-sm);
-  background: var(--ruler-bar);
+  /* Opaque: the image passes under the rulers only when zoomed, never at fit. */
+  background: var(--ground);
 }
 
 .rulerTop {
@@ -178,6 +178,10 @@
   text-overflow: ellipsis;
 }
 
+.shortTitle {
+  display: none;
+}
+
 .mode {
   flex: none;
   padding-inline: var(--space-2) var(--space-3);
@@ -188,11 +192,24 @@
   color: var(--text-muted);
 }
 
-.credit {
+.topLeft {
   position: absolute;
   top: var(--below-bar);
   left: var(--left);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
   max-width: min(34rem, calc(100% - var(--left) - var(--edge)));
+  pointer-events: none;
+}
+
+.topLeft > * {
+  pointer-events: auto;
+}
+
+.credit {
   margin: 0;
   padding: var(--space-2) var(--space-3);
   font-size: 0.75rem;
@@ -219,7 +236,7 @@
 .overview {
   position: absolute;
   left: var(--left);
-  bottom: calc(var(--bottom) + var(--readout-h) + var(--space-2));
+  bottom: var(--bottom);
   display: grid;
   gap: var(--space-2);
   padding: var(--space-3);
@@ -272,22 +289,18 @@
 }
 
 .readout {
-  position: absolute;
-  left: var(--left);
-  bottom: var(--bottom);
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: var(--space-2);
-  height: var(--readout-h);
+  gap: var(--space-1) var(--space-2);
   margin: 0;
-  padding: 0.625rem var(--space-3) 0;
+  padding-top: var(--space-1);
   font-family: var(--font-mono);
   font-size: var(--text-numeric);
   line-height: 1.2;
   font-variant-numeric: tabular-nums;
   text-transform: uppercase;
   white-space: nowrap;
-  /* Inherited color is computed in the page theme, so the dark subtree sets its own. */
   color: var(--text);
 }
 
@@ -358,7 +371,7 @@
 }
 
 .root[data-info] .credit {
-  visibility: hidden;
+  display: none;
 }
 
 @starting-style {
@@ -373,13 +386,7 @@
 }
 
 .toasts {
-  position: absolute;
-  left: 50%;
-  bottom: calc(var(--bottom) + var(--space-7));
-  translate: -50% 0;
-  width: max-content;
-  max-width: calc(100% - 2 * var(--edge));
-  pointer-events: none;
+  max-width: 100%;
 }
 
 .toast {
@@ -559,8 +566,9 @@
   display: none;
 }
 
-/* Phone (design.md 5.4 and 7.1): no rulers, a short top bar, and a bottom sheet that holds
-   the readout, the overview, the credit and, when expanded, About this image. */
+/* Phone (design.md 5.4 and 7.1): no rulers, a short title, and one bottom sheet. Peek holds
+   the overview with its readout (about a quarter of the screen); full shows About this
+   image in place of it, under a single header, and stops short of the top of the image. */
 @media (max-width: 40rem) {
   .root {
     --ruler: 0rem;
@@ -570,7 +578,8 @@
   .rulers,
   .wordmark,
   .divider,
-  .about {
+  .about,
+  .credit {
     display: none;
   }
 
@@ -578,8 +587,25 @@
     padding-inline-start: var(--space-1);
   }
 
+  .longTitle {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .shortTitle {
+    display: inline;
+  }
+
+  /* Explore is the only mode so far; on a phone the title needs the room. */
   .mode {
-    padding-inline-start: 0;
+    display: none;
+  }
+
+  .title {
+    padding-inline-end: var(--space-3);
   }
 
   .sheet {
@@ -590,7 +616,7 @@
     z-index: 1;
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
+    gap: var(--space-2);
     max-height: 85dvh;
     padding: 0 var(--edge) var(--bottom);
     border-top: 1px solid var(--hairline);
@@ -613,6 +639,7 @@
 
   .grip {
     display: flex;
+    flex: none;
     align-items: center;
     margin-inline: calc(-1 * var(--edge));
     padding-inline: var(--space-1);
@@ -623,8 +650,9 @@
   .handle {
     position: relative;
     flex: 1;
-    min-height: 3.25rem;
-    padding: var(--space-3) var(--space-3) 0;
+    align-self: stretch;
+    min-height: var(--target);
+    padding: var(--space-2) var(--space-3) 0;
     font-family: var(--font-mono);
     font-size: var(--text-label);
     letter-spacing: var(--tracking-label);
@@ -647,10 +675,7 @@
     border-radius: var(--radius-control);
   }
 
-  .controls,
   .overview,
-  .readout,
-  .credit,
   .info,
   .root[data-shape="tall"] .overview {
     position: static;
@@ -658,44 +683,32 @@
 
   /* The controls float just above the sheet and move with it. */
   .controls {
-    position: absolute;
     right: var(--edge);
     bottom: calc(100% + var(--edge));
-    left: auto;
   }
 
-  .readout {
-    order: 1;
-    justify-content: center;
-    padding-top: 0.625rem;
-  }
-
+  /* Inside the sheet the card drops its own glass: one surface, not a card on a card. */
   .overview {
-    order: 2;
-    justify-items: center;
-  }
-
-  .overviewHead {
-    justify-self: stretch;
-  }
-
-  .nav {
-    height: min(var(--ov-h), 28dvh);
-  }
-
-  .credit {
-    order: 3;
-    max-width: none;
+    flex: none;
+    gap: var(--space-2);
     padding: 0;
     background: none;
     border: none;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    color: var(--text-muted);
+  }
+
+  .nav {
+    justify-self: center;
+    height: min(var(--ov-h), 22dvh);
+  }
+
+  .readout {
+    justify-content: center;
+    padding-top: 0;
   }
 
   .info {
-    order: 4;
     flex: 1 1 auto;
     width: auto;
     min-height: 0;
@@ -708,24 +721,11 @@
     backdrop-filter: none;
   }
 
-  .grip,
-  .readout,
-  .overview,
-  .credit {
-    flex: none;
-  }
-
-  /* Expanded, the sheet reaches the top bar; the controls step aside until it closes. */
-  .root[data-sheet="full"] .controls,
-  .root[data-sheet="min"] .overview,
-  .root[data-sheet="min"] .credit,
-  .root[data-info] .credit {
+  .root[data-sheet="min"] .overviewHead,
+  .root[data-sheet="min"] .nav,
+  .root[data-sheet="full"] .overview,
+  .root[data-sheet="full"] .controls {
     display: none;
-  }
-
-  .toasts {
-    top: calc(var(--top) + var(--target) + var(--space-3));
-    bottom: auto;
   }
 
   /* The sheet is the main way in on a phone; it never fades. */

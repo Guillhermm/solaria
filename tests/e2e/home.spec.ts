@@ -31,7 +31,7 @@ test("home links to the Andromeda viewer page", async ({ page }) => {
   await expect(link).toHaveAttribute("href", "/andromeda-phat-phast-2025/");
   await link.click();
   await expect(page).toHaveURL(/\/andromeda-phat-phast-2025\/$/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+  await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName(
     "Andromeda Galaxy (M31), Hubble PHAT+PHAST panorama"
   );
 });

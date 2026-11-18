@@ -2,7 +2,18 @@
 
 import Link from "next/link";
 import { type CSSProperties, type KeyboardEvent, useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
-import { LuArrowLeft, LuChevronDown, LuInfo, LuMaximize, LuMinimize, LuMinus, LuPlus, LuRotateCcw, LuShare } from "react-icons/lu";
+import {
+  LuArrowLeft,
+  LuChevronDown,
+  LuInfo,
+  LuMaximize,
+  LuMinimize,
+  LuMinus,
+  LuPlus,
+  LuRotateCcw,
+  LuShare,
+  LuX,
+} from "react-icons/lu";
 import type OpenSeadragon from "openseadragon";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { tileSource } from "@/content/tiles";
@@ -26,13 +37,17 @@ interface ExploreProps {
 
 const noSubscribe = () => () => {};
 
+// The phone top bar shows the title up to its first parenthesis or comma ("Andromeda Galaxy"),
+// cut from the validated title rather than written anew.
+const shortTitle = (title: string) => title.split(/[(,]/)[0].trim() || title;
+
 interface Toast {
   text: string;
   retry?: boolean; // tile errors: offer to fetch the missing tiles again
   sticky?: boolean; // stays until its cause clears
 }
 
-const SLOW: Toast = { text: "Still loading the detail. You can start moving around.", sticky: true };
+const SLOW: Toast = { text: "Still loading the detail. You can start moving around." };
 const TILE_ERRORS: Toast = { text: "Some detail could not load.", retry: true, sticky: true };
 // design.md 5.8: missing tiles stay at the lower level; only after this many does the user hear of it.
 const TILE_ERROR_LIMIT = 10;
@@ -119,7 +134,21 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
       if (root.hasAttribute("data-loading")) setToast(SLOW);
     }, 4000);
     let viewer: OpenSeadragon.Viewer | undefined;
+    let themeObserver: MutationObserver | undefined;
     const { width, height } = image.tiles;
+
+    // The fit leaves the rulers clear: they are margins of the view, not part of it.
+    const measureMargins = () => {
+      const top = rulerTopRef.current;
+      const left = rulerLeftRef.current;
+      return {
+        top: top?.offsetParent ? top.offsetTop + top.offsetHeight : 0,
+        left: left?.offsetParent ? left.offsetWidth : 0,
+        right: 0,
+        bottom: 0,
+      };
+    };
+    let margins = measureMargins();
 
     // Readouts and rulers are written straight to the DOM, at most once per frame, so a pan
     // never re-renders React (design.md 9, INP).
@@ -132,12 +161,15 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
       if (xRef.current) xRef.current.textContent = formatInt(view.x);
       if (yRef.current) yRef.current.textContent = formatInt(view.y);
       if (zRef.current) zRef.current.textContent = formatZoom(view.z);
+      // Bounds cover the area inside the margins; screen pixels count from the host's corner.
       const bounds = vp.getBoundsNoRotate(true);
-      const scale = host.clientWidth / (bounds.width * width);
+      const scale = (host.clientWidth - margins.left - margins.right) / (bounds.width * width);
       const top = rulerTopRef.current;
       const left = rulerLeftRef.current;
-      if (top && top.offsetParent) drawRuler(top, "x", bounds.x * width + top.offsetLeft / scale, scale, width);
-      if (left && left.offsetParent) drawRuler(left, "y", bounds.y * width + left.offsetTop / scale, scale, height);
+      if (top && top.offsetParent)
+        drawRuler(top, "x", bounds.x * width + (top.offsetLeft - margins.left) / scale, scale, width);
+      if (left && left.offsetParent)
+        drawRuler(left, "y", bounds.y * width + (left.offsetTop - margins.top) / scale, scale, height);
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(paint);
@@ -170,6 +202,7 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
         constrainDuringPan: true,
         minZoomImageRatio: 1,
         animationTime: reduce ? 0 : 1.2,
+        viewportMargins: margins,
         gestureSettingsMouse: { clickToZoom: false, dblClickToZoom: true },
       });
       viewerRef.current = viewer;
@@ -233,8 +266,19 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
         }, 500);
       });
       viewer.addHandler("viewport-change", schedule);
-      viewer.addHandler("resize", schedule);
+      viewer.addHandler("resize", () => {
+        // Crossing the phone breakpoint shows or hides the rulers.
+        const next = measureMargins();
+        if (next.top !== margins.top || next.left !== margins.left) {
+          margins = next;
+          (opened.viewport as unknown as { setMargins: (m: typeof margins) => void }).setMargins(margins);
+        }
+        schedule();
+      });
       document.fonts.ready.then(schedule);
+      // The rulers draw with theme tokens, so a theme switch repaints them.
+      themeObserver = new MutationObserver(schedule);
+      themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
     }).catch(() => {
       // The viewer's script could not load (offline, or a deploy replaced it).
       if (!cancelled) setFailed(true);
@@ -246,6 +290,7 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
       clearTimeout(urlTimer);
       clearTimeout(liveTimer);
       clearTimeout(slowTimer);
+      themeObserver?.disconnect();
       viewer?.destroy();
       viewerRef.current = null;
       navHost.replaceChildren();
@@ -367,7 +412,7 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
     >
       <div ref={canvasRef} className={styles.canvas} data-theme="dark" data-testid="viewer" />
 
-      <div className={styles.rulers} data-theme="dark" aria-hidden>
+      <div className={styles.rulers} aria-hidden>
         <canvas ref={rulerTopRef} className={styles.rulerTop} />
         <canvas ref={rulerLeftRef} className={styles.rulerLeft} />
       </div>
@@ -382,7 +427,12 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
             Solaria
           </Link>
           <span className={styles.divider} aria-hidden />
-          <h1 className={styles.title}>{image.title}</h1>
+          <h1 className={styles.title}>
+            <span className={styles.longTitle}>{image.title}</span>
+            <span className={styles.shortTitle} aria-hidden>
+              {shortTitle(image.title)}
+            </span>
+          </h1>
           <span className={styles.mode}>Explore</span>
         </div>
         <div className={`${styles.bar} ${styles.glass} ${styles.fade}`}>
@@ -404,7 +454,24 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
         </div>
       </header>
 
-      <div ref={sheetRef} className={styles.sheet}>
+      {/* Credit and notes stack under the top bar, clear of the overview in every shape. */}
+      <div className={styles.topLeft}>
+        <p className={`${styles.credit} ${styles.glass} ${styles.fade}`}>{info.credit}</p>
+        <div className={styles.toasts} role="status">
+          {toast && (
+            <div className={`${styles.toast} ${styles.glass}`}>
+              <p>{toast.text}</p>
+              {toast.retry && (
+                <button type="button" className={styles.textButton} onClick={retryTiles}>
+                  Retry
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div ref={sheetRef} className={styles.sheet} data-testid="sheet">
         <div
           className={styles.grip}
           onPointerDown={drag.onPointerDown}
@@ -421,9 +488,9 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
             aria-controls={infoId}
           >
             <span className={styles.gripBar} aria-hidden />
-            {sheet === "min" ? "Show overview" : sheet === "peek" ? "About this image" : "Hide details"}
+            {sheet === "min" ? "Show overview" : "About this image"}
           </button>
-          {sheet !== "min" && (
+          {sheet === "peek" && (
             <button
               type="button"
               className={styles.iconButton}
@@ -431,6 +498,11 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
               aria-label="Minimize the panel"
             >
               <LuChevronDown aria-hidden />
+            </button>
+          )}
+          {sheet === "full" && (
+            <button type="button" className={styles.iconButton} onClick={closeInfo} aria-label="Close details">
+              <LuX aria-hidden />
             </button>
           )}
         </div>
@@ -457,26 +529,30 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
           )}
         </div>
 
-        <div className={`${styles.overview} ${styles.glass} ${styles.fade}`} data-theme="dark">
+        <div className={`${styles.overview} ${styles.glass} ${styles.fade}`}>
           <p className={styles.overviewHead}>
             <span>Overview</span>
             <span className={styles.size}>
               {formatInt(size.width)} × {formatInt(size.height)} px
             </span>
           </p>
-          <div ref={navRef} className={styles.nav} style={overviewStyle} data-testid="overview-image" />
-        </div>
-
-        <p className={`${styles.readout} ${styles.glass} ${styles.fade}`} data-theme="dark" data-testid="readout">
+          {/* The image well is canvas, so it keeps the dark values (and the amber view box). */}
+          <div
+            ref={navRef}
+            className={styles.nav}
+            style={overviewStyle}
+            data-theme="dark"
+            data-testid="overview-image"
+          />
+          <p className={styles.readout} data-testid="readout">
           <span className={styles.key}>Center x</span>
           <span ref={xRef} className={styles.value}>{formatInt(home.x)}</span>
           <span className={styles.key}>y</span>
           <span ref={yRef} className={styles.value}>{formatInt(home.y)}</span>
           <span className={styles.key}>Zoom</span>
           <span ref={zRef} className={styles.zoom}>{formatZoom(home.z)}</span>
-        </p>
-        <p className={`${styles.credit} ${styles.glass} ${styles.fade}`}>{info.credit}</p>
-
+          </p>
+        </div>
         <div className={`${styles.info} ${styles.glass}`} hidden={!infoOpen}>
           <InfoPanel id={infoId} info={info} onClose={closeInfo} titleRef={infoTitleRef} />
         </div>
@@ -484,18 +560,6 @@ const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
 
       <div className={styles.progress} aria-hidden />
 
-      <div className={styles.toasts} role="status">
-        {toast && (
-          <div className={`${styles.toast} ${styles.glass}`}>
-            <p>{toast.text}</p>
-            {toast.retry && (
-              <button type="button" className={styles.textButton} onClick={retryTiles}>
-                Retry
-              </button>
-            )}
-          </div>
-        )}
-      </div>
       <p ref={liveRef} className={styles.visuallyHidden} aria-live="polite" />
 
       {failed && (

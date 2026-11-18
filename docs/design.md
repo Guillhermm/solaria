@@ -83,7 +83,8 @@ as an attract loop, any touch takes control, 90 s idle returns to the loop with 
 
 ```
 /                      Home: hero with loupe and panorama strip, Journeys index
-/[journey]             Journey viewer (mode via ?mode=story|explore|compare|light)
+/[slug]                Image viewer; the slug is the image id (mode via ?mode=story|explore|compare|light;
+                       only explore is built). Journey slugs join this route in Sprint 5
                        viewport via ?x=&y=&z=  (image pixels; z is zoom relative to fit)
 /about                 What Solaria is, credits, data sources, accessibility statement
 ```
@@ -419,7 +420,7 @@ them). Credits are text.
 
 | Element | Spec |
 |---|---|
-| Ruler | 1.375rem bar on `--ruler-bar` along the top and left edges of an image view, hairline on its inner edge. Labels in image pixels. Labeled step is 1, 2 or 5 times a power of ten, chosen so labels sit 7 to 12rem apart; 4 or 5 minor ticks per step. Major tick 8px at `--tick-major`, minor 4px at `--hairline`. |
+| Ruler | Opaque bar on `--ground` along the top (1.375rem) and left (2.75rem, so horizontal labels fit; accepted deviation, Sprint 4) edges of an image view, hairline on its inner edge; the fit view leaves both clear. Hidden on phones. Labels in image pixels. Labeled step is 1, 2 or 5 times a power of ten, chosen so labels sit 7 to 12rem apart; 4 or 5 minor ticks per step. Major tick 8px at `--tick-major`, minor 4px at `--hairline`. |
 | Stop marker | Open square bracket, 1.25rem, arms 7px, 1.5px stroke, white; the current stop 1.625rem in amber. Two-digit number on a tag beside it (amber tag for the current stop). Hit area 2.75rem. |
 | Route | Way ahead: 1px white at 0.55, dashed 3 4, over a 3px halo. Travelled: 1.5px amber over a 3.5px halo. |
 | View box | 1px white rectangle with a 1px halo: the part of the image on screen, or in the loupe. |
@@ -576,7 +577,7 @@ r = width / height of the image file:
 
 1. **Base**: tokens, fonts, new header and footer, Bootstrap removed, CSS filter
    modes removed, theme toggle kept. Same three tools, new skin.
-2. **Viewer as page**: `/[journey]` with full-bleed Explore mode, overlay controls, URL
+2. **Viewer as page**: `/[slug]` (the image id) with full-bleed Explore mode, overlay controls, URL
    viewport state, keyboard and live region, loading and error states. Home links to it.
 3. **Story**: stops JSON, caption card and bottom sheet, camera flights, reduced motion.
    One Journey (Andromeda) with validated text.

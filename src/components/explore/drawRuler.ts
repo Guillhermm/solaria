@@ -2,6 +2,7 @@ import { rulerTicks } from "@/viewer/ruler";
 import { formatInt } from "@/viewer/view";
 
 interface Ink {
+  theme: string | undefined;
   font: string;
   major: string;
   minor: string;
@@ -11,12 +12,14 @@ interface Ink {
 
 const inks = new WeakMap<HTMLCanvasElement, Ink>();
 
-// Colors come from the tokens on the canvas (the rulers sit in a data-theme="dark" subtree).
+// Colors come from the theme tokens on the canvas; a theme switch or a late font refreshes them.
 const inkFor = (canvas: HTMLCanvasElement): Ink => {
+  const theme = document.documentElement.dataset.theme;
   const cached = inks.get(canvas);
-  if (cached && document.fonts.status === "loaded") return cached;
+  if (cached && cached.theme === theme && document.fonts.status === "loaded") return cached;
   const style = getComputedStyle(canvas);
   const ink = {
+    theme,
     font: `${style.fontSize} ${style.fontFamily}`,
     major: style.getPropertyValue("--tick-major").trim(),
     minor: style.getPropertyValue("--hairline").trim(),

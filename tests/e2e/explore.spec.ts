@@ -237,8 +237,30 @@ test.describe("phone, 390 px wide", () => {
     expect((await page.getByTestId("overview-image").boundingBox())!.y).toBeGreaterThan(sheetTop);
     await page.getByRole("button", { name: "About this image", exact: true }).tap();
     await expect(page.getByRole("region", { name: /Andromeda Galaxy/ })).toBeVisible();
-    await page.getByRole("button", { name: "Hide details" }).tap();
+    await page.getByRole("button", { name: "Close details" }).tap();
     await expect(page.getByRole("region", { name: /Andromeda Galaxy/ })).toBeHidden();
+  });
+
+  test("peek takes at most a quarter of the screen; About fills one surface under 85 %", async ({ page }) => {
+    await page.goto(PATH);
+    await ready(page);
+    // offsetHeight, not the box: a settling transform would skew it.
+    const sheetHeight = () => page.getByTestId("sheet").evaluate((el) => (el as HTMLElement).offsetHeight);
+    expect(await sheetHeight()).toBeLessThanOrEqual(844 * 0.25);
+    await page.getByRole("button", { name: "About this image", exact: true }).tap();
+    await expect(page.getByRole("region", { name: /Andromeda Galaxy/ })).toBeVisible();
+    expect(await sheetHeight()).toBeLessThanOrEqual(Math.ceil(844 * 0.85));
+    await expect(page.getByTestId("overview-image")).toBeHidden();
+    // One header and one close control on screen.
+    await expect(page.getByText("About this image", { exact: true }).filter({ visible: true })).toHaveCount(1);
+    await expect(page.getByRole("button", { name: "Close details" })).toHaveCount(1);
+    // The long title is kept for screen readers only (1 px boxes); the top bar shows the short one.
+    const shownTitles = await page.evaluate(() =>
+      [...document.querySelectorAll("h1 *, h2")]
+        .filter((el) => el.getBoundingClientRect().width > 1 && getComputedStyle(el).display !== "none")
+        .map((el) => el.textContent),
+    );
+    expect(shownTitles).toEqual(["Andromeda Galaxy"]);
   });
 
   test("dragging the sheet down minimizes it and dragging up brings it back", async ({ page }) => {
@@ -287,4 +309,22 @@ test.describe("phone, 390 px wide", () => {
     await page.touchscreen.tap(box.width / 2, box.height / 2);
     await expect(readout(page)).not.toContainText("1.0×");
   });
+});
+
+test("in the light theme every overlay shares one glass, and the rulers are opaque", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.goto(PATH);
+  await ready(page);
+  const bg = (testIdOrSelector: string) =>
+    page.evaluate((sel) => getComputedStyle(document.querySelector(sel)!).backgroundColor, testIdOrSelector);
+  const bar = await bg("header > div");
+  expect(bar).toBe("rgba(247, 246, 242, 0.86)");
+  expect(await page.getByTestId("overview-image").evaluate((el) => getComputedStyle(el.parentElement!).backgroundColor)).toBe(bar);
+  expect(await bg('[role="group"][aria-label="View controls"]')).toBe(bar);
+  expect(await readout(page).evaluate((el) => getComputedStyle(el).color)).toBe("rgb(17, 20, 26)");
+  for (const canvas of await page.locator("canvas[class*=ruler]").all()) {
+    expect(await canvas.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(247, 246, 242)");
+  }
+  // The image canvas stays dark.
+  expect(await page.getByTestId("viewer").evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(7, 9, 13)");
 });
