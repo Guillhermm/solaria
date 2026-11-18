@@ -1,8 +1,8 @@
 "use client";
 
-import { type CSSProperties, type KeyboardEvent, type PointerEvent, useCallback, useId, useRef } from "react";
+import { type CSSProperties, type KeyboardEvent, type PointerEvent, useCallback, useEffect, useId, useRef, useState } from "react";
 import { LuChevronsLeftRight } from "react-icons/lu";
-import { dividerKey, splitFromPointer } from "@/viewer/divider";
+import { dividerKey, handleCenter, splitFromPointer } from "@/viewer/divider";
 import styles from "./Compare.module.css";
 
 interface DividerProps {
@@ -12,14 +12,41 @@ interface DividerProps {
   valueText?: string;
   draft: boolean;
   hint?: string; // the pair's alignment line, shown beside the handle on hover and focus
+  avoid?: string; // overlays the handle keeps 1rem from, as a selector list (design.md 15.5, D17)
 }
 
 // design.md 7.3: the WAI-ARIA slider pattern on a vertical line across the image. Dragging the
 // image pans it; only the handle and the strip along the bottom move the divider.
-const Divider = ({ split, onChange, labels, valueText, draft, hint }: DividerProps) => {
+const Divider = ({ split, onChange, labels, valueText, draft, hint, avoid }: DividerProps) => {
   const hintId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const handleRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
+  const [handleY, setHandleY] = useState<number | null>(null);
+
+  // The handle moves along the divider to a stretch no overlay covers, measured whenever the
+  // divider or the page around it changes size.
+  useEffect(() => {
+    const root = rootRef.current;
+    const handle = handleRef.current;
+    if (!root || !handle || !avoid) return;
+    const place = () => {
+      const box = root.getBoundingClientRect();
+      const size = handle.offsetHeight;
+      const gap = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      const x = box.left + (split / 100) * box.width;
+      const blocked = [...document.querySelectorAll(avoid)]
+        .map((el) => el.getBoundingClientRect())
+        .filter((r) => r.width > 0 && r.left < x + size / 2 + gap && r.right > x - size / 2 - gap)
+        .map((r) => ({ top: r.top - box.top, bottom: r.bottom - box.top }));
+      setHandleY(handleCenter({ top: 0, bottom: box.height }, blocked, size, gap));
+    };
+    place();
+    const observer = new ResizeObserver(place);
+    observer.observe(root);
+    for (const el of document.querySelectorAll(avoid)) observer.observe(el);
+    return () => observer.disconnect();
+  }, [split, avoid]);
 
   const fromPointer = useCallback(
     (e: PointerEvent) => {
@@ -54,7 +81,7 @@ const Divider = ({ split, onChange, labels, valueText, draft, hint }: DividerPro
   const pointer = { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp };
 
   return (
-    <div ref={rootRef} className={styles.divider} style={{ "--split": `${split}%` } as CSSProperties} data-testid="divider">
+    <div ref={rootRef} className={styles.divider} style={{ "--split": `${split}%`, ...(handleY === null ? {} : { "--handle-y": `${handleY}px` }) } as CSSProperties} data-testid="divider">
       <div className={styles.line} aria-hidden />
       {/* Labels hide when their side is under 15 % wide (design.md 7.3). */}
       <p className={`${styles.label} ${styles.labelLeft}`} hidden={split < 15} aria-hidden>
@@ -67,6 +94,7 @@ const Divider = ({ split, onChange, labels, valueText, draft, hint }: DividerPro
       </p>
       {onChange && (
         <div
+          ref={handleRef}
           className={styles.handle}
           role="slider"
           tabIndex={0}

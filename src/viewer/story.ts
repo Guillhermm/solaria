@@ -93,3 +93,85 @@ export const flightPlan = (from: Bounds, fromZ: number, to: Viewport, image: Siz
     { bounds: target, ms: FLIGHT_MAX_MS / 2 },
   ];
 };
+
+const insideConvex = (poly: Point[], p: Point) => {
+  let sign = 0;
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i];
+    const b = poly[(i + 1) % poly.length];
+    const cross = (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
+    if (Math.abs(cross) < 1e-9) continue;
+    if (sign === 0) sign = Math.sign(cross);
+    else if (Math.sign(cross) !== sign) return false;
+  }
+  return true;
+};
+
+// How far a view's corners lie outside a convex area, in image pixels; 0 when it is inside.
+const outside = (area: Point[], view: Bounds) => {
+  const corners = [
+    { x: view.x, y: view.y },
+    { x: view.x + view.width, y: view.y },
+    { x: view.x + view.width, y: view.y + view.height },
+    { x: view.x, y: view.y + view.height },
+  ];
+  let worst = 0;
+  for (const c of corners) {
+    if (insideConvex(area, c)) continue;
+    // Distance to the nearest edge stands in for how far out the corner is.
+    let d = Infinity;
+    area.forEach((a, i) => {
+      const b = area[(i + 1) % area.length];
+      const t = Math.max(0, Math.min(1, ((c.x - a.x) * (b.x - a.x) + (c.y - a.y) * (b.y - a.y)) / ((b.x - a.x) ** 2 + (b.y - a.y) ** 2)));
+      d = Math.min(d, Math.hypot(c.x - (a.x + t * (b.x - a.x)), c.y - (a.y + t * (b.y - a.y))));
+    });
+    worst = Math.max(worst, d);
+  }
+  return worst;
+};
+
+export interface StopClearance {
+  center: Point; // the stop's view center, image pixels
+  view: Size; // what the view shows, image pixels
+  scale: number; // screen pixels per image pixel
+  frame: Bounds; // the area inside the view's margins, screen pixels
+  mark: Point; // the stop's marker, image pixels
+  box: Bounds; // the reticle and its chip around the marker's screen point, screen pixels
+  obstacles: Bounds[]; // overlays over the view, screen pixels
+  gap: number; // the room kept around the box, screen pixels
+  image: Size;
+  area?: Point[]; // the image's data area (a convex footprint); the whole image without one
+}
+
+// design.md 15.5, D16: a stop whose reticle or chip would sit under an overlay (the top bar, the
+// overview card) is framed off its center, by the smallest pan that clears it with `gap` to
+// spare. The pan never leaves the image, and stays inside the data area where any clear view
+// does; where none does, the clear view that leaves it least is taken. Returns the center and
+// how far the view then reaches past the data area, in image pixels.
+export const clearStop = (c: StopClearance): Point & { outside: number } => {
+  const clamp = (v: number, size: number, extent: number) => (size >= extent ? extent / 2 : Math.min(extent - size / 2, Math.max(size / 2, v)));
+  const at = (p: Point) => ({ x: clamp(p.x, c.view.width, c.image.width), y: clamp(p.y, c.view.height, c.image.height) });
+  const clear = (p: Point) => {
+    const sx = c.frame.x + c.frame.width / 2 + (c.mark.x - p.x) * c.scale;
+    const sy = c.frame.y + c.frame.height / 2 + (c.mark.y - p.y) * c.scale;
+    const b = { x: sx + c.box.x - c.gap, y: sy + c.box.y - c.gap, width: c.box.width + 2 * c.gap, height: c.box.height + 2 * c.gap };
+    const inFrame = b.x >= c.frame.x && b.y >= c.frame.y && b.x + b.width <= c.frame.x + c.frame.width && b.y + b.height <= c.frame.y + c.frame.height;
+    return inFrame && !c.obstacles.some((o) => overlaps(b, o));
+  };
+  const leaves = (p: Point) => (c.area ? outside(c.area, { x: p.x - c.view.width / 2, y: p.y - c.view.height / 2, ...c.view }) : 0);
+  const start = at(c.center);
+  if (clear(start)) return { ...start, outside: leaves(start) };
+  // Candidates on a grid of 8 screen pixels across the frame.
+  const step = 8 / c.scale;
+  const reach = Math.ceil(Math.max(c.frame.width, c.frame.height) / 8);
+  let best: { p: Point; out: number; d: number } | null = null;
+  for (let i = -reach; i <= reach; i++)
+    for (let j = -reach; j <= reach; j++) {
+      const p = at({ x: c.center.x + i * step, y: c.center.y + j * step });
+      if (!clear(p)) continue;
+      const out = leaves(p);
+      const d = Math.hypot(p.x - start.x, p.y - start.y);
+      if (!best || out < best.out - 1e-6 || (Math.abs(out - best.out) <= 1e-6 && d < best.d)) best = { p, out, d };
+    }
+  return best ? { ...best.p, outside: best.out } : { ...start, outside: leaves(start) };
+};

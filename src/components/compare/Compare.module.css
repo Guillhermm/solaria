@@ -21,7 +21,7 @@
 
 .handle {
   position: absolute;
-  top: 50%;
+  top: var(--handle-y, 50%);
   left: var(--split);
   display: grid;
   place-items: center;
@@ -50,7 +50,7 @@
 /* The alignment limit, under the handle while it is hovered, focused or dragged. */
 .hint {
   position: absolute;
-  top: calc(50% + var(--handle) / 2 + var(--space-2));
+  top: calc(var(--handle-y, 50%) + var(--handle) / 2 + var(--space-2));
   left: var(--split);
   width: max-content;
   max-width: 16rem;

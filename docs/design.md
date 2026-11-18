@@ -1275,8 +1275,8 @@ descriptions, stop bodies and credits, all from validated data.
   overview, markers of stops other than the current one that are nearer than 1.5rem (24 px)
   on screen, or whose chips would overlap, merge, chained, into one marker whose chip lists
   every stop in order ("03·04"). A merged chip is wider, so merging repeats until no two
-  chips touch.
-  Each stop keeps its own button in the overview and its row in the stop list.
+  chips touch. Each stop keeps its own button in the overview and its row in the stop list;
+  D18 can still leave an overview chip out.
 - **D13, Compare from a Journey.** A Journey on a pair's reference image links to that
   image's Compare (wipe) on the stop's view: a "Compare" item after Story and Explore in the
   top bar, named "Compare" plus the pair's headline. Followed, it carries the view on screen,
@@ -1290,6 +1290,22 @@ descriptions, stop bodies and credits, all from validated data.
   with a footprint shows the largest crop of the slot's shape inside that footprint, centered
   on it, so a tall orthorectified strip fills the slot. Any other image keeps its true shape
   (6.4).
+- **D16, a stop's reticle clears the overlays.** When a stop's reticle (with its ticks) or
+  its chip would come within 1rem of the top bar or the overview card, Story frames the stop
+  off its center by the smallest pan that clears it, on a grid of 8 screen pixels. The pan
+  never leaves the image, and stays inside the image's footprint wherever a clear view does;
+  where none does, the clear view that leaves it least is taken and the viewer is marked
+  `data-framing="leaves-data"`. The phone sheet is a margin of the view, so it is cleared by
+  the frame itself. Mars stop 2 at 1440x900 and 390x844 clears inside the footprint.
+- **D17, the wipe handle sits in a free stretch of the divider.** The handle stays at the
+  middle of the divider unless an overlay (the top bar, the overview card, the compare bar, the
+  zoom controls, a toast) crossing the divider comes within 1rem of it; then it moves to the
+  middle of the tallest free stretch. At 95% on Mars at 1440x900 that is between the card and
+  the zoom controls.
+- **D18, an overview chip never covers a bracket.** A chip takes the first side of its marker
+  where it covers no bracket and no other chip (right, left, above, below) and is left out
+  where none fits. An overview narrower than 7.5rem shows only the current stop's chip; the
+  card already says which stop it is.
 - **D8, the active row's context is `--text-2`.** `--text-muted` on the `--hairline` ground
   of the active row measures 3.9:1 in the light theme, under Q20's 4.5:1; the other rows
   keep `--text-muted` (Q19).

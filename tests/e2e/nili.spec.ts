@@ -191,7 +191,9 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       const want = ["02", "03", "04", "05"];
       const view = await readableTags(page, "[data-testid=marks] > div > span:last-child");
       for (const n of want) expect(view, `view: ${view}`).toContain(n);
-      if (await page.getByTestId("route").isVisible()) {
+      // An overview narrower than 7.5rem shows only the current stop's chip (D18).
+      const route = await page.getByTestId("route").boundingBox();
+      if (route && route.width >= 120) {
         const overview = await readableTags(page, "[data-testid=route] button > span");
         for (const n of want) expect(overview, `overview: ${overview}`).toContain(n);
       }

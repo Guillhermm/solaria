@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Stop } from "@/content/types";
 import { useKiosk } from "@/kiosk/useKiosk";
-import { bracketPath, chipText, type Mark, mergeMarks, polyline, routeMarks, splitRoute, tagPlacement } from "@/viewer/route";
+import { type Box, bracketPath, chipText, type Mark, mergeMarks, polyline, routeMarks, splitRoute, tagPlacement } from "@/viewer/route";
 import { stopNumber } from "@/viewer/story";
 import type { Size } from "@/viewer/view";
 import styles from "./RouteOverlay.module.css";
@@ -18,6 +18,7 @@ const MARK_REM = 1.25;
 const CURRENT_REM = 1.625;
 const TAG = { width: 1.25, height: 0.875 };
 const MERGE_REM = 1.5;
+const COMPACT_REM = 7.5;
 // A two-digit tag is TAG.width wide; a merged chip grows by about that much per stop.
 const tagSize = (text: string, rem: number) => ({ width: TAG.width * rem * Math.max(1, (text.length + 1) / 3), height: TAG.height * rem });
 
@@ -46,11 +47,11 @@ const RouteOverlay = ({ stops, image, current, onGo }: RouteOverlayProps) => {
   const settled = travelled.slice(0, -1);
   // Stops at one place (a Journey that changes band without moving) would stack their tags:
   // markers nearer than MERGE_REM, or whose chips would overlap, share the first one's chip
-  // ("03·04"), the current stop's tag
-  // goes first, and a tag that would still overlap one already placed is left out. Every stop
-  // keeps its button and its label for screen readers.
-  const placed: { x: number; y: number; width: number; height: number }[] = [];
-  const shownTags = new Map<number, string>();
+  // ("03·04"). A chip never covers a bracket or another chip (design.md 15.5, D18): it takes the
+  // first side of its marker where it fits (right, left, above, below) and is left out where
+  // none does. An overview narrower than COMPACT_REM shows only the current stop's chip; the
+  // card says which stop it is. Every stop keeps its button and its label for screen readers.
+  const shownTags = new Map<number, { text: string; at: { x: number; y: number } }>();
   if (drawn) {
     const others = marks.filter((m) => m.index !== current);
     const chip = (m: Mark, text: string) => {
@@ -58,16 +59,30 @@ const RouteOverlay = ({ stops, image, current, onGo }: RouteOverlayProps) => {
       return { ...tagPlacement(m, drawn, (MARK_REM * drawn.rem) / 2, tag, 0.1875 * drawn.rem), ...tag };
     };
     const leaders = new Map(mergeMarks(others, MERGE_REM * drawn.rem, chip, stopNumber).map((g) => [g[0], g] as const));
-    const tagged = [...marks.filter((m) => m.index === current), ...others.filter((m) => leaders.has(m.index))];
+    const compact = drawn.width < COMPACT_REM * drawn.rem;
+    const tagged = [...marks.filter((m) => m.index === current), ...(compact ? [] : others.filter((m) => leaders.has(m.index)))];
+    const halfOf = (m: Mark) => ((m.index === current ? CURRENT_REM : MARK_REM) * drawn.rem) / 2;
+    // The bracket's drawn box: its svg is 4 px wider than the bracket.
+    const taken: Box[] = marks.map((m) => ({ x: m.x - halfOf(m) - 2, y: m.y - halfOf(m) - 2, width: 2 * halfOf(m) + 4, height: 2 * halfOf(m) + 4 }));
     for (const m of tagged) {
       const text = m.index === current ? stopNumber(m.index) : chipText(leaders.get(m.index)!, stopNumber);
-      const side = (m.index === current ? CURRENT_REM : MARK_REM) * drawn.rem;
       const tag = tagSize(text, drawn.rem);
-      const at = tagPlacement(m, drawn, side / 2, tag, 0.1875 * drawn.rem);
-      const box = { x: at.x, y: at.y, ...tag };
-      if (placed.some((p) => box.x < p.x + p.width && p.x < box.x + box.width && box.y < p.y + p.height && p.y < box.y + box.height)) continue;
-      placed.push(box);
-      shownTags.set(m.index, text);
+      const half = halfOf(m) + 2;
+      const gap = 0.1875 * drawn.rem;
+      const sides = [
+        { x: m.x + half + gap, y: m.y - tag.height / 2 },
+        { x: m.x - half - gap - tag.width, y: m.y - tag.height / 2 },
+        { x: m.x - tag.width / 2, y: m.y - half - gap - tag.height },
+        { x: m.x - tag.width / 2, y: m.y + half + gap },
+      ];
+      const at = sides.find((p) => {
+        const box = { ...p, ...tag };
+        const inside = box.x >= 0 && box.y >= 0 && box.x + box.width <= drawn.width && box.y + box.height <= drawn.height;
+        return inside && !taken.some((t) => box.x < t.x + t.width && t.x < box.x + box.width && box.y < t.y + t.height && t.y < box.y + box.height);
+      });
+      if (!at) continue;
+      taken.push({ ...at, ...tag });
+      shownTags.set(m.index, { text, at });
     }
   }
   const lastLeg = travelled.slice(-2);
@@ -97,9 +112,7 @@ const RouteOverlay = ({ stops, image, current, onGo }: RouteOverlayProps) => {
           {marks.map((m) => {
             const isCurrent = m.index === current;
             const side = (isCurrent ? CURRENT_REM : MARK_REM) * drawn.rem;
-            const text = shownTags.get(m.index);
-            const tag = tagSize(text ?? "", drawn.rem);
-            const at = tagPlacement(m, drawn, side / 2, tag, 0.1875 * drawn.rem);
+            const shown = shownTags.get(m.index);
             const stop = stops[m.index];
             return (
               <button
@@ -116,9 +129,9 @@ const RouteOverlay = ({ stops, image, current, onGo }: RouteOverlayProps) => {
                   <path className={styles.bracketHalo} d={bracketPath(side, 7)} />
                   <path d={bracketPath(side, 7)} />
                 </svg>
-                {text && (
-                  <span className={styles.tag} style={{ left: at.x - m.x, top: at.y - m.y }} aria-hidden>
-                    {text}
+                {shown && (
+                  <span className={styles.tag} style={{ left: shown.at.x - m.x, top: shown.at.y - m.y }} aria-hidden>
+                    {shown.text}
                   </span>
                 )}
               </button>

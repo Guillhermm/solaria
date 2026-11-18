@@ -36,7 +36,7 @@ files are not in this repository. Records live in `data/staging/` with validatio
 
 Grid (both labels): equirectangular, planetocentric, radius 3396.04 km, 1.0114 m/px, 8 bit,
 red filter (700 nm), north up. The scale is true at latitude 5 degrees; the scene lies at
-8.65 to 8.91 degrees N, so east-west ground scale is 0.8% smaller (1.0034 m/px at 8.79 degrees N). Ignored here. The 0.25 m/px
+8.65 to 8.91 degrees N at 67.33 degrees E (label CENTER_LONGITUDE), so east-west ground scale is 0.8% smaller (1.0034 m/px at 8.79 degrees N). Ignored here. The 0.25 m/px
 versions are over 135 MB and were not used.
 
 ## Registration (verified on the pixels)

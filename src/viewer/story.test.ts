@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { stop } from "@/content/__fixtures__/content";
 import {
+  clearStop,
   FLIGHT_MAX_MS,
   FLIGHT_MIN_MS,
   flightMs,
@@ -134,5 +135,51 @@ describe("camera flights (design.md 6.1)", () => {
     expect(out.bounds.x + out.bounds.width).toBeCloseTo(target.x + target.width);
     expect(back.bounds).toEqual(target);
     expect(out.ms + back.ms).toBe(FLIGHT_MAX_MS);
+  });
+});
+
+describe("clearStop", () => {
+  // A 1000 x 1000 image at 1 screen pixel per image pixel in a 400 x 400 frame, a 40 px box
+  // around the marker, and a card over the frame's top right quarter.
+  const base = {
+    center: { x: 500, y: 500 },
+    view: { width: 400, height: 400 },
+    scale: 1,
+    frame: { x: 0, y: 0, width: 400, height: 400 },
+    box: { x: -20, y: -20, width: 40, height: 40 },
+    obstacles: [{ x: 200, y: 0, width: 200, height: 200 }],
+    gap: 16,
+    image: { width: 1000, height: 1000 },
+  };
+
+  it("keeps the stop's center when the marker is clear", () => {
+    expect(clearStop({ ...base, mark: { x: 450, y: 550 } })).toEqual({ x: 500, y: 500, outside: 0 });
+  });
+
+  it("pans the least that brings the marker and its box clear of the card", () => {
+    // The marker sits at screen (300, 100), under the card.
+    const p = clearStop({ ...base, mark: { x: 600, y: 400 } });
+    const sx = 200 + 600 - p.x;
+    const sy = 200 + 400 - p.y;
+    const box = { x: sx - 36, y: sy - 36, width: 72, height: 72 };
+    expect(box.x + box.width <= 200 || box.y >= 200).toBe(true);
+    expect(Math.hypot(p.x - 500, p.y - 500)).toBeLessThanOrEqual(144);
+  });
+
+  it("stays inside the data area when a clear view does", () => {
+    // Data only in x 300 to 1000: the pan must not show x below 300.
+    const area = [{ x: 300, y: 0 }, { x: 1000, y: 0 }, { x: 1000, y: 1000 }, { x: 300, y: 1000 }];
+    const p = clearStop({ ...base, mark: { x: 600, y: 400 }, area });
+    expect(p.x - 200).toBeGreaterThanOrEqual(300 - 1e-6);
+    expect(p.outside).toBe(0);
+    const sx = 200 + 600 - p.x;
+    const sy = 200 + 400 - p.y;
+    expect(sx + 36 <= 200 || sy - 36 >= 200).toBe(true);
+  });
+
+  it("never leaves the image", () => {
+    const p = clearStop({ ...base, center: { x: 800, y: 200 }, mark: { x: 990, y: 10 } });
+    expect(p.x).toBeLessThanOrEqual(800);
+    expect(p.y).toBeGreaterThanOrEqual(200);
   });
 });

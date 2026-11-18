@@ -42,3 +42,29 @@ export const createSync = <T extends string>() => {
     leader: () => leader,
   };
 };
+
+export interface Span {
+  top: number;
+  bottom: number;
+}
+
+// design.md 15.5, D17: the handle's center on the divider. It stays at the middle of `range`
+// where a handle of `size` fits there with `gap` around it; otherwise it moves to the middle of
+// the tallest free stretch between the overlays that cross the divider (`blocked`). Null when
+// no stretch is tall enough.
+export const handleCenter = (range: Span, blocked: Span[], size: number, gap: number): number | null => {
+  const walls = blocked.map((b) => ({ top: b.top - gap, bottom: b.bottom + gap })).sort((a, b) => a.top - b.top);
+  const free: Span[] = [];
+  let from = range.top;
+  for (const w of walls) {
+    if (w.top > from) free.push({ top: from, bottom: Math.min(w.top, range.bottom) });
+    from = Math.max(from, w.bottom);
+  }
+  if (from < range.bottom) free.push({ top: from, bottom: range.bottom });
+  const fits = free.filter((f) => f.bottom - f.top >= size);
+  const middle = (range.top + range.bottom) / 2;
+  if (fits.some((f) => middle - size / 2 >= f.top && middle + size / 2 <= f.bottom)) return middle;
+  if (!fits.length) return null;
+  const tallest = fits.reduce((a, b) => (b.bottom - b.top > a.bottom - a.top ? b : a));
+  return (tallest.top + tallest.bottom) / 2;
+};

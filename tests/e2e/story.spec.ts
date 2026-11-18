@@ -22,14 +22,26 @@ const ready = async (page: Page) => {
 const readout = (page: Page) => page.getByTestId("readout");
 const card = (page: Page) => page.getByTestId("story").locator("[aria-current=step]");
 
-const num = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-
-// The camera has landed on the stop: the readout shows the stop's own view.
+// The camera has landed on the stop: the readout shows the stop's zoom, and its center or the
+// small pan that keeps the reticle clear of the overlays (design.md 15.5, D16): within 3 % of
+// the image on each axis.
+const IMAGE = { width: 42208, height: 9870 };
 const atStop = async (page: Page, i: number) => {
   const { x, y, z } = journey.stops[i].viewport;
-  await expect(readout(page)).toHaveText(new RegExp(`Center x\\s*${num(x)}\\s*y\\s*${num(y)}\\s*Zoom\\s*${z.toFixed(1)}×`), {
-    timeout: 8000,
-  });
+  const read = async () => {
+    const t = ((await readout(page).textContent()) ?? "").replace(/[\s\u202f\u00a0]/g, "");
+    const m = /Centerx(\d+)y(\d+)Zoom([\d.]+)×/.exec(t);
+    return m ? { x: Number(m[1]), y: Number(m[2]), z: m[3] } : null;
+  };
+  await expect
+    .poll(
+      async () => {
+        const at = await read();
+        return !!at && at.z === z.toFixed(1) && Math.abs(at.x - x) <= 0.03 * IMAGE.width && Math.abs(at.y - y) <= 0.03 * IMAGE.height;
+      },
+      { timeout: 8000 },
+    )
+    .toBe(true);
 };
 
 test("the Journey runs from the first stop to Explore", async ({ page }) => {

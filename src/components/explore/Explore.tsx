@@ -51,7 +51,7 @@ import { bandValueText, type LightOptions, type LightState, nearestStop, parseLi
 import { sides } from "@/viewer/compare";
 import { dividerValueText } from "@/viewer/divider";
 import { chipText, mergeMarks, reticleSide } from "@/viewer/route";
-import { type Bounds, flightPlan, parseStop, stepStop, stopNumber, stopOf, stopTarget, storySearch, viewBounds, zoomSpan } from "@/viewer/story";
+import { type Bounds, clearStop, flightPlan, parseStop, stepStop, stopNumber, stopOf, stopTarget, storySearch, viewBounds, zoomSpan } from "@/viewer/story";
 import { fitScale, formatInt, formatZoom, homeView, osdFromView, type Size, viewFromOsd, waitsForTiles } from "@/viewer/view";
 import { DWELL_MS, storySearch1 } from "@/kiosk/kiosk";
 import { useAttract, useKiosk } from "@/kiosk/useKiosk";
@@ -86,6 +86,7 @@ interface Camera {
   syncMargins: () => void;
   schedule: () => void;
   moved: () => void; // the user moved the view: it no longer follows the fit
+  stopView: (stop: Stop) => Viewport; // the stop's view, panned so its reticle clears the overlays
 }
 
 const noSubscribe = () => () => {};
@@ -187,6 +188,8 @@ const MODE_NAMES: Record<Mode, string> = { story: "Story", explore: "Explore", c
 
 const PHONE = "(max-width: 40rem)";
 const RETICLE_REM = 5.5;
+// What the wipe handle keeps clear of (design.md 15.5, D17).
+const HANDLE_AVOIDS = "main > header > *, [data-testid=overview], [data-testid=compare-bar], [role=group][aria-label='View controls'], [data-testid=toasts] > *";
 // Stop markers nearer than this on screen merge into one chip (24 px at the default font size).
 const MERGE_REM = 1.5;
 const REDUCED = "(prefers-reduced-motion: reduce)";
@@ -543,6 +546,39 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         width: host.clientWidth - margins.left - margins.right,
         height: host.clientHeight - margins.top - margins.bottom,
       });
+      // design.md 15.5, D16: a stop whose reticle or chip would sit under the top bar or the
+      // overview card is framed off its center, inside the image's data where it can be.
+      const stopView = (s: Stop): Viewport => {
+        const mark = stopTarget(s);
+        if (!mark) return s.viewport;
+        const px = viewerPx();
+        const scale = Math.min(fitScale(px, size) * s.viewport.z, 1);
+        const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+        const half = reticleSide(RETICLE_REM * rem, scale, s.marker?.r) / 2;
+        // The ticks reach 1.5rem past the bracket; the chip sits above it on the right.
+        const reach = half + 1.5 * rem;
+        const box = { x: -reach, y: -reach, width: 2 * reach + 4 * rem, height: 2 * reach };
+        const hostBox = host.getBoundingClientRect();
+        const obstacles = [...root.querySelectorAll("main > header > *, [data-testid=overview]")]
+          .map((el) => el.getBoundingClientRect())
+          .filter((r) => r.width > 0 && r.height > 0)
+          .map((r) => ({ x: r.left - hostBox.left, y: r.top - hostBox.top, width: r.width, height: r.height }));
+        const c = clearStop({
+          center: s.viewport,
+          view: { width: px.width / scale, height: px.height / scale },
+          scale,
+          frame: { x: margins.left, y: margins.top, ...px },
+          mark,
+          box,
+          obstacles,
+          gap: rem,
+          image: size,
+          area: image.footprint?.[0],
+        });
+        if (c.outside > 0) host.dataset.framing = "leaves-data";
+        else delete host.dataset.framing;
+        return { x: c.x, y: c.y, z: s.viewport.z };
+      };
       // Screen pixels per image pixel at the settled zoom.
       const ratioNow = () => (opened.viewport.getZoom() * viewerPx().width) / width;
       const markMax = () => setAtMaxZoom(opened.viewport.getZoom() >= opened.viewport.getMaxZoom() * 0.995);
@@ -600,8 +636,8 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           // again, in flight or at once; a view the user moved is left where it is.
           const { story: inStory, paused: held, journey: j, stop: at } = pageRef.current;
           if (inStory && !held && j) {
-            if (flying) fly(j.stops[at].viewport);
-            else fitImageBounds(viewBounds(j.stops[at].viewport, size, viewerPx()), 0);
+            if (flying) fly(stopView(j.stops[at]));
+            else fitImageBounds(viewBounds(stopView(j.stops[at]), size, viewerPx()), 0);
           } else if (heldViewRef.current) {
             const held = heldViewRef.current;
             allow(held);
@@ -627,7 +663,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         vp.panBy(new OSD.Point(0, (dy * vp.getBoundsNoRotate(true).width) / viewerPx().width));
         vp.applyConstraints();
       };
-      cameraRef.current = { fly, panPx, viewerPx, syncMargins, schedule, moved };
+      cameraRef.current = { fly, panPx, viewerPx, syncMargins, schedule, moved, stopView };
       // Whether the view is the fit: true after opening without a view and after Home, false
       // once the user or a flight moves it. Only a fitted view follows a new frame.
       opened.addHandler("home", () => {
@@ -703,7 +739,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         fitted = !(journey && asked === "story") && !fitOverlapRef.current && (!view || view.z === 1);
         syncMargins();
         if (journey && asked === "story") {
-          fitImageBounds(viewBounds(journey.stops[parseStop(window.location.search, journey.stops.length)].viewport, size, viewerPx()), 0);
+          fitImageBounds(viewBounds(stopView(journey.stops[parseStop(window.location.search, journey.stops.length)]), size, viewerPx()), 0);
           requestAnimationFrame(() => landedRef.current());
         } else if (view) {
           heldViewRef.current = view;
@@ -1051,7 +1087,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       setSeen((s) => new Set(s).add(stop));
       setPaused(false);
       replaceUrl(`${window.location.pathname}${storySearch(index)}`);
-      cameraRef.current?.fly(journey.stops[index].viewport);
+      if (cameraRef.current) cameraRef.current.fly(cameraRef.current.stopView(journey.stops[index]));
       if (journey.stops[index].band) bandForStop(index);
       announce(`${stopOf(index, journey.stops.length)}: ${journey.stops[index].title}`);
     },
@@ -1082,7 +1118,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   const resume = useCallback(() => {
     if (!journey) return;
     setPaused(false);
-    cameraRef.current?.fly(journey.stops[stop].viewport);
+    if (cameraRef.current) cameraRef.current.fly(cameraRef.current.stopView(journey.stops[stop]));
     bandForStop(stop);
   }, [journey, stop, bandForStop]);
 
@@ -1128,7 +1164,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     if (!camera) return;
     camera.syncMargins();
     if (story && flyOnStory.current && journey) {
-      camera.fly(journey.stops[stop].viewport);
+      camera.fly(camera.stopView(journey.stops[stop]));
       bandForStop(stop);
     }
     flyOnStory.current = false;
@@ -1403,6 +1439,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
               valueText={dividerValueText(split, [leftLabel, rightLabel])}
               draft={pairDraft}
               hint={active.pair.alignment}
+              avoid={HANDLE_AVOIDS}
             />
           ) : (
             <Divider split={50} labels={[leftLabel, rightLabel]} draft={pairDraft} />
