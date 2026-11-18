@@ -1271,6 +1271,22 @@ descriptions, stop bodies and credits, all from validated data.
   reticle stay clear of the bar at 1440x900 and 1280x800 (tests/e2e/lightbar.spec.ts). A
   view against the image's edge, such as the Journey's "Past the edge", is still clamped
   there.
+- **D12, stop markers that would sit on each other share one chip.** In the view and in the
+  overview, markers of stops other than the current one that are nearer than 1.5rem (24 px)
+  on screen merge, chained, into one marker whose chip lists every stop in order ("03·04").
+  Each stop keeps its own button in the overview and its row in the stop list.
+- **D13, Compare from a Journey.** A Journey on a pair's reference image links to that
+  image's Compare (wipe) on the stop's view: a "Compare" item after Story and Explore in the
+  top bar, named "Compare" plus the pair's headline; in Explore it carries the view on
+  screen. A phone's top bar has no room for it, so the stop card carries the link there,
+  with the same name as its text.
+- **D14, Compare shows each image only inside its footprint.** The reference is cut to its
+  own footprint in every layout (left of the divider in Wipe), as the moving image already
+  was, so the black frame of an orthorectified image never shows past the overlap.
+- **D15, a framed image's thumbnail covers its Journey slot.** In the Journeys index an image
+  with a footprint shows the largest crop of the slot's shape inside that footprint, centered
+  on it, so a tall orthorectified strip fills the slot. Any other image keeps its true shape
+  (6.4).
 - **D8, the active row's context is `--text-2`.** `--text-muted` on the `--hairline` ground
   of the active row measures 3.9:1 in the light theme, under Q20's 4.5:1; the other rows
   keep `--text-muted` (Q19).

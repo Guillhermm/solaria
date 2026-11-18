@@ -50,7 +50,7 @@ import { type CompareOptions, type CompareState, DEFAULT_SPLIT, type Layout, typ
 import { bandValueText, type LightOptions, type LightState, nearestStop, parseLightParams, shownBands, stopBand, wavelengthLabel } from "@/viewer/light";
 import { sides } from "@/viewer/compare";
 import { dividerValueText } from "@/viewer/divider";
-import { reticleSide } from "@/viewer/route";
+import { chipText, mergeMarks, reticleSide } from "@/viewer/route";
 import { type Bounds, flightPlan, parseStop, stepStop, stopNumber, stopOf, stopTarget, storySearch, viewBounds, zoomSpan } from "@/viewer/story";
 import { fitScale, formatInt, formatZoom, homeView, osdFromView, type Size, viewFromOsd, waitsForTiles } from "@/viewer/view";
 import { DWELL_MS, storySearch1 } from "@/kiosk/kiosk";
@@ -75,6 +75,7 @@ interface ExploreProps {
   labelStops?: Stop[]; // the stops of the Journeys on this image: Show takes the nearest one's zoom
   nextJourney?: string; // kiosk attract loop: the Journey that follows this one (design.md 14.3, K5)
   search?: SearchIndex; // design.md 15.2, built with the page
+  compareFrom?: { pair: string; headline: string }; // a Journey on a pair's reference: its Compare opens on the image's page
 }
 
 interface Camera {
@@ -134,6 +135,9 @@ const viewUrl = (viewer: OpenSeadragon.Viewer, size: Size, m?: ModeUrl, labels =
     m?.mode === "light" ? m.opts : undefined,
   )}`;
 
+const compareHref = (imageId: string, pair: string, view: Viewport) =>
+  `/${imageId}/${serializeViewerParams({ mode: "compare", view, compare: { pair, layout: "wipe", split: DEFAULT_SPLIT } }, pair)}`;
+
 // The URL is the one record of the mode and the stop (design.md 2, "every view is a place").
 // Components read it through useSyncExternalStore, so the static HTML and the first render agree.
 const URL_EVENT = "solaria:url";
@@ -183,6 +187,8 @@ const MODE_NAMES: Record<Mode, string> = { story: "Story", explore: "Explore", c
 
 const PHONE = "(max-width: 40rem)";
 const RETICLE_REM = 5.5;
+// Stop markers nearer than this on screen merge into one chip (24 px at the default font size).
+const MERGE_REM = 1.5;
 const REDUCED = "(prefers-reduced-motion: reduce)";
 // A Journey stop that changes band crossfades over this long, alongside the camera's flight.
 const BAND_FADE_MS = 700;
@@ -195,7 +201,7 @@ const BLINK_MS = 800;
 
 const NO_INDEX: SearchIndex = { entries: [], places: [], example: "" };
 
-const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets = NO_SETS, labels = NO_LABELS, labelStops = NO_STOPS, nextJourney, search = NO_INDEX }: ExploreProps) => {
+const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets = NO_SETS, labels = NO_LABELS, labelStops = NO_STOPS, nextJourney, search = NO_INDEX, compareFrom }: ExploreProps) => {
   const rootRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
@@ -427,6 +433,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           .filter((r): r is DOMRect => !!r && r.width > 0);
         const here = stopTarget(j.stops[at]);
         const reticle = (RETICLE_REM * rem) / 2;
+        const shown: { index: number; x: number; y: number }[] = [];
         j.stops.forEach((s, i) => {
           const el = marksRef.current[i];
           const target = stopTarget(s);
@@ -440,7 +447,18 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
           el.style.visibility = i !== at && (covered || stacked) ? "hidden" : "";
           el.style.translate = `${sx.toFixed(1)}px ${sy.toFixed(1)}px`;
           if (i === at) el.style.setProperty("--side", `${reticleSide(RETICLE_REM * rem, scale, s.marker?.r)}px`);
+          else if (!covered && !stacked) shown.push({ index: i, x: sx, y: sy });
         });
+        // Markers that would sit on each other share the first one's chip (design.md 15.5, D12).
+        for (const group of mergeMarks(shown, MERGE_REM * rem)) {
+          group.forEach((i, k) => {
+            const el = marksRef.current[i]!;
+            if (k > 0) el.style.visibility = "hidden";
+            const tag = el.lastElementChild;
+            const text = k === 0 ? chipText(group, stopNumber) : stopNumber(i);
+            if (tag && tag.textContent !== text) tag.textContent = text;
+          });
+        }
       }
       const hostBox = host.getBoundingClientRect();
       painterRef.current?.({
@@ -779,6 +797,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     opened: opened?.rotates ? opened : null,
     view: active,
     reference: size,
+    referenceFootprint: image.footprint,
     layout,
     split,
     showMoving,
@@ -1446,6 +1465,21 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
               <button type="button" aria-pressed={!story} onClick={story ? toExplore : undefined}>
                 Explore
               </button>
+              {compareFrom && (
+                // The pair lives on the image's page: Compare opens there on the stop's view, or
+                // on the view in Explore, read when the link is followed.
+                <a
+                  className={styles.compareLink}
+                  href={compareHref(journey.imageId, compareFrom.pair, journey.stops[stop].viewport)}
+                  aria-label={`Compare ${compareFrom.headline}`}
+                  onClick={(e) => {
+                    const viewer = viewerRef.current;
+                    if (!story && viewer) e.currentTarget.href = compareHref(journey.imageId, compareFrom.pair, settledView(viewer, size));
+                  }}
+                >
+                  Compare
+                </a>
+              )}
             </div>
           )}
           <button
@@ -1664,7 +1698,9 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         </div>
         {story && journey && (
           <div id={storyId} className={styles.story}>
-            <StoryPanel journey={journey} index={stop} seen={seen} mission={mission} onGo={goTo} onExplore={toExplore} collapsed={sheet === "min"} />
+            <StoryPanel journey={journey} index={stop} seen={seen} mission={mission} onGo={goTo} onExplore={toExplore} collapsed={sheet === "min"}
+              compare={compareFrom && { href: compareHref(journey.imageId, compareFrom.pair, journey.stops[stop].viewport), label: `Compare ${compareFrom.headline}` }}
+            />
           </div>
         )}
         {story && journey && paused && (

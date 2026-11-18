@@ -458,3 +458,25 @@
 :global(:root[data-kiosk]) .body p {
   font-size: 1.125rem;
 }
+
+/* Phone only: the top bar holds the Compare link on wider screens. */
+.compare {
+  display: none;
+}
+
+@media (max-width: 40rem) {
+  .compare {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: var(--target);
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .compare:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}

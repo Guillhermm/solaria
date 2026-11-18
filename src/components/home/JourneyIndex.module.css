@@ -47,7 +47,8 @@
   color: var(--text-muted);
 }
 
-/* design.md 5.1 and 6.4: a 10.5 by 4rem slot with the image contained at its true shape. */
+/* design.md 5.1 and 6.4: a 10.5 by 4rem slot with the image contained at its true shape, or
+   cropped to cover it from inside a footprint (15.5, D15). */
 .frame {
   grid-area: frame;
   display: grid;
@@ -61,6 +62,7 @@
   border: 1px solid var(--hairline);
   border-radius: var(--radius-control);
   overflow: hidden;
+  position: relative;
 }
 
 .frame img {
@@ -69,6 +71,13 @@
   height: auto;
   max-width: 100%;
   max-height: 100%;
+}
+
+/* The crop's box fills the slot; the rest of the image lies outside it. */
+.frame img.cropped {
+  position: absolute;
+  max-width: none;
+  max-height: none;
 }
 
 .body {

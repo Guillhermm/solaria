@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { stop } from "@/content/__fixtures__/content";
 import type { Stop } from "@/content/types";
-import { bracketPath, polyline, reticleSide, routeMarks, splitRoute, tagPlacement, toDrawn } from "./route";
+import { bracketPath, chipText, mergeMarks, polyline, reticleSide, routeMarks, splitRoute, tagPlacement, toDrawn } from "./route";
 
 const ANDROMEDA = { width: 42208, height: 9870 };
 const PILLARS = { width: 8423, height: 14589 };
@@ -113,5 +113,23 @@ describe("markers", () => {
     expect(reticleSide(88, 0.05, 300)).toBe(88);
     expect(reticleSide(88, 0.2, 300)).toBe(120);
     expect(reticleSide(88, 0.2)).toBe(88);
+  });
+});
+
+describe("mergeMarks", () => {
+  it("merges markers closer than the minimum, in chains, and keeps the others apart", () => {
+    const marks = [
+      { index: 4, x: 100, y: 100 },
+      { index: 1, x: 300, y: 300 },
+      { index: 3, x: 100, y: 100 },
+      { index: 2, x: 120, y: 110 },
+      { index: 5, x: 300, y: 324 },
+    ];
+    expect(mergeMarks(marks, 24)).toEqual([[1], [2, 3, 4], [5]]);
+    expect(mergeMarks(marks, 25)).toEqual([[1, 5], [2, 3, 4]]);
+    expect(mergeMarks([], 24)).toEqual([]);
+  });
+  it("writes a merged chip in stop order", () => {
+    expect(chipText([2, 3], (i) => String(i + 1).padStart(2, "0"))).toBe("03·04");
   });
 });

@@ -68,13 +68,10 @@ export const movingCrop = (footprint: Polygon[], s: Similarity, referenceX: numb
     .map((poly) => poly.map((q) => applySimilarity(back, q)));
 };
 
-// The part of the reference left of the divider, as a clip rectangle in its pixels.
-export const referenceClip = (referenceX: number, reference: Size) => ({
-  x: 0,
-  y: 0,
-  width: Math.min(reference.width, Math.max(0, referenceX)),
-  height: reference.height,
-});
+// The part of the reference's data area left of the divider, in its pixels. An empty list
+// means none of it shows.
+export const referenceCrop = (footprint: Polygon[], referenceX: number): Polygon[] =>
+  footprint.map((poly) => clipHalfPlane(poly, referenceX, "left")).filter((poly) => poly.length > 0);
 
 // Where the two images overlap, as a box in reference pixels: the moving footprint, placed,
 // cut to the reference frame. The camera fits it when a link carries no view.

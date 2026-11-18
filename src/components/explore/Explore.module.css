@@ -628,7 +628,10 @@
   padding-inline: var(--space-1);
 }
 
-.modes button {
+.modes button,
+.modes a {
+  display: inline-flex;
+  align-items: center;
   min-height: calc(var(--target) - var(--space-2));
   padding-inline: var(--space-3);
   font-family: var(--font-mono);
@@ -642,7 +645,19 @@
   cursor: pointer;
 }
 
-.modes button:hover {
+.modes a {
+  text-decoration: none;
+}
+
+/* A phone's top bar has no room for a third item; the stop card carries the link there. */
+@media (max-width: 40rem) {
+  .modes .compareLink {
+    display: none;
+  }
+}
+
+.modes button:hover,
+.modes a:hover {
   color: var(--accent);
 }
 
@@ -1146,7 +1161,10 @@
   gap: var(--space-2);
 }
 
-:global(:root[data-kiosk]) .modes button {
+:global(:root[data-kiosk]) .modes button,
+.modes a {
+  display: inline-flex;
+  align-items: center;
   min-height: 3.5rem;
   min-width: 3.5rem;
 }

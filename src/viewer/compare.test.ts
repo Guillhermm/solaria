@@ -2,7 +2,7 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type OpenSeadragon from "openseadragon";
 import { applySimilarity } from "@/content/registration";
-import { clipHalfPlane, movingCrop, overlapBounds, placement, referenceClip, sides, splitToReferenceX, wholeImage } from "./compare";
+import { clipHalfPlane, movingCrop, overlapBounds, placement, referenceCrop, sides, splitToReferenceX, wholeImage } from "./compare";
 
 const S = { scale: 2.48041, rotationDeg: 7.3167, tx: 1922.68, ty: 290.55 };
 const MOVING = { width: 1518, height: 1497 };
@@ -106,10 +106,16 @@ describe("crops", () => {
       expect(p.y).toBeCloseTo(wholeImage(MOVING)[0][i].y, 6);
     });
   });
-  it("clips the reference left of the divider, inside its frame", () => {
-    expect(referenceClip(2000, REFERENCE)).toEqual({ x: 0, y: 0, width: 2000, height: 7071 });
-    expect(referenceClip(-5, REFERENCE).width).toBe(0);
-    expect(referenceClip(9000, REFERENCE).width).toBe(6780);
+  it("cuts the reference's data area left of the divider", () => {
+    expect(referenceCrop(wholeImage(REFERENCE), 2000)).toEqual([[{ x: 0, y: 0 }, { x: 2000, y: 0 }, { x: 2000, y: 7071 }, { x: 0, y: 7071 }]]);
+    expect(referenceCrop(wholeImage(REFERENCE), -5)).toEqual([]);
+    expect(referenceCrop(wholeImage(REFERENCE), 9000)).toEqual(wholeImage(REFERENCE));
+    // A slanted footprint keeps its slant left of the divider.
+    const slanted = [[{ x: 100, y: 0 }, { x: 1000, y: 0 }, { x: 900, y: 1000 }, { x: 0, y: 1000 }]];
+    const [cut] = referenceCrop(slanted, 950);
+    expect(Math.max(...cut.map((p) => p.x))).toBe(950);
+    expect(cut).toContainEqual({ x: 900, y: 1000 });
+    expect(cut).toContainEqual({ x: 0, y: 1000 });
   });
 });
 

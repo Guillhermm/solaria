@@ -4,7 +4,7 @@ import { type RefObject, useEffect, useRef } from "react";
 import type OpenSeadragon from "openseadragon";
 import { tileSource } from "@/content/tiles";
 import { createSync } from "@/viewer/divider";
-import { movingCrop, overlapBounds, placement, referenceClip, splitToReferenceX, wholeImage } from "@/viewer/compare";
+import { movingCrop, overlapBounds, placement, referenceCrop, splitToReferenceX, wholeImage } from "@/viewer/compare";
 import type { Layout } from "@/viewer/url";
 import type { Size } from "@/viewer/view";
 import type { CompareView } from "./types";
@@ -33,6 +33,7 @@ interface Options {
   opened: Opened | null;
   view: CompareView | null; // null outside compare mode
   reference: Size;
+  referenceFootprint?: { x: number; y: number }[][]; // the reference's data area; the whole image without one
   layout: Layout;
   split: number;
   showMoving: boolean; // Blink: which image is up
@@ -49,7 +50,7 @@ const NOTHING = [[{ x: -1, y: -1 }, { x: -1, y: -1 }, { x: -1, y: -1 }]];
 // docs/architecture-compare.md section 1: the moving image joins the reference in one viewer
 // and one coordinate frame. The world keeps the reference's home bounds, so zoom, the readout
 // and the URL stay relative to the reference fit.
-export const useCompareLayer = ({ opened, view, reference, layout, split, showMoving, tileBaseUrl, sideHost, fitOverlap }: Options) => {
+export const useCompareLayer = ({ opened, view, reference, referenceFootprint, layout, split, showMoving, tileBaseUrl, sideHost, fitOverlap }: Options) => {
   const itemRef = useRef<OpenSeadragon.TiledImage | null>(null);
   const update = useRef<() => void>(() => {});
   const state = useRef({ layout, split, showMoving });
@@ -78,7 +79,9 @@ export const useCompareLayer = ({ opened, view, reference, layout, split, showMo
 
     // Both images are cut with cropping polygons, never with setClip or opacity: the navigator
     // copies a clip and an opacity onto its mirror of the reference, and the overview must stay whole.
-    const whole = wholeImage(reference);
+    // Each image shows only its own data area, so the black frame of an orthorectified image
+    // never shows past the overlap.
+    const whole = referenceFootprint ?? wholeImage(reference);
     update.current = () => {
       if (!item) return;
       const { layout: l, split: at, showMoving: up } = state.current;
@@ -86,8 +89,8 @@ export const useCompareLayer = ({ opened, view, reference, layout, split, showMo
         const vp = viewer.viewport;
         const m = opened.margins();
         const x = splitToReferenceX(at, { width: viewer.container.clientWidth, marginLeft: m.left, marginRight: m.right }, vp.getBoundsNoRotate(true), reference);
-        const r = referenceClip(x, reference);
-        crop(refItem, r.width > 0 ? [[{ x: 0, y: 0 }, { x: r.width, y: 0 }, { x: r.width, y: r.height }, { x: 0, y: r.height }]] : NOTHING);
+        const r = referenceCrop(whole, x);
+        crop(refItem, r.length ? r : NOTHING);
         const kept = movingCrop(footprint, s, x);
         crop(item, kept.length ? kept : NOTHING);
       } else {
@@ -137,7 +140,7 @@ export const useCompareLayer = ({ opened, view, reference, layout, split, showMo
     // The reference's size is read through its two numbers, so a new object of the same size
     // does not re-add the image.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [opened, view, reference.width, reference.height, tileBaseUrl, fitOverlap]);
+  }, [opened, view, reference.width, reference.height, referenceFootprint, tileBaseUrl, fitOverlap]);
 
   // Side by side (desktop): a second viewer holds the moving image in the same frame, so
   // syncing is a copy of center and zoom. The viewer that took the last input leads.

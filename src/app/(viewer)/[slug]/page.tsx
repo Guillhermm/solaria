@@ -43,7 +43,7 @@ const ViewerPage = async ({ params }: Params) => {
   const source = getContent().sources.find((s) => s.id === image.sourceId);
   if (!source) throw new Error(`data/sources/${image.sourceId}.json is missing for image ${image.id}`);
 
-  // Compare is offered on the page of a pair's reference image, never on a Journey (yet).
+  // Compare is offered on the page of a pair's reference image; a Journey links to it (D13).
   const content = getContent();
   const pairs: CompareView[] = journey
     ? []
@@ -54,6 +54,9 @@ const ViewerPage = async ({ params }: Params) => {
           const movingSource = moving && content.sources.find((s) => s.id === moving.sourceId);
           return moving && movingSource ? [{ pair, moving, movingInfo: infoFor(moving, movingSource) }] : [];
         });
+
+  // A Journey on a pair's reference image links to that page's Compare.
+  const journeyPair = journey && content.pairs.find((p) => p.reference === journey.imageId);
 
   // Light is offered on the page of a band set's first image; a Journey brings its own band set,
   // whose stops pick the band.
@@ -84,6 +87,7 @@ const ViewerPage = async ({ params }: Params) => {
       labelStops={labelStops}
       nextJourney={journey ? nextJourney(content.journeys.map((j) => j.slug), journey.slug) : undefined}
       search={buildSearchIndex(content)}
+      compareFrom={journeyPair ? { pair: journeyPair.id, headline: journeyPair.headline } : undefined}
     />
   );
 };

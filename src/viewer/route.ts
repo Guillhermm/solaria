@@ -52,3 +52,19 @@ export const bracketPath = (size: number, arm: number) => {
 export const reticleSide = (minPx: number, scale: number, r?: number) => Math.max(minPx, r ? 2 * r * scale : 0);
 
 export const polyline = (points: Point[]) => points.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+
+// Stop markers closer than `min` on screen share one chip ("03·04"), so none hides another.
+// Closeness chains: a group holds every marker within `min` of any of its members. Groups come
+// back in stop order, each led by its lowest stop.
+export const mergeMarks = (marks: (Point & { index: number })[], min: number): number[][] => {
+  const group = marks.map((_, i) => i);
+  const root = (i: number): number => (group[i] === i ? i : (group[i] = root(group[i])));
+  for (let i = 0; i < marks.length; i++)
+    for (let j = i + 1; j < marks.length; j++)
+      if (Math.hypot(marks[i].x - marks[j].x, marks[i].y - marks[j].y) < min) group[root(j)] = root(i);
+  const out = new Map<number, number[]>();
+  marks.forEach((m, i) => out.set(root(i), [...(out.get(root(i)) ?? []), m.index]));
+  return [...out.values()].map((g) => g.sort((a, b) => a - b)).sort((a, b) => a[0] - b[0]);
+};
+
+export const chipText = (indexes: number[], number: (i: number) => string) => indexes.map(number).join("·");

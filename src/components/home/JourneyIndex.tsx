@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { LuArrowRight } from "react-icons/lu";
 import type { ImageManifest, Journey, Source } from "@/content/types";
+import { coverCrop } from "@/home/thumbnail";
 import { stopNumber } from "@/viewer/story";
 import { formatInt } from "@/viewer/view";
 import styles from "./JourneyIndex.module.css";
@@ -11,6 +12,22 @@ export interface JourneyEntry {
   image: ImageManifest;
   source: Source;
 }
+
+// The thumbnail slot is 10.5 by 4rem (JourneyIndex.module.css).
+const SLOT_ASPECT = 10.5 / 4;
+
+// An image with a black frame around its data (an orthorectified strip) is cropped to cover the
+// slot from inside that data; any other keeps its true shape (design.md 6.4).
+const thumbnailStyle = (image: ImageManifest) => {
+  const crop = coverCrop(image.footprint, image.tiles, SLOT_ASPECT);
+  if (!crop) return undefined;
+  return {
+    width: `${(image.tiles.width / crop.width) * 100}%`,
+    height: `${(image.tiles.height / crop.height) * 100}%`,
+    left: `${(-crop.x / crop.width) * 100}%`,
+    top: `${(-crop.y / crop.height) * 100}%`,
+  };
+};
 
 // design.md 5.1: a list, not a card grid, so it holds one entry or forty. Filters and paging
 // wait until there is more than one published Journey (home-about copy).
@@ -31,6 +48,8 @@ const JourneyIndex = ({ entries, tileBaseUrl }: { entries: JourneyEntry[]; tileB
                 height={image.tiles.thumbnail.height}
                 alt=""
                 unoptimized
+                className={thumbnailStyle(image) ? styles.cropped : undefined}
+                style={thumbnailStyle(image)}
               />
             </span>
             <div className={styles.body}>

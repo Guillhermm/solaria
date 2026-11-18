@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Stop } from "@/content/types";
 import { useKiosk } from "@/kiosk/useKiosk";
-import { bracketPath, polyline, routeMarks, splitRoute, tagPlacement } from "@/viewer/route";
+import { bracketPath, chipText, mergeMarks, polyline, routeMarks, splitRoute, tagPlacement } from "@/viewer/route";
 import { stopNumber } from "@/viewer/story";
 import type { Size } from "@/viewer/view";
 import styles from "./RouteOverlay.module.css";
@@ -17,6 +17,9 @@ interface RouteOverlayProps {
 const MARK_REM = 1.25;
 const CURRENT_REM = 1.625;
 const TAG = { width: 1.25, height: 0.875 };
+const MERGE_REM = 1.5;
+// A two-digit tag is TAG.width wide; a merged chip grows by about that much per stop.
+const tagSize = (text: string, rem: number) => ({ width: TAG.width * rem * Math.max(1, (text.length + 1) / 3), height: TAG.height * rem });
 
 const remPx = () => parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
 
@@ -42,19 +45,24 @@ const RouteOverlay = ({ stops, image, current, onGo }: RouteOverlayProps) => {
   const { travelled, ahead } = splitRoute(marks, current);
   const settled = travelled.slice(0, -1);
   // Stops at one place (a Journey that changes band without moving) would stack their tags:
-  // the current stop's tag goes first, and a tag that would overlap one already placed is left
-  // out. Every stop keeps its button and its label for screen readers.
+  // markers nearer than MERGE_REM share the first one's chip ("03·04"), the current stop's tag
+  // goes first, and a tag that would still overlap one already placed is left out. Every stop
+  // keeps its button and its label for screen readers.
   const placed: { x: number; y: number; width: number; height: number }[] = [];
-  const shownTags = new Set<number>();
+  const shownTags = new Map<number, string>();
   if (drawn) {
-    for (const m of [...marks].sort((a, b) => (a.index === current ? -1 : b.index === current ? 1 : a.index - b.index))) {
+    const others = marks.filter((m) => m.index !== current);
+    const leaders = new Map(mergeMarks(others, MERGE_REM * drawn.rem).map((g) => [g[0], g] as const));
+    const tagged = [...marks.filter((m) => m.index === current), ...others.filter((m) => leaders.has(m.index))];
+    for (const m of tagged) {
+      const text = m.index === current ? stopNumber(m.index) : chipText(leaders.get(m.index)!, stopNumber);
       const side = (m.index === current ? CURRENT_REM : MARK_REM) * drawn.rem;
-      const tag = { width: TAG.width * drawn.rem, height: TAG.height * drawn.rem };
+      const tag = tagSize(text, drawn.rem);
       const at = tagPlacement(m, drawn, side / 2, tag, 0.1875 * drawn.rem);
       const box = { x: at.x, y: at.y, ...tag };
       if (placed.some((p) => box.x < p.x + p.width && p.x < box.x + box.width && box.y < p.y + p.height && p.y < box.y + box.height)) continue;
       placed.push(box);
-      shownTags.add(m.index);
+      shownTags.set(m.index, text);
     }
   }
   const lastLeg = travelled.slice(-2);
@@ -84,7 +92,8 @@ const RouteOverlay = ({ stops, image, current, onGo }: RouteOverlayProps) => {
           {marks.map((m) => {
             const isCurrent = m.index === current;
             const side = (isCurrent ? CURRENT_REM : MARK_REM) * drawn.rem;
-            const tag = { width: TAG.width * drawn.rem, height: TAG.height * drawn.rem };
+            const text = shownTags.get(m.index);
+            const tag = tagSize(text ?? "", drawn.rem);
             const at = tagPlacement(m, drawn, side / 2, tag, 0.1875 * drawn.rem);
             const stop = stops[m.index];
             return (
@@ -102,9 +111,9 @@ const RouteOverlay = ({ stops, image, current, onGo }: RouteOverlayProps) => {
                   <path className={styles.bracketHalo} d={bracketPath(side, 7)} />
                   <path d={bracketPath(side, 7)} />
                 </svg>
-                {shownTags.has(m.index) && (
+                {text && (
                   <span className={styles.tag} style={{ left: at.x - m.x, top: at.y - m.y }} aria-hidden>
-                    {stopNumber(m.index)}
+                    {text}
                   </span>
                 )}
               </button>

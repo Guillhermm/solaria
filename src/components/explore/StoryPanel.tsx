@@ -14,13 +14,14 @@ interface StoryPanelProps {
   onGo: (index: number) => void;
   onExplore: () => void;
   collapsed: boolean; // phone: the sheet is down to the stop's title
+  compare?: { href: string; label: string }; // phone: the pair's Compare on this stop's view (the top bar has no room)
 }
 
 const SWIPE_REM = 2.5;
 
 // design.md 5.3 and 5.4: the left column on desktop, the stop card of the bottom sheet on a
 // phone. One tree for both; the stylesheet shows only the current stop on a phone.
-const StoryPanel = ({ journey, index, seen, mission, onGo, onExplore, collapsed }: StoryPanelProps) => {
+const StoryPanel = ({ journey, index, seen, mission, onGo, onExplore, collapsed, compare }: StoryPanelProps) => {
   const { stops } = journey;
   const count = stops.length;
   const last = index === count - 1;
@@ -108,6 +109,12 @@ const StoryPanel = ({ journey, index, seen, mission, onGo, onExplore, collapsed 
                       </li>
                     ))}
                   </ul>
+                  {compare && (
+                    <a className={styles.compare} href={compare.href}>
+                      {compare.label}
+                      <LuArrowRight aria-hidden />
+                    </a>
+                  )}
                 </div>
               ) : (
                 <button type="button" className={styles.stopButton} onClick={() => onGo(i)}>

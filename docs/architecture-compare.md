@@ -22,8 +22,9 @@ Checked in `node_modules/openseadragon/build/openseadragon/openseadragon.js` (5.
 Layer rules:
 
 - The pair names a **reference** image. It is added first at `x = 0, width = 1`, never
-  rotated, so a vertical divider on screen is a vertical line in its pixels and its wipe
-  clip is a plain `Rect(0, 0, splitX, height)`.
+  rotated, so a vertical divider on screen is a vertical line in its pixels. Its crop is its
+  own `footprint` (the whole image without one) ∩ half-plane left of the divider in Wipe,
+  and its footprint in Blink and Side by side (design.md 15.5, D14).
 - The **moving** image is added second with the placement from section 2. Its crop is
   `footprint ∩ half-plane right of the divider`, mapped into its own pixels, so it never
   shows on the reference side, even where it extends past the reference frame (Webb).

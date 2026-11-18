@@ -113,6 +113,7 @@
   font-size: var(--text-label-sm);
   line-height: 0.875rem;
   text-align: center;
+  white-space: nowrap;
   color: var(--marker);
   background: var(--halo);
   border-radius: 1px;
