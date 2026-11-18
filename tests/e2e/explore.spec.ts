@@ -168,7 +168,11 @@ test("the keyboard zooms, pans and fits, and the zoom is announced once settled"
 });
 
 test("a tile outage keeps the lower level and offers a retry after 10 failures", async ({ page }) => {
-  await page.route(/\/tiles\/andromeda-phat-phast-2025\/[3-6]\//, (route) => route.abort());
+  const failed = new Set<string>();
+  await page.route(/\/tiles\/andromeda-phat-phast-2025\/[3-6]\//, (route) => {
+    failed.add(route.request().url());
+    return route.abort();
+  });
   await page.goto(PATH);
   await ready(page);
   await page.keyboard.press("Tab");
@@ -177,7 +181,8 @@ test("a tile outage keeps the lower level and offers a retry after 10 failures",
   const toast = page.getByRole("status").filter({ hasText: "Some detail could not load." });
   await expect(toast).toBeVisible();
   await page.unroute(/\/tiles\/andromeda-phat-phast-2025\/[3-6]\//);
-  const refetch = page.waitForRequest(/\/tiles\/andromeda-phat-phast-2025\/[3-6]\//);
+  // OpenSeadragon never asks again for a tile that failed, so only Retry can refetch one.
+  const refetch = page.waitForRequest((request) => failed.has(request.url()), { timeout: 10_000 });
   await toast.getByRole("button", { name: "Retry" }).click();
   await refetch;
   await expect(toast).toHaveCount(0);
