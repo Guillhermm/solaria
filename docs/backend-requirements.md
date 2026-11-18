@@ -1,6 +1,6 @@
 # Backend Architecture
 
-> Superseded: these are the original 2025 requirements. The current plan is in `docs/vision.md` and `docs/roadmap.md`.
+> Superseded: these are the original 2025 requirements. The current plan is in `docs/vision.md` and `docs/roadmap.md`. The API routes it describes were removed in Sprint 2; the current design is `docs/architecture.md`.
 
 This repository provides the backend implementation of the **NASA 2025 Solaria** platform, a tool for exploring massive planetary and space image datasets through zoomable interfaces and basic metadata search.
 

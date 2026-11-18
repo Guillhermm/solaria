@@ -42,7 +42,7 @@ export const createStaticServer = (root: string) =>
         "X-Content-Type-Options": "nosniff",
       });
       if (req.method === "HEAD") return res.end();
-      if (file) createReadStream(file).pipe(res);
+      if (file) createReadStream(file).on("error", () => res.destroy()).pipe(res);
       else res.end(body);
     };
 

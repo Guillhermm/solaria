@@ -1,4 +1,5 @@
 export type IsoDate = string; // YYYY-MM-DD, UTC
+export type IsoMonth = string; // YYYY-MM, UTC
 
 // Review of a whole record (source, image, Journey, stop) by science review.
 export type ReviewStatus = "draft" | "in-review" | "approved" | "rejected";
@@ -80,7 +81,8 @@ export interface ImageManifest {
   releasedAt: Claim<IsoDate>;
   productType: Claim<ProductType>;
   // Optional: absent means the app says nothing about it.
-  observedAt?: Claim<{ start: IsoDate; end: IsoDate }>;
+  // Both ends days, or both months when the source gives no day.
+  observedAt?: Claim<{ start: IsoDate; end: IsoDate } | { start: IsoMonth; end: IsoMonth }>;
   processing?: Claim<string>;
   pixelScale?: Claim<{ value: number; unit: "arcsec/px" | "m/px" }>;
   fieldOfView?: Claim<string>;

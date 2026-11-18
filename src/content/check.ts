@@ -14,7 +14,7 @@ const show = (v: unknown) => {
 export const fail = (c: Ctx, path: string, expected: string, got?: unknown): undefined => {
   // An absent key is already reported as missing by object().
   if (got === undefined) return undefined;
-  c.errors.push(`${c.file}: ${path}: expected ${expected}, got ${show(got)}`);
+  c.errors.push(`${c.file}: ${path ? `${path}: ` : ""}expected ${expected}, got ${show(got)}`);
   return undefined;
 };
 
@@ -44,6 +44,12 @@ export const isoDate = (c: Ctx, v: unknown, path: string) => {
     if (!Number.isNaN(d.getTime()) && d.toISOString().startsWith(v)) return v;
   }
   return fail(c, path, "a date as YYYY-MM-DD", v);
+};
+
+// A whole month, for sources that give no day.
+export const isoMonth = (c: Ctx, v: unknown, path: string) => {
+  if (typeof v === "string" && /^\d{4}-(0[1-9]|1[0-2])$/.test(v)) return v;
+  return fail(c, path, "a month as YYYY-MM", v);
 };
 
 export const httpsUrl = (c: Ctx, v: unknown, path: string) => {

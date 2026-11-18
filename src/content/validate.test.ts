@@ -71,7 +71,7 @@ describe("source rules", () => {
     expect(run((s) => (s.validation = { status: "draft", date: null, notes: "" }))).toEqual([]);
   });
   it("rejects a non-object", () => {
-    expect(errorsOf(validateSource(5, "x.json"))).toEqual(["x.json: : expected an object, got 5"]);
+    expect(errorsOf(validateSource(5, "x.json"))).toEqual(["x.json: expected an object, got 5"]);
   });
 });
 
@@ -86,6 +86,22 @@ describe("image rules", () => {
     expect(run((s) => (s.colorMapping.value = { kind: "per-band", entries: [] }))[0]).toContain(
       "colorMapping.value.entries: expected a non-empty array",
     );
+  });
+  it("rejects a color mapping with no kind", () => {
+    expect(run((s) => (s.colorMapping.value = {}))).toEqual(["data/images/demo.json: colorMapping.value.kind: missing"]);
+  });
+  it("accepts an observation range in days or in months", () => {
+    const at = (start: string, end: string) => ({ value: { start, end }, source: "https://example.org/x", status: "verified" });
+    expect(run((s) => (s.observedAt = at("2010-07-01", "2022-12-31")))).toEqual([]);
+    expect(run((s) => (s.observedAt = at("2010-07", "2022-12")))).toEqual([]);
+  });
+  it("rejects an observation range with mixed precision, a bad month or start after end", () => {
+    const at = (start: string, end: string) => ({ value: { start, end }, source: "https://example.org/x", status: "verified" });
+    expect(run((s) => (s.observedAt = at("2010-07", "2022-12-31")))[0]).toContain("observedAt.value.end: expected a month as YYYY-MM");
+    expect(run((s) => (s.observedAt = at("2010-13", "2022-12")))[0]).toContain("observedAt.value.start: expected a month as YYYY-MM");
+    expect(run((s) => (s.observedAt = at("2022-12", "2010-07")))).toEqual([
+      "data/images/demo.json: observedAt.value: start 2022-12 is after end 2010-07",
+    ]);
   });
   it("rejects a claim without a source", () => {
     expect(run((s) => delete s.observatory.source)).toEqual(["data/images/demo.json: observatory.source: missing"]);

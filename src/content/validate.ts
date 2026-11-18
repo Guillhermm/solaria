@@ -6,6 +6,7 @@ import {
   httpsUrl,
   int,
   isoDate,
+  isoMonth,
   literal,
   newCtx,
   num,
@@ -160,7 +161,11 @@ const band = (c: Ctx, v: unknown, path: string) => {
 };
 
 const colorMapping = (c: Ctx, v: unknown, path: string): ColorMapping | undefined => {
-  if (typeof v !== "object" || v === null) return fail(c, path, "an object", v);
+  if (typeof v !== "object" || v === null || Array.isArray(v)) return fail(c, path, "an object", v);
+  if (!("kind" in v)) {
+    c.errors.push(`${c.file}: ${path}.kind: missing`);
+    return undefined;
+  }
   const kind = oneOf(c, (v as Record<string, unknown>).kind, `${path}.kind`, [
     "per-band", "grayscale", "standard-colortable",
   ]);
@@ -215,14 +220,22 @@ const tiles = (c: Ctx, v: unknown, path: string) => {
 };
 
 const productTypes = ["single exposure", "stack", "mosaic", "multi-instrument composite"] as const;
-const isoRange = (c: Ctx, v: unknown, path: string) => {
+// Both ends at the same precision: days, or months when the source gives no day.
+const observedRange = (c: Ctx, v: unknown, path: string) => {
   const n = c.errors.length;
   const o = object(c, v, path, ["start", "end"]);
   if (!o) return undefined;
-  return finish<{ start: string; end: string }>(c, n, {
-    start: isoDate(c, o.start, `${path}.start`),
-    end: isoDate(c, o.end, `${path}.end`),
+  const months = typeof o.start === "string" && o.start.length === 7;
+  const check = months ? isoMonth : isoDate;
+  const range = finish<{ start: string; end: string }>(c, n, {
+    start: check(c, o.start, `${path}.start`),
+    end: check(c, o.end, `${path}.end`),
   });
+  if (range && range.start > range.end) {
+    c.errors.push(`${c.file}: ${path}: start ${range.start} is after end ${range.end}`);
+    return undefined;
+  }
+  return range;
 };
 
 export const validateImage = (raw: unknown, file: string): Result<ImageManifest> => {
@@ -255,7 +268,7 @@ export const validateImage = (raw: unknown, file: string): Result<ImageManifest>
     colorMapping: claim(c, o.colorMapping, "colorMapping", (v, p) => colorMapping(c, v, p)),
     releasedAt: claim(c, o.releasedAt, "releasedAt", (v, p) => isoDate(c, v, p)),
     productType: claim(c, o.productType, "productType", (v, p) => oneOf<ProductType>(c, v, p, productTypes)),
-    observedAt: optionalClaim(c, o, "observedAt", (v, p) => isoRange(c, v, p)),
+    observedAt: optionalClaim(c, o, "observedAt", (v, p) => observedRange(c, v, p)),
     processing: optionalClaim(c, o, "processing", (v, p) => str(c, v, p)),
     pixelScale: optionalClaim(c, o, "pixelScale", (v, p) => {
       const m = c.errors.length;
@@ -351,9 +364,7 @@ const classify = (path: string) => {
 export const validateContent = (files: { path: string; raw: unknown }[]): Result<Content> => {
   const errors: string[] = [];
   const content: Content = { sources: [], images: [], journeys: [] };
-  const names = new Map<unknown, string>();
   const fileOf = new Map<unknown, string>();
-  const mockFlags = new Map<unknown, boolean>();
 
   for (const { path, raw } of files) {
     const info = classify(path);
@@ -371,12 +382,7 @@ export const validateContent = (files: { path: string; raw: unknown }[]): Result
     }
     const value = r.value;
     const key = "slug" in value ? value.slug : value.id;
-    const own = (v: Source | ImageManifest | Journey) => {
-      names.set(v, info.name);
-      fileOf.set(v, path);
-      mockFlags.set(v, info.mock);
-    };
-    own(value);
+    fileOf.set(value, path);
     if (key !== info.name) errors.push(`${path}: ${"slug" in value ? "slug" : "id"}: expected the file name "${info.name}", got ${JSON.stringify(key)}`);
     if (value.mock !== info.mock) {
       errors.push(`${path}: mock: expected ${info.mock} for a file ${info.mock ? "under" : "outside"} data/mock/, got ${value.mock}`);

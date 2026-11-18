@@ -25,8 +25,8 @@ in [docs/science/](docs/science/).
 
 ## Planned
 
-Journeys with story mode, a viewer page per image with shareable URLs, image manifests and
-a static export, a new visual design, and Compare and Light modes once a pair or band set
+Journeys with story mode, a viewer page per image with shareable URLs, tiles served from
+R2, a new visual design, and Compare and Light modes once a pair or band set
 is validated. See the roadmap for order and status.
 
 ## Run it
