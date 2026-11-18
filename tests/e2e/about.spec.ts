@@ -77,3 +77,11 @@ test("no NASA or ESA logo is shown", async ({ page }) => {
   await page.goto("/about/");
   await expect(page.locator("main img")).toHaveCount(0);
 });
+
+test("sources that share a credit line share one entry, the credit printed once", async ({ page }) => {
+  await page.goto("/about/");
+  const sdo = "Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams.";
+  await expect(page.locator("#credits dd", { hasText: sdo })).toHaveCount(1);
+  const entry = page.locator("#credits dl", { hasText: sdo });
+  await expect(entry.locator(":scope > div", { has: page.locator('dt:text-is("Title")') }).locator("dd")).toHaveCount(7);
+});

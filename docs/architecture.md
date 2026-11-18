@@ -631,7 +631,10 @@ Light reuses the Compare layer pattern (`docs/architecture-compare.md`, sections
 - A stop marker other than the current one hides where the Light bar or the overview card
   covers it, or inside the current reticle; overview tags that would overlap are left out.
 - The Journeys index shows a band-set Journey with the thumbnail of the band its first stop
-  opens on, tagged "Light". Mock fixtures never appear in the footer or About credits.
+  opens on, tagged "Light". Mock fixtures never appear in the footer or About credits. Both
+  group sources by identical credit text: the footer prints each credit once after the titles
+  of the images that use it, and About gives such a group one entry listing each distinct
+  title, page, terms and date.
 - Band-dependent text (the bar, the band credits, About) renders once the viewer opens, so the
   static HTML and the first client render agree whichever band a link asks for; until then the
   page image's own credit shows.

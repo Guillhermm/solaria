@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 
 const source = JSON.parse(readFileSync("data/sources/andromeda-phat-phast-2025.json", "utf8"));
@@ -15,9 +15,34 @@ test("the header holds the wordmark home link and the theme toggle", async ({ pa
   await expect(header.getByRole("button", { name: /Switch to (light|dark) theme/ })).toBeVisible();
 });
 
-test("the footer prints the credit line unaltered from the source record", async ({ page }) => {
+test("the footer prints each credit line once, unaltered, after the images that use it", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("contentinfo")).toContainText(source.credit);
+  // Group data/images by their source's credit, in file order, as the footer does.
+  const dir = (d: string) => readdirSync(d).filter((f) => f.endsWith(".json")).sort().map((f) => JSON.parse(readFileSync(`${d}/${f}`, "utf8")));
+  const sources = new Map(dir("data/sources").map((s) => [s.id, s.credit as string]));
+  const lines = new Map<string, string[]>();
+  for (const image of dir("data/images")) {
+    const credit = sources.get(image.sourceId)!;
+    lines.set(credit, [...(lines.get(credit) ?? []), image.title]);
+  }
+  const shown = page.getByRole("contentinfo").locator("p").filter({ hasNotText: "independent project" });
+  await expect(shown).toHaveText([...lines].map(([credit, titles]) => `${titles.join(", ")}: ${credit}`));
+  const sdo = "Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams.";
+  await expect(page.getByRole("contentinfo").getByText(sdo, { exact: false })).toHaveCount(1);
+});
+
+test("on a desktop screen the footer follows the content, with no empty band before it", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  const gap = await page.evaluate(() => {
+    const footer = document.querySelector("footer")!.getBoundingClientRect().top;
+    const main = document.querySelector("main")!;
+    const last = [...main.querySelectorAll("section")].map((s) => s.getBoundingClientRect().bottom).reduce((a, b) => Math.max(a, b), 0);
+    return footer - last;
+  });
+  // The page is taller than the screen, so the footer sits under the last section.
+  expect(gap).toBeLessThan(8 * 16);
 });
 
 test("the footer links About, credits and accessibility, and says which links leave the app", async ({ page }) => {

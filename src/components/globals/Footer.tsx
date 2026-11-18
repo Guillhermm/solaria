@@ -18,18 +18,21 @@ const external = [
 // loaded in development and the end-to-end build, are never credited.
 const credits = () => {
   const { images, sources } = getContent();
-  return images.filter((image) => !image.mock).flatMap((image) => {
+  const lines = new Map<string, string[]>();
+  for (const image of images.filter((i) => !i.mock)) {
     const source = sources.find((s) => s.id === image.sourceId);
-    return source ? [{ id: image.id, title: image.title, credit: source.credit }] : [];
-  });
+    // Images that share a credit (the seven SDO channels) share one line, named in file order.
+    if (source) lines.set(source.credit, [...(lines.get(source.credit) ?? []), image.title]);
+  }
+  return [...lines].map(([credit, titles]) => ({ credit, titles }));
 };
 
 const Footer = () => (
   <footer className={styles.footer}>
     <div className={styles.credits}>
-      {credits().map(({ id, title, credit }) => (
-        <p key={id}>
-          {title}: {credit}
+      {credits().map(({ credit, titles }) => (
+        <p key={credit}>
+          {titles.join(", ")}: {credit}
         </p>
       ))}
       <p className={styles.note}>Solaria is an independent project. It is not endorsed by NASA or ESA.</p>

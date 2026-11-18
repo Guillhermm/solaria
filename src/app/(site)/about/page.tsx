@@ -19,8 +19,24 @@ const External = ({ href, children }: { href: string; children: ReactNode }) => 
 // Every credit field is copied from data/sources at build time and shown as the record has it.
 const credits = () => {
   const { images, sources } = getContent();
-  // Mock fixtures (development and the end-to-end build only) are never credited.
-  return sources.filter((s) => !s.mock).map((source) => ({ source, images: images.filter((i) => i.sourceId === source.id) }));
+  // Mock fixtures (development and the end-to-end build only) are never credited. Sources that
+  // share a credit line (the seven SDO channels) share one entry; each field lists its distinct
+  // values.
+  const groups = new Map<string, typeof sources>();
+  for (const source of sources.filter((s) => !s.mock)) groups.set(source.credit, [...(groups.get(source.credit) ?? []), source]);
+  return [...groups].map(([credit, list]) => {
+    const distinct = (f: (s: (typeof list)[number]) => string) => [...new Set(list.map(f))];
+    return {
+      key: list[0].id,
+      heading: list.map((s) => images.find((i) => i.sourceId === s.id)?.title ?? s.title).join(", "),
+      titles: distinct((s) => s.title),
+      credit,
+      releases: distinct((s) => [s.releaseId, s.releasedAt].filter(Boolean).join(", ")).filter((r) => r !== ""),
+      pages: distinct((s) => s.pageUrl),
+      terms: [...new Map(list.map((s) => [s.terms.url + s.terms.name, s.terms])).values()],
+      retrieved: distinct((s) => s.retrievedAt),
+    };
+  });
 };
 
 const andromeda = () => getContent().sources.find((s) => s.id === "andromeda-phat-phast-2025");
@@ -85,40 +101,50 @@ const About = () => {
       <section id="credits" aria-labelledby="credits-title">
         <h2 id="credits-title">Credits and terms</h2>
         <p>Credit lines are copied as the source page prints them.</p>
-        {credits().map(({ source, images }) => (
-          <div key={source.id} className={styles.credit}>
-            <h3>{images[0]?.title ?? source.title}</h3>
+        {credits().map((c) => (
+          <div key={c.key} className={styles.credit}>
+            <h3>{c.heading}</h3>
             <dl>
               <div>
                 <dt>Title</dt>
-                <dd>{source.title}</dd>
+                {c.titles.map((t) => (
+                  <dd key={t}>{t}</dd>
+                ))}
               </div>
               <div>
                 <dt>Credit</dt>
-                <dd>{source.credit}</dd>
+                <dd>{c.credit}</dd>
               </div>
               {/* Archive frames have no release; the row goes rather than show a stand-in date. */}
-              {(source.releaseId || source.releasedAt) && (
+              {c.releases.length > 0 && (
                 <div>
                   <dt>Release</dt>
-                  <dd>{[source.releaseId, source.releasedAt].filter(Boolean).join(", ")}</dd>
+                  {c.releases.map((r) => (
+                    <dd key={r}>{r}</dd>
+                  ))}
                 </div>
               )}
               <div>
                 <dt>Source page</dt>
-                <dd>
-                  <External href={source.pageUrl}>{source.pageUrl}</External>
-                </dd>
+                {c.pages.map((u) => (
+                  <dd key={u}>
+                    <External href={u}>{u}</External>
+                  </dd>
+                ))}
               </div>
               <div>
                 <dt>Terms</dt>
-                <dd>
-                  <External href={source.terms.url}>{source.terms.name}</External>
-                </dd>
+                {c.terms.map((t) => (
+                  <dd key={t.url + t.name}>
+                    <External href={t.url}>{t.name}</External>
+                  </dd>
+                ))}
               </div>
               <div>
                 <dt>Retrieved</dt>
-                <dd>{source.retrievedAt}</dd>
+                {c.retrieved.map((r) => (
+                  <dd key={r}>{r}</dd>
+                ))}
               </div>
             </dl>
           </div>
