@@ -7,8 +7,8 @@
   "releasedAt": "1995-11-02",
   "credit": "NASA, ESA, STScI, J. Hester and P. Scowen (Arizona State University)",
   "terms": {
-    "name": "NASA Brand & Usage Guidelines",
-    "url": "https://www.nasa.gov/nasa-brand-center/"
+    "name": "NASA Media Usage Guidelines",
+    "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/"
   },
   "retrievedAt": "2026-11-17",
   "file": {
@@ -19,9 +19,9 @@
     "height": 1497
   },
   "validation": {
-    "status": "draft",
-    "date": null,
-    "notes": "Awaiting science review. Facts and their statuses from docs/science/pillars.md."
+    "status": "approved",
+    "date": "2026-11-17",
+    "notes": "The NASA page for this image states no terms of its own; the guidelines say NASA content is generally not subject to copyright and ask for acknowledgement of NASA."
   },
   "mock": false
 }

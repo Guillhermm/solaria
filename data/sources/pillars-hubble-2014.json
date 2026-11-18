@@ -19,9 +19,9 @@
     "height": 7071
   },
   "validation": {
-    "status": "draft",
-    "date": null,
-    "notes": "Awaiting science review. Facts and their statuses from docs/science/pillars.md."
+    "status": "approved",
+    "date": "2026-11-17",
+    "notes": "Credit, release and CC BY 4.0 terms checked against the ESA/Hubble pages. docs/science/pillars.md, Validation."
   },
   "mock": false
 }

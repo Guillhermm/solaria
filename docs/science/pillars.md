@@ -39,7 +39,7 @@ Release: STScI-PRC95-44a, 2 November 1995. NASA Hubble asset page: https://scien
 | Release ID, date | STScI-PRC95-44a, "FOR RELEASE: November 2, 1995" (https://nssdc.gsfc.nasa.gov/photo_gallery/caption/hst_pillars_m16.txt); NASA page "Release Date November 2, 1995" | verified |
 | Observation | "The picture was taken on April 1, 1995 with the Hubble Space Telescope Wide Field and Planetary Camera 2." NASA page: "Exposure Dates April 1, 1995" | verified |
 | Camera | WFPC2 | verified |
-| Filters | The NASA page has no filter field. Release text gives only species. ESA opo9544a lists O III, H-alpha, S II (WFPC2) without wavelengths. Filter IDs (F502N, F656N, F673N) are not on any page I read | no source found for IDs |
+| Filters | The NASA page has no filter field. Release text gives only species. ESA opo9544a lists O III, H-alpha, S II (WFPC2) without wavelengths. Filter IDs (F502N, F656N, F673N) are not on any page I read. Superseded 2026-11-17: Hester et al. 1996, AJ 111, 2349, section 2 lists F656N, F502N, F673N (and F547M) | supported (see Validation) |
 | Colors | "Red shows emission from singly-ionized sulfur atoms. Green shows emission from hydrogen. Blue shows light emitted by doubly-ionized oxygen atoms." (release text, same on NASA page). Same assignment as 2014 (S II red, H-alpha green, O III blue) | verified |
 | Field, orientation | ESA opo9544a: 2.51 x 2.47 arcmin, North 42.3 deg left of vertical. Derived 0.099 arcsec/px | verified (page); scale derived |
 | Credit (NASA page) | "NASA, ESA, STScI, J. Hester and P. Scowen (Arizona State University)" | verified |
@@ -351,3 +351,42 @@ Per-chip polygons (only needed for a piecewise transform): WF-TL [[0,0],[768,0],
 - Stellar proper motions (no catalog cross-match).
 - Where exactly the blended chip seams run below the notch (taken as x = 768, y = 746).
 - WFPC2 handbook pixel scale (0.0996"/px from memory, supported).
+
+## Validation (2026-11-17)
+
+Verdict: accepted with caveats. Two checks, against the primary pages listed in Sources and
+Hester et al. 1996, AJ 111, 2349, section 2
+(https://articles.adsabs.harvard.edu/pdf/1996AJ....111.2349H).
+
+Fixes applied:
+
+- Pair `differs`: `band` true (the 1995 green filter F656N passes nearly pure H-alpha; the 2014
+  F657N also passes [N II], transmission at 6583 Å 0.06 against 0.94) and `processing` true
+  (two teams, separate stretches; every 2014 star core clips at 255).
+- `whatDiffers` replaced: "Same telescope, two cameras: WFPC2 in 1995 and WFC3 in 2014, about
+  19 years apart. Both map oxygen to blue, hydrogen to green and sulfur to red, but through
+  different filters: the 2014 green filter is wider and also lets in nitrogen light. Each image
+  was processed separately, so differences in color, brightness and how stars look come from
+  the cameras and processing, not from the nebula. The 2014 image is sharper and covers a wider
+  field."
+- Pair caveat: "Aligned on 15 stars to about 0.1 arcsecond on average. The 1995 picture is a
+  mosaic of four detectors that do not line up perfectly with each other, so in places the two
+  images can be offset by up to 0.3 arcsecond, about 3 pixels of the 1995 image. A shift that
+  small is an alignment limit, not motion in the nebula." Divider line: "Alignment: about 0.1
+  arcsecond, up to 0.3 in places."
+- 1995 image: filters F502N, F656N, F673N (Hester 1996, section 2, `supported`); product type
+  mosaic cites the same paper; caveats add the charge bleed, ghost ring and line blemish, the
+  diffraction spikes, and "Colors are assigned, not seen by eye."
+- 2014 image: product type mosaic cites the NASA 2014 asset page ("Astronomers combined several
+  Hubble exposures"); caveats add "In this published version the cores of the stars are
+  saturated, so their brightness is not comparable with the 1995 image." and the assigned
+  colors. The label year 2014 is the observation year; the release date stays 2015-01-05.
+- 1995 source: terms "NASA Media Usage Guidelines",
+  https://www.nasa.gov/nasa-brand-center/images-and-media/. The NASA page for this image states
+  no terms of its own; the guidelines say NASA content is generally not subject to copyright
+  and ask for acknowledgement of NASA.
+- No claim about the fragment or the jet, and no pillar length (the NASA pages give 1, 4 and 5
+  light-years).
+
+Open: where the jet is; WFPC2 filter bandpasses beyond the three compared; whether the Hester
+and Scowen credit needs more than the credit line.

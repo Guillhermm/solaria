@@ -47,6 +47,39 @@
   outline-offset: 2px;
 }
 
+/* The alignment limit, under the handle while it is hovered, focused or dragged. */
+.hint {
+  position: absolute;
+  top: calc(50% + var(--handle) / 2 + var(--space-2));
+  left: var(--split);
+  width: max-content;
+  max-width: 16rem;
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  translate: -50% 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--text);
+  background: var(--glass);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-standard);
+  pointer-events: none;
+}
+
+.handle:hover ~ .hint,
+.handle:focus-visible ~ .hint,
+.handle:active ~ .hint {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hint {
+    transition: none;
+  }
+}
+
 /* A strip along the bottom edge: a click there moves the divider. Painted under the chrome. */
 .strip {
   position: absolute;

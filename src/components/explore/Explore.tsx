@@ -830,6 +830,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
               labels={[leftLabel, rightLabel]}
               valueText={dividerValueText(split, [leftLabel, rightLabel])}
               draft={pairDraft}
+              hint={active.pair.alignment}
             />
           ) : (
             <Divider split={50} labels={[leftLabel, rightLabel]} draft={pairDraft} />
@@ -958,7 +959,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
             <WhatDiffers
               note={active.pair.whatDiffers}
               differs={active.pair.differs}
-              caveats={[...info.caveats, ...active.movingInfo.caveats]}
+              caveats={[...(active.pair.caveats ?? []), ...info.caveats, ...active.movingInfo.caveats]}
               draft={pairDraft}
             />
           </CompareBar>

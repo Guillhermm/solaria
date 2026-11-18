@@ -49,7 +49,7 @@ describe("updatePair", () => {
 });
 
 describe("the Hubble 1995 and 2014 pair", () => {
-  const pair = JSON.parse(readFileSync("data/staging/pairs/pillars-hubble-1995-2014.json", "utf8"));
+  const pair = JSON.parse(readFileSync("data/pairs/pillars-hubble-1995-2014.json", "utf8"));
 
   it("reproduces the science review's fit from the stored control points", () => {
     const r = register(pair.registration.controlPoints);

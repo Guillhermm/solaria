@@ -485,7 +485,7 @@ const distinct = (c: Ctx, ids: string[] | undefined, path: string) => {
 
 export const validatePair = (raw: unknown, file: string): Result<ComparePair> => {
   const c = newCtx(file);
-  const o = object(c, raw, "", [...GROUP_KEYS, "reference", "headline", "labels"]);
+  const o = object(c, raw, "", [...GROUP_KEYS, "reference", "headline", "labels"], ["caveats", "alignment"]);
   if (!o) return bad(c);
   const n = c.errors.length;
   const g = group(c, o, (v, p) => {
@@ -503,7 +503,18 @@ export const validatePair = (raw: unknown, file: string): Result<ComparePair> =>
     return lo && finish<PairLabel>(c, m, { full: str(c, lo.full, `${p}.full`), short: str(c, lo.short, `${p}.short`) });
   });
   if (labels && labels.length !== 2) labels = fail(c, "labels", "two labels, in imageIds order", labels);
-  const value = finish<ComparePair>(c, n, { ...g, reference, headline: str(c, o.headline, "headline"), labels } as Draft<ComparePair>);
+  const value = finish<ComparePair>(c, n, {
+    ...g,
+    reference,
+    headline: str(c, o.headline, "headline"),
+    labels,
+    caveats: "caveats" in o ? arrayOf(c, o.caveats, "caveats", (x, q) => str(c, x, q)) : undefined,
+    alignment: "alignment" in o ? str(c, o.alignment, "alignment") : undefined,
+  } as Draft<ComparePair>);
+  if (value) {
+    if (value.caveats === undefined) delete value.caveats;
+    if (value.alignment === undefined) delete value.alignment;
+  }
   return result(c, value);
 };
 

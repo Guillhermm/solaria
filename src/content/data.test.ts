@@ -40,24 +40,22 @@ describe("the real data directory", () => {
     expect(() => loadContent({ root: process.cwd(), mode: "production" })).not.toThrow();
   });
 
-  it("loads the mock and the staged pairs and the mock band set in development", () => {
+  it("loads the mock and the Hubble pairs and the mock band set in development", () => {
     const c = loadContent({ root: process.cwd(), mode: "development" });
-    expect(c.pairs.map((p) => p.id)).toEqual(["mock-compare", "pillars-hubble-1995-2014"]);
+    expect(c.pairs.map((p) => p.id)).toEqual(["pillars-hubble-1995-2014", "mock-compare"]);
     expect(c.bandSets.map((b) => b.id)).toEqual(["mock-light"]);
     expect(c.bandSets.every((g) => g.mock)).toBe(true);
   });
 
-  it("keeps the staged Hubble pair in draft, out of production", () => {
-    const dev = loadContent({ root: process.cwd(), mode: "development" });
-    const pair = dev.pairs.find((p) => p.id === "pillars-hubble-1995-2014")!;
-    expect([pair.mock, pair.validation.status]).toEqual([false, "draft"]);
+  it("publishes the approved Hubble pair and its images", () => {
     const prod = loadContent({ root: process.cwd(), mode: "production" });
-    expect(prod.images.map((i) => i.id)).not.toContain("pillars-hubble-2014");
+    expect(prod.pairs.map((p) => [p.id, p.validation.status])).toEqual([["pillars-hubble-1995-2014", "approved"]]);
+    expect(prod.images.map((i) => i.id)).toEqual(expect.arrayContaining(["pillars-hubble-1995", "pillars-hubble-2014"]));
   });
 
   it("leaves the mock pair and band set out of a production load", () => {
     const c = loadContent({ root: process.cwd(), mode: "production" });
-    expect([c.pairs.length, c.bandSets.length]).toEqual([0, 0]);
+    expect([c.pairs.some((p) => p.mock), c.bandSets.length]).toEqual([false, 0]);
     expect(c.images.some((i) => i.mock)).toBe(false);
   });
 });

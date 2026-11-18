@@ -290,7 +290,7 @@ Where the build differs from sections 1 to 4, and why. Each was the simpler work
 - **The mock pair** is drawn at 4096 x 2048 (scene units times 4) so OpenSeadragon's
   `maxZoomPixelRatio` of 1.1 still lets a viewer zoom past the fit.
 - **Staged content.** The Hubble pair, its images and sources are draft, and the gate fails a
-  production build on any draft record in `data/`. They live in `data/staging/`, which
+  production build on any draft record in `data/`. They lived in `data/staging/`, which
   `loadContent` reads in development only (and in the end-to-end build); `fetch-source`,
   `generate-tiles` and `register-pair` find a record in either place; the postbuild step
   strips staged tile trees from `out/`, and `sync-r2` leaves them out of the bucket. Moving the files to `data/` publishes them, and the
@@ -307,3 +307,7 @@ Where the build differs from sections 1 to 4, and why. Each was the simpler work
 - **"What differs?" (C-04)** is a native popover (`popover="auto"`, Baseline 2024) opened
   from the compare bar: the pair's `whatDiffers` as text paragraphs, its `differs` flags, and
   both images' `caveats`. Esc and a click outside close it. Draft text carries the Draft tag.
+- **Approved (2026-11-17).** The Hubble pair, images and sources moved from `data/staging/` to
+  `data/` and ship in production. A pair may carry `caveats` (shown first in the note) and
+  `alignment`, a short line shown under the divider handle on hover and focus and read as
+  the slider's description.

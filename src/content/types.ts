@@ -171,6 +171,8 @@ export interface ComparePair extends ImageGroup {
   headline: string; // a short validated label shown in the compare bar
   // What each side is called, in imageIds order: `full` beside the divider, `short` on a phone.
   labels: [PairLabel, PairLabel];
+  caveats?: string[]; // about the pair as a whole (e.g. the alignment limit), shown in the note
+  alignment?: string; // short form of the alignment limit, shown beside the divider
 }
 
 export interface PairLabel {

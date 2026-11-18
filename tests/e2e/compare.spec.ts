@@ -321,3 +321,24 @@ test.describe("phone", () => {
     await expect(page).not.toHaveURL(/z=1$/);
   });
 });
+
+test.describe("the Hubble 1995 and 2014 pair", () => {
+  test.use({ viewport: { width: 1280, height: 800 } });
+  const hubble = read("data/pairs/pillars-hubble-1995-2014.json");
+
+  test("ships with its tiles, the alignment line by the divider and the alignment caveat in the note", async ({ page }) => {
+    const tile = page.waitForResponse((r) => r.url().includes("/tiles/pillars-hubble-1995/"));
+    await page.goto("/pillars-hubble-2014/?mode=compare");
+    await ready(page);
+    expect((await tile).status()).toBe(200);
+    await expect(page.getByTestId("compare-bar").getByText("Draft", { exact: true })).toHaveCount(0);
+    await divider(page).focus();
+    await expect(divider(page)).toHaveAccessibleDescription(hubble.alignment);
+    await expect(page.getByRole("tooltip")).toBeVisible();
+    await page.getByRole("button", { name: "What differs?" }).click();
+    const note = page.getByRole("dialog", { name: /What differs\?/ });
+    await expect(note.getByText(hubble.whatDiffers)).toBeVisible();
+    await expect(note.getByRole("listitem").first()).toHaveText(hubble.caveats[0]);
+    await expect(note).toContainText("Differs Instrument, Band, Date, Processing");
+  });
+});

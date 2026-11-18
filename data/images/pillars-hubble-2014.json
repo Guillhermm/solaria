@@ -65,7 +65,7 @@
   },
   "productType": {
     "value": "mosaic",
-    "source": "https://esahubble.org/news/heic1501/",
+    "source": "https://science.nasa.gov/asset/hubble/2014-hubble-wfc3uvis-image-of-m16/",
     "status": "supported"
   },
   "observedAt": {
@@ -94,6 +94,10 @@
     "source": "https://esahubble.org/images/heic1501a/",
     "status": "verified"
   },
+  "caveats": [
+    "In this published version the cores of the stars are saturated, so their brightness is not comparable with the 1995 image.",
+    "Colors are assigned, not seen by eye."
+  ],
   "tiles": {
     "format": "jpg",
     "tileSize": 256,
@@ -112,9 +116,9 @@
     }
   },
   "validation": {
-    "status": "draft",
-    "date": null,
-    "notes": "Awaiting science review. Facts and their statuses from docs/science/pillars.md."
+    "status": "approved",
+    "date": "2026-11-17",
+    "notes": "Accepted with caveats by science review: the label year is the observation year (2014); released 2015-01-05. docs/science/pillars.md, Validation."
   },
   "mock": false
 }

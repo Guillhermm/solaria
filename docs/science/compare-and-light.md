@@ -24,6 +24,9 @@ end), `assumption`, `unverified`. Sources at the end, numbered [n].
   left pillar heated and flying away; Eos reports a jet stretched more than 96 billion
   km at over 700,000 km/h. `verified` [2] for the fragment, `supported` [4] for the
   numbers (secondary source; find the paper before quoting them).
+  Superseded 2026-11-17: the fragment is described in the 2014 image only, and the reported jet
+  growth (about 0.32″) equals the registration limit of the pair, so the app shows no change
+  claim (`docs/science/pillars.md`, Validation).
 - **Wrong conclusions to prevent**: sharper detail read as change (it is the camera);
   the missing-corner "staircase" of the 1995 frame read as structure (it is the WFPC2
   detector layout) `supported` [5]; the pillars "evaporating visibly" across the whole

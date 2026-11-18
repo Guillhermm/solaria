@@ -269,6 +269,14 @@ describe("pairs and band sets", () => {
     ]);
     expect(run("pair", (g) => delete g.headline)).toEqual(["data/pairs/demo-pair.json: headline: missing"]);
   });
+  it("accept pair caveats and an alignment line, and refuse empty ones", () => {
+    expect(run("pair", (g) => {
+      g.caveats = ["Aligned to about 0.1 arcsecond."];
+      g.alignment = "Alignment: about 0.1 arcsecond.";
+    })).toEqual([]);
+    expect(run("pair", (g) => (g.alignment = ""))[0]).toContain("alignment: expected a non-empty string");
+    expect(run("pair", (g) => (g.caveats = [""]))[0]).toContain("caveats[0]: expected a non-empty string");
+  });
   it("need a full and a short label for each image", () => {
     expect(run("pair", (g) => g.labels.pop())[0]).toContain("labels: expected two labels, in imageIds order");
     expect(run("pair", (g) => (g.labels[1].short = "")))

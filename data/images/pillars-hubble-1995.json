@@ -25,16 +25,16 @@
   "bands": {
     "value": [
       {
-        "id": "[O III]"
+        "id": "F502N"
       },
       {
-        "id": "H-alpha"
+        "id": "F656N"
       },
       {
-        "id": "[S II]"
+        "id": "F673N"
       }
     ],
-    "source": "https://esahubble.org/images/opo9544a/",
+    "source": "https://articles.adsabs.harvard.edu/pdf/1996AJ....111.2349H",
     "status": "supported"
   },
   "colorMapping": {
@@ -42,15 +42,15 @@
       "kind": "per-band",
       "entries": [
         {
-          "bandId": "[O III]",
+          "bandId": "F502N",
           "color": "blue"
         },
         {
-          "bandId": "H-alpha",
+          "bandId": "F656N",
           "color": "green"
         },
         {
-          "bandId": "[S II]",
+          "bandId": "F673N",
           "color": "red"
         }
       ]
@@ -65,8 +65,8 @@
   },
   "productType": {
     "value": "mosaic",
-    "source": "docs/science/pillars.md",
-    "status": "supported"
+    "source": "https://articles.adsabs.harvard.edu/pdf/1996AJ....111.2349H",
+    "status": "verified"
   },
   "observedAt": {
     "value": {
@@ -95,7 +95,10 @@
     "status": "verified"
   },
   "caveats": [
-    "The stepped empty corner is the layout of the camera's four detectors, not a feature of the nebula."
+    "The stepped empty corner is the layout of the camera's four detectors, not a feature of the nebula.",
+    "Around the bright star in the lower left, the straight vertical streak and the small ring above it are camera effects (charge spilling along a detector column and a reflection inside the camera), not gas. A thin straight line in the sky right of the left pillar is also a camera blemish.",
+    "Star spikes come from the telescope's support struts; they point in slightly different directions in the two images because the telescope was turned differently.",
+    "Colors are assigned, not seen by eye."
   ],
   "footprint": [
     [
@@ -151,9 +154,9 @@
     }
   },
   "validation": {
-    "status": "draft",
-    "date": null,
-    "notes": "Awaiting science review. Facts and their statuses from docs/science/pillars.md."
+    "status": "approved",
+    "date": "2026-11-17",
+    "notes": "Accepted with caveats by science review: filters from Hester et al. 1996, AJ 111, 2349, section 2; camera-artifact caveats added. docs/science/pillars.md, Validation."
   },
   "mock": false
 }
