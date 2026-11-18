@@ -136,7 +136,7 @@
 .bar {
   display: grid;
   gap: var(--space-2);
-  max-width: 46rem;
+  width: min(46rem, 100%);
   padding: var(--space-2) var(--space-3);
   pointer-events: auto;
 }
@@ -185,11 +185,16 @@
 }
 
 .headline {
-  flex: 1 1 12rem;
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
   font-size: 0.875rem;
   line-height: 1.35;
   color: var(--text);
+}
+
+.whatButton {
+  margin-inline-start: auto;
 }
 
 .chips {
@@ -301,11 +306,13 @@
 }
 
 /* "What differs?" (design.md 5.6): a popover over the image, clear of the bar. */
+/* Desktop: above the bar, by its measured top edge (CompareBar sets --bar-above), and below
+   the top bar. */
 .note {
   position: fixed;
-  inset: auto auto calc(var(--note-bottom, 10rem) + env(safe-area-inset-bottom, 0rem)) 50%;
+  inset: auto auto calc(var(--bar-above, 10rem) + var(--space-2)) 50%;
   width: min(34rem, calc(100vw - 2 * var(--space-4)));
-  max-height: min(60dvh, 30rem);
+  max-height: min(30rem, calc(100dvh - var(--bar-above, 10rem) - var(--space-2) - var(--below-bar, 5.5rem)));
   margin: 0;
   padding: var(--space-3) var(--space-4) var(--space-4);
   overflow: auto;
@@ -373,9 +380,33 @@
   color: var(--text-2);
 }
 
+/* Reading text over a busy image, and over the sheet on a phone: an opaque surface, not glass. */
+.note.glass {
+  background: var(--surface);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* A scrolling note fades at the bottom edge until it reaches the end. A mask would also fade
+   the note's own surface and let what is under it show through, so the fade is drawn in the
+   surface color, stuck to the bottom edge of the scroll area. */
+.note[data-more]::after {
+  content: "";
+  position: sticky;
+  bottom: calc(-1 * var(--space-4));
+  display: block;
+  height: 1.5rem;
+  margin: -1.5rem calc(-1 * var(--space-4)) calc(-1 * var(--space-4));
+  background: linear-gradient(to bottom, transparent, var(--surface));
+  pointer-events: none;
+}
+
+/* Narrower screens: the bar sits under the top bar, so the note opens below it
+   (CompareBar sets --bar-below) and may cover the sheet while open. */
 @media (max-width: 63.99rem) {
   .note {
-    inset: calc(var(--note-top, 9rem) + env(safe-area-inset-top, 0rem)) auto auto 50%;
+    inset: calc(var(--bar-below, 9rem) + var(--space-2)) auto auto 50%;
+    max-height: calc(100dvh - var(--bar-below, 9rem) - var(--space-2) - var(--edge, 0.75rem) - env(safe-area-inset-bottom, 0rem));
   }
 }
 

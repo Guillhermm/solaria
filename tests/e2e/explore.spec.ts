@@ -220,7 +220,11 @@ test.describe("phone, 390 px wide", () => {
     await ready(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
     for (const name of ["Back to home", "Share this view", "Zoom in", "Zoom out", "Reset view", "About this image"]) {
-      const target = page.getByRole(name === "Back to home" ? "link" : "button", { name, exact: true });
+      // The back link names the image it leaves: "Back to home from <title>".
+      const target =
+        name === "Back to home"
+          ? page.getByRole("link", { name: /^Back to home from Andromeda Galaxy/ })
+          : page.getByRole("button", { name, exact: true });
       const box = (await target.boundingBox())!;
       expect(box.x).toBeGreaterThanOrEqual(0);
       expect(box.x + box.width).toBeLessThanOrEqual(390);

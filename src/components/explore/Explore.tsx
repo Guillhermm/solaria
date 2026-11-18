@@ -866,7 +866,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS }: Explor
 
       <header className={styles.topbar}>
         <div className={`${styles.bar} ${styles.glass} ${styles.fade}`}>
-          <Link href="/" className={styles.iconButton} aria-label="Back to home">
+          <Link href="/" className={styles.iconButton} aria-label={`Back to home from ${image.title}`}>
             <LuArrowLeft aria-hidden />
           </Link>
           <Link href="/" className={styles.wordmark}>

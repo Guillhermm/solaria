@@ -285,8 +285,10 @@ Where the build differs from sections 1 to 4, and why. Each was the simpler work
 - **Blink** hides each image in turn every 800 ms, has Pause and Swap (WCAG 2.2.2), and never
   blinks on its own under reduced motion (Swap only).
 - **End-to-end build.** Playwright builds with `SOLARIA_CONTENT=development`, which loads the
-  mock content and keeps the mock tiles, so the suite runs Compare on the mock pair. A plain
-  `npm run build` is unchanged and stays behind the gate.
+  mock content and keeps the mock tiles, then moves the output to `out-e2e/`
+  (`scripts/e2e-output.ts`, ignored by git) and serves it from there, so `out/` never holds
+  mock content for a deploy or an R2 sync. A plain `npm run build` is unchanged and stays
+  behind the gate.
 - **The mock pair** is drawn at 4096 x 2048 (scene units times 4) so OpenSeadragon's
   `maxZoomPixelRatio` of 1.1 still lets a viewer zoom past the fit.
 - **Staged content.** The Hubble pair, its images and sources are draft, and the gate fails a
@@ -311,3 +313,8 @@ Where the build differs from sections 1 to 4, and why. Each was the simpler work
   `data/` and ship in production. A pair may carry `caveats` (shown first in the note) and
   `alignment`, a short line shown under the divider handle on hover and focus and read as
   the slider's description.
+- **The note's place.** The compare bar measures its own edges with a `ResizeObserver` and
+  hands them to the note as `--bar-above` and `--bar-below`: on desktop the note opens a
+  `--space-2` gap above the bar, below 64rem the same gap below it, its height capped to the
+  room left. The note is an opaque surface; while it has more to scroll, a 1.5rem fade in that
+  surface color sits at its bottom edge.

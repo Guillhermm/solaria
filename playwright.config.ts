@@ -7,7 +7,8 @@ export default defineConfig({
   testDir: "tests/e2e",
   use: { baseURL: ORIGIN },
   webServer: {
-    command: `npm run build && npx tsx scripts/serve-static.ts out ${PORT}`,
+    // It moves to out-e2e/ (scripts/e2e-output.ts), so out/ never holds mock content.
+    command: `npm run build && npx tsx scripts/e2e-output.ts && npx tsx scripts/serve-static.ts out-e2e ${PORT}`,
     url: ORIGIN,
     reuseExistingServer: false,
     timeout: 300_000,

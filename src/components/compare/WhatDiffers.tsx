@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useEffect, useId, useRef } from "react";
 import { LuX } from "react-icons/lu";
 import type { Difference } from "@/content/types";
 import styles from "./Compare.module.css";
@@ -27,12 +27,28 @@ const NAMES: Record<Difference, string> = {
 const WhatDiffers = ({ note, differs, caveats, draft }: WhatDiffersProps) => {
   const id = useId();
   const changed = (Object.keys(NAMES) as Difference[]).filter((k) => differs[k]);
+  const noteRef = useRef<HTMLDivElement>(null);
+
+  // A note taller than its room scrolls; a fade at the bottom edge says so until the end.
+  useEffect(() => {
+    const note = noteRef.current;
+    if (!note) return;
+    const check = () => note.toggleAttribute("data-more", note.scrollTop + note.clientHeight < note.scrollHeight - 1);
+    note.addEventListener("toggle", check);
+    note.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+    return () => {
+      note.removeEventListener("toggle", check);
+      note.removeEventListener("scroll", check);
+      window.removeEventListener("resize", check);
+    };
+  }, []);
   return (
     <>
-      <button type="button" className={styles.textButton} popoverTarget={id} aria-haspopup="dialog">
+      <button type="button" className={`${styles.textButton} ${styles.whatButton}`} popoverTarget={id} aria-haspopup="dialog">
         What differs?
       </button>
-      <div id={id} popover="auto" role="dialog" aria-labelledby={`${id}-title`} className={`${styles.note} ${styles.glass}`} data-testid="what-differs">
+      <div ref={noteRef} id={id} popover="auto" role="dialog" aria-labelledby={`${id}-title`} className={`${styles.note} ${styles.glass}`} data-testid="what-differs">
         <div className={styles.noteHead}>
           <h2 id={`${id}-title`} className={styles.noteTitle}>
             What differs?

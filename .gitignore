@@ -16,6 +16,7 @@
 # next.js
 /.next/
 /out/
+/out-e2e/
 
 # production
 /build

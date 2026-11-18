@@ -358,3 +358,60 @@ test.describe("the Hubble 1995 and 2014 pair", () => {
     await expect(credits.nth(1)).toContainText(`Right, ${right.short}: `);
   });
 });
+
+// The note opens next to the compare bar, never over it, in every layout and on a phone.
+test.describe("the note and the bar", () => {
+  const GAP = 8; // var(--space-2)
+  const openNote = async (page: Page) => {
+    await page.getByRole("button", { name: "What differs?" }).click();
+    const note = page.getByRole("dialog", { name: /What differs\?/ });
+    await expect(note).toBeVisible();
+    await page.waitForTimeout(100);
+    return { bar: (await page.getByTestId("compare-bar").boundingBox())!, note: (await note.boundingBox())! };
+  };
+
+  for (const layout of ["wipe", "blink", "side"] as const) {
+    test(`desktop ${layout}: the note sits a small gap above the bar`, async ({ page }) => {
+      await page.setViewportSize({ width: 1280, height: 800 });
+      await page.goto(`/pillars-hubble-2014/?mode=compare&layout=${layout}`);
+      await ready(page);
+      const { bar, note } = await openNote(page);
+      expect(Math.abs(bar.y - (note.y + note.height) - GAP)).toBeLessThanOrEqual(1);
+      expect(note.y).toBeGreaterThan(0);
+    });
+  }
+
+  test("desktop: the bar fits on one row, What differs? at its end", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/pillars-hubble-2014/?mode=compare");
+    await ready(page);
+    const wipe = (await page.getByRole("button", { name: "Wipe" }).boundingBox())!;
+    const what = (await page.getByRole("button", { name: "What differs?" }).boundingBox())!;
+    const bar = (await page.getByTestId("compare-bar").boundingBox())!;
+    expect(Math.abs(what.y + what.height / 2 - (wipe.y + wipe.height / 2))).toBeLessThanOrEqual(1);
+    expect(bar.x + bar.width - (what.x + what.width)).toBeLessThan(20);
+  });
+
+  test.describe("phone", () => {
+    test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+
+    test("the chips show with the note closed; the note opens below the bar, fits the screen and fades while it has more", async ({ page }) => {
+      await page.goto("/pillars-hubble-2014/?mode=compare");
+      await ready(page);
+      await expect(page.getByText("Left: 2014")).toBeVisible();
+      await expect(page.getByText("Right: 1995")).toBeVisible();
+      const { bar, note } = await openNote(page);
+      expect(Math.abs(note.y - (bar.y + bar.height) - GAP)).toBeLessThanOrEqual(1);
+      expect(note.y + note.height).toBeLessThanOrEqual(844 - 12 + 1);
+      const dialog = page.getByRole("dialog", { name: /What differs\?/ });
+      const scrolls = await dialog.evaluate((el) => el.scrollHeight > el.clientHeight);
+      expect(await dialog.evaluate((el) => el.hasAttribute("data-more"))).toBe(scrolls);
+      if (scrolls) {
+        await dialog.evaluate((el) => el.scrollTo(0, el.scrollHeight));
+        await expect(dialog).not.toHaveAttribute("data-more");
+      }
+      await page.keyboard.press("Escape");
+      await expect(dialog).toBeHidden();
+    });
+  });
+});
