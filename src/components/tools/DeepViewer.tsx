@@ -36,6 +36,8 @@ const DeepViewer = ({ title, image, tileBaseUrl }: DeepViewerProps) => {
 
     import("openseadragon").then(({ default: OSD }) => {
       if (cancelled) return;
+      // OpenSeadragon draws the minimap itself, so hand it the token values.
+      const token = (name: string) => getComputedStyle(element).getPropertyValue(name).trim();
       viewer = OSD({
         element,
         tileSources: tileSource(image, tileBaseUrl),
@@ -49,7 +51,9 @@ const DeepViewer = ({ title, image, tileBaseUrl }: DeepViewerProps) => {
         navigatorPosition: "BOTTOM_RIGHT",
         navigatorSizeRatio: 0.2,
         navigatorMaintainSizeRatio: false,
-        navigatorBackground: "#000",
+        navigatorBackground: token("--viewer-canvas"),
+        navigatorBorderColor: token("--hairline"),
+        navigatorDisplayRegionColor: token("--marker"),
         navigatorOpacity: 0.8,
       });
       viewerRef.current = viewer;

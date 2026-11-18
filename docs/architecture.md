@@ -59,7 +59,7 @@ What breaks, from the official upgrade and static export guides, read against th
 | Sync `params` removed | `api/image/[id]` already awaits `params`; the route is deleted in D-05 anyway | none |
 | `next dev` writes to `.next/dev` | none, `.next/` is ignored | none |
 | `output: 'export'`: route handlers that read the request, dynamic routes without `generateStaticParams` | `/api/images` and `/api/image/[id]` | delete both (D-05) |
-| `output: 'export'`: default image loader unsupported | `Header.tsx` uses `next/image` | `images: { unoptimized: true }` |
+| `output: 'export'`: default image loader unsupported | `Header.tsx` used `next/image` for a logo (removed in V-03) | `images: { unoptimized: true }` |
 | `output: 'export'`: `next start` does not serve the export | `npm start` and the Playwright `webServer` both call `next start` | `scripts/serve-static.ts` (see below) |
 
 B-08 is the upgrade alone, on the current server build, so the audit and CI go green

@@ -26,13 +26,14 @@ in [docs/science/](docs/science/).
   Dark by default; the light theme follows the system setting until the header toggle
   stores a choice. `public/theme-init.js` applies it before the first paint. A unit test
   checks the token pairs against WCAG 2.2 AA contrast. Components style themselves with
-  CSS Modules next to them; there is no CSS framework.
+  CSS Modules next to them; there is no CSS framework. The footer prints each image's
+  credit line unaltered from its source record.
 - Unit and integration tests (Vitest) and end-to-end tests (Playwright).
 
 ## Planned
 
 Journeys with story mode, a viewer page per image with shareable URLs, tiles served from
-R2, a new visual design, and Compare and Light modes once a pair or band set
+R2, the rest of the new design (viewer page, Home, Journeys), and Compare and Light modes once a pair or band set
 is validated. See the roadmap for order and status.
 
 ## Run it
