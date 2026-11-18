@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CORS_ORIGINS, contentType, corsXml, listLocal, parseListing, planSync, readEnv, runCreateBucket, runSync, signRequest, type LocalFile } from "./sync-r2";
+import { contentType, listLocal, parseListing, planSync, readEnv, runSync, signRequest, type LocalFile } from "./sync-r2";
 
 const EMPTY = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 
@@ -230,60 +230,5 @@ describe("runSync with a mocked fetch", () => {
     await expect(runSync({ dir: tree(files), apply: false, env: { ...ENV, R2_ACCOUNT_ID: "nope" }, deps: h.deps })).rejects.toThrow("R2_ACCOUNT_ID");
     await expect(runSync({ dir: tree(files), apply: false, env: { ...ENV, R2_BUCKET: "A/b" }, deps: h.deps })).rejects.toThrow("R2_BUCKET");
     expect(h.fetchMock).not.toHaveBeenCalled();
-  });
-});
-
-describe("runCreateBucket with a mocked fetch", () => {
-  const make = (headStatus: number) => {
-    const lines: string[] = [];
-    const calls: { method: string; url: string; headers: Record<string, string>; body?: string }[] = [];
-    const fetchMock = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
-      const method = init?.method ?? "GET";
-      const body = init?.body ? Buffer.from(init.body as Uint8Array).toString() : undefined;
-      calls.push({ method, url: String(url), headers: (init?.headers ?? {}) as Record<string, string>, body });
-      return new Response("", { status: method === "HEAD" ? headStatus : 200 });
-    });
-    return { lines, calls, deps: { fetch: fetchMock as unknown as typeof fetch, now: () => new Date("2026-11-17T22:00:00Z"), log: (l: string) => lines.push(l) } };
-  };
-
-  it("leaves an existing bucket untouched, even with --apply", async () => {
-    const h = make(200);
-    expect(await runCreateBucket({ apply: true, env: ENV, deps: h.deps })).toBe(0);
-    expect(h.calls.map((c) => c.method)).toEqual(["HEAD"]);
-    expect(h.lines.join("\n")).toContain("already exists; nothing was changed");
-  });
-
-  it("dry run only checks the bucket", async () => {
-    const h = make(404);
-    expect(await runCreateBucket({ apply: false, env: ENV, deps: h.deps })).toBe(0);
-    expect(h.calls.map((c) => c.method)).toEqual(["HEAD"]);
-    expect(h.lines.join("\n")).toContain("Dry run");
-  });
-
-  it("creates a missing bucket, then sets a read-only CORS rule with its MD5", async () => {
-    const h = make(404);
-    expect(await runCreateBucket({ apply: true, env: ENV, deps: h.deps })).toBe(0);
-    expect(h.calls.map((c) => c.method)).toEqual(["HEAD", "PUT", "PUT"]);
-    const base = `https://${ENV.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${ENV.R2_BUCKET}`;
-    expect(h.calls[1].url).toBe(base);
-    expect(h.calls[2].url).toBe(`${base}?cors=`);
-    const xml = corsXml(CORS_ORIGINS);
-    expect(h.calls[2].body).toBe(xml);
-    expect(h.calls[2].headers["content-md5"]).toBe(createHash("md5").update(xml).digest("base64"));
-    expect(xml).not.toMatch(/PUT|POST|DELETE/);
-    for (const c of h.calls) expect(c.headers.authorization).toMatch(/^AWS4-HMAC-SHA256 /);
-  });
-
-  it("stops on a denied check and never logs a credential", async () => {
-    const h = make(403);
-    await expect(runCreateBucket({ apply: true, env: ENV, deps: h.deps })).rejects.toThrow("HTTP 403");
-    expect(h.calls.map((c) => c.method)).toEqual(["HEAD"]);
-    for (const v of [ENV.R2_SECRET_ACCESS_KEY, ENV.R2_ACCESS_KEY_ID, ENV.R2_ACCOUNT_ID]) expect(h.lines.join("\n")).not.toContain(v);
-  });
-
-  it("names the missing variables and sends nothing", async () => {
-    const h = make(404);
-    expect(await runCreateBucket({ apply: true, env: { R2_BUCKET: "b" }, deps: h.deps })).toBe(1);
-    expect(h.calls).toHaveLength(0);
   });
 });
