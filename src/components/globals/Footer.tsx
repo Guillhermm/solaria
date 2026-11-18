@@ -10,7 +10,7 @@ const pages = [
 ];
 
 const external = [
-  { href: "https://github.com/Guillhermm/nasa-2025-solaria", label: "Source code" },
+  { href: "https://github.com/Guillhermm/solaria", label: "Source code" },
   { href: "https://www.spaceappschallenge.org/2025/find-a-team/solaria4/", label: "Space Apps entry" },
 ];
 

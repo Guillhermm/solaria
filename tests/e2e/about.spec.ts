@@ -85,3 +85,13 @@ test("sources that share a credit line share one entry, the credit printed once"
   const entry = page.locator("#credits dl", { hasText: sdo });
   await expect(entry.locator(":scope > div", { has: page.locator('dt:text-is("Title")') }).locator("dd")).toHaveCount(7);
 });
+
+test("source links point at the current repository and name the archived one", async ({ page }) => {
+  await page.goto("/about/");
+  const section = page.locator("section", { has: page.getByRole("heading", { name: "Contact and source code" }) });
+  await expect(section.locator('a[href="https://github.com/Guillhermm/solaria"]')).toHaveCount(1);
+  await expect(section.locator('a[href="https://github.com/Guillhermm/solaria/issues"]')).toHaveCount(1);
+  await expect(section.getByText("The original Space Apps 2025 code is archived, read-only:")).toBeVisible();
+  await expect(section.locator('a[href="https://github.com/Guillhermm/nasa-2025-solaria"]')).toHaveCount(1);
+  await expect(page.getByRole("contentinfo").getByRole("link", { name: /Source code/ })).toHaveAttribute("href", "https://github.com/Guillhermm/solaria");
+});

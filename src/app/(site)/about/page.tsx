@@ -7,7 +7,8 @@ import styles from "./page.module.css";
 
 export const metadata: Metadata = { title: "About | Solaria" };
 
-const REPO = "https://github.com/Guillhermm/nasa-2025-solaria";
+const REPO = "https://github.com/Guillhermm/solaria";
+const ARCHIVED_REPO = "https://github.com/Guillhermm/nasa-2025-solaria";
 const TEAM = "https://www.spaceappschallenge.org/2025/find-a-team/solaria4/";
 
 const External = ({ href, children }: { href: string; children: ReactNode }) => (
@@ -206,6 +207,10 @@ const About = () => {
         </p>
         <p>
           To report a problem or ask a question, <External href={`${REPO}/issues`}>open an issue there</External>.
+        </p>
+        <p>
+          The original Space Apps 2025 code is archived, read-only:{" "}
+          <External href={ARCHIVED_REPO}>{ARCHIVED_REPO}</External>
         </p>
         <p>
           The team page for the Space Apps entry: <External href={TEAM}>{TEAM}</External>

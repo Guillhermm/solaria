@@ -4,8 +4,8 @@ Solaria is a web app for exploring very large NASA images in the browser. It beg
 entry to the NASA Space Apps Challenge 2025 ("Embiggen Your Eyes!") and is being relaunched
 as a guided, shareable way to zoom into one giant image at a time. The original challenge
 repository is archived, read-only, at
-[Guillhermm/nasa-2025-solaria](https://github.com/Guillhermm/nasa-2025-solaria); this one
-carries its full history forward. The plan is in
+[Guillhermm/nasa-2025-solaria](https://github.com/Guillhermm/nasa-2025-solaria); this one,
+[Guillhermm/solaria](https://github.com/Guillhermm/solaria), carries its full history forward. The plan is in
 [docs/vision.md](docs/vision.md), the design direction in [docs/design.md](docs/design.md),
 the work items in [docs/roadmap.md](docs/roadmap.md) and the checked facts about the images
 in [docs/science/](docs/science/).
