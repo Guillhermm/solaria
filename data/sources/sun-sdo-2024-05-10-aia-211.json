@@ -4,7 +4,7 @@
   "pageUrl": "https://sdo.gsfc.nasa.gov/data/rules.php",
   "fileUrl": "https://api.helioviewer.org/v2/downloadImage/?id=156611895&type=jpg",
   "releaseId": null,
-  "releasedAt": "2024-05-10",
+  "releasedAt": null,
   "credit": "Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams.",
   "terms": {
     "name": "SDO data and image rules of the road",
@@ -19,9 +19,9 @@
     "height": 4096
   },
   "validation": {
-    "status": "draft",
-    "date": null,
-    "notes": "Draft for science review (G-02). Facts and their status: docs/science/sun-sdo.md."
+    "status": "approved",
+    "date": "2026-11-17",
+    "notes": "Science check passed 2026-11-17; the record and every claim's status are in docs/science/sun-sdo.md."
   },
   "mock": false
 }

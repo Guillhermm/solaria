@@ -7,20 +7,20 @@
       "name": "Sun",
       "type": "star"
     },
-    "source": "docs/science/sun-sdo.md#1",
-    "status": "unverified"
+    "source": "docs/science/sun-sdo.md#5",
+    "status": "verified"
   },
   "observatory": {
     "value": "SDO",
-    "source": "docs/science/sun-sdo.md#1",
-    "status": "unverified"
+    "source": "docs/science/sun-sdo.md#5",
+    "status": "verified"
   },
   "instruments": {
     "value": [
       "AIA"
     ],
-    "source": "docs/science/sun-sdo.md#1",
-    "status": "unverified"
+    "source": "docs/science/sun-sdo.md#5",
+    "status": "verified"
   },
   "bands": {
     "value": [
@@ -29,50 +29,47 @@
         "wavelength": {
           "value": 94,
           "unit": "Å"
-        }
+        },
+        "region": "extreme ultraviolet",
+        "shows": "Mostly flaring regions of the corona, light from Fe XVIII, log T 6.8 (about 6.3 million K). Green is an assigned color on a single-band image."
       }
     ],
-    "source": "docs/science/sun-sdo.md#1",
-    "status": "unverified"
+    "source": "docs/science/sun-sdo.md#6",
+    "status": "verified"
   },
   "colorMapping": {
     "value": {
       "kind": "standard-colortable",
       "name": "SDO_AIA_94"
     },
-    "source": "docs/science/sun-sdo.md#2",
-    "status": "unverified"
-  },
-  "releasedAt": {
-    "value": "2024-05-10",
     "source": "docs/science/sun-sdo.md#5",
-    "status": "unverified"
+    "status": "verified"
   },
   "productType": {
     "value": "single exposure",
-    "source": "docs/science/sun-sdo.md#1",
-    "status": "unverified"
+    "source": "docs/science/sun-sdo.md#5",
+    "status": "supported"
   },
   "observedAt": {
     "value": {
       "start": "2024-05-10",
       "end": "2024-05-10"
     },
-    "source": "docs/science/sun-sdo.md#1",
-    "status": "unverified"
+    "source": "docs/science/sun-sdo.md#5",
+    "status": "verified"
   },
   "pixelScale": {
     "value": {
       "value": 0.6,
       "unit": "arcsec/px"
     },
-    "source": "docs/science/sun-sdo.md#3",
-    "status": "unverified"
+    "source": "docs/science/sun-sdo.md#5",
+    "status": "verified"
   },
   "orientation": {
     "value": "Solar north up, west right",
-    "source": "docs/science/sun-sdo.md#3",
-    "status": "unverified"
+    "source": "docs/science/sun-sdo.md#5",
+    "status": "verified"
   },
   "tiles": {
     "format": "jpg",
@@ -92,9 +89,9 @@
     }
   },
   "validation": {
-    "status": "draft",
-    "date": null,
-    "notes": "Draft for science review (G-02). Facts and their status: docs/science/sun-sdo.md."
+    "status": "approved",
+    "date": "2026-11-17",
+    "notes": "Science check passed 2026-11-17; the record and every claim's status are in docs/science/sun-sdo.md."
   },
   "mock": false
 }

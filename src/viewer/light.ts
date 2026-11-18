@@ -30,6 +30,26 @@ export const lightParams = (state: LightState, opts: LightOptions): [string, str
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
+// Opacity of each band while `from` fades to `to` (any two bands, t from 0 to 1). Bands stack
+// in rail order, so the one lower in the stack stays opaque and the upper one carries the
+// fade: in at t when it is the target, out at 1 - t when it is the band being left. Either way
+// the screen shows (1 - t) from + t to.
+export const blend = (from: number, to: number, t: number, count: number): number[] => {
+  const k = clamp(t, 0, 1);
+  if (from === to || k === 1) return Array.from({ length: count }, (_, i) => (i === to ? 1 : 0));
+  const upper = Math.max(from, to);
+  const lower = Math.min(from, to);
+  const top = upper === to ? k : 1 - k;
+  return Array.from({ length: count }, (_, i) => (i === lower ? 1 : i === upper ? top : 0));
+};
+
+// The band a Journey stop shows: its own, or the last one an earlier stop picked (design: a stop
+// without a band keeps the current one), or the rail's first. -1 entries are stops without one.
+export const stopBand = (bands: readonly number[], stop: number) => {
+  for (let i = Math.min(stop, bands.length - 1); i >= 0; i--) if (bands[i] >= 0) return bands[i];
+  return 0;
+};
+
 // Opacity of each band at a rail position between 0 and count - 1. The lower band of the pair
 // stays opaque and the upper one fades in over it, so the screen shows (1 - t) A + t B. Every
 // other band is at zero, which OpenSeadragon skips for drawing and loading.

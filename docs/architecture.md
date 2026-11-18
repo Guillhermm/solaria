@@ -175,7 +175,7 @@ export interface Source {
   pageUrl: string; // the page the credit was copied from
   fileUrl: string; // direct download of the original
   releaseId: string | null; // e.g. "heic2501a"
-  releasedAt: IsoDate;
+  releasedAt: IsoDate | null; // null when no source states a release (Sprint 8)
   credit: string; // unaltered from pageUrl
   terms: { name: string; url: string };
   retrievedAt: IsoDate;
@@ -196,6 +196,7 @@ export interface Band {
   wavelength?: { value: number; unit: "Å" | "nm" | "µm" };
   kind?: "line" | "continuum" | "broadband";
   region?: string; // e.g. "extreme ultraviolet", read on the Light rail; Sprint 8
+  shows?: string; // the band's validated note, under the rail; Sprint 8
 }
 
 // Never empty: an absent mapping would read as natural color.
@@ -228,7 +229,7 @@ export interface ImageManifest {
   instruments: Claim<string[]>; // mosaics may combine cameras
   bands: Claim<Band[]>;
   colorMapping: Claim<ColorMapping>;
-  releasedAt: Claim<IsoDate>;
+  releasedAt?: Claim<IsoDate>; // optional since Sprint 8: absent when no source gives one
   productType: Claim<ProductType>;
   // Optional: absent means the app says nothing about it.
   // Both ends days, or both months when the source gives no day.
@@ -257,6 +258,7 @@ export interface Stop {
   body: string; // plain text; blank lines separate paragraphs; rendered as text nodes
   viewport: Viewport;
   marker?: { x: number; y: number; r: number }; // image pixels
+  band?: string; // Sprint 8: an image id of the Journey's band set; absent keeps the current band
   sources: { label: string; url: string }[]; // at least one
   validation: Validation;
 }
@@ -264,6 +266,7 @@ export interface Stop {
 export interface Journey {
   slug: string; // file name and URL segment
   imageId: string;
+  bandSetId?: string; // Sprint 8: a band set whose first image is imageId
   title: string;
   summary: string;
   stops: Stop[];
@@ -587,17 +590,36 @@ Light reuses the Compare layer pattern (`docs/architecture-compare.md`, sections
   default. `x`, `y` and `z` are in the first band's pixels, the same for every band.
 - **Drawer.** Light pages use the canvas drawer, as Compare pages do.
 
-### The Sun from SDO (G-02)
+### The Sun from SDO (G-02 to G-04)
 
 - Seven Helioviewer JPEGs (4096 x 4096, one per channel, within 30.4 s of 2024-05-10 12:00
-  UTC) are staged drafts in `data/staging/` (`sun-sdo-2024-05-10-*`), with the band set
-  `sun-sdo-2024-05-10` in rail order 94, 171, 193, 211, 304, 1700 and 6173 Å. Sources, frame,
-  scale, orientation and credit: `docs/science/sun-sdo.md`.
-- `registration` "none" now carries the residual a check measured and optional `notes`
-  (synthetic sets keep 0). The SDO set records the limb and sunspot check: 2.05 px RMS.
-- `whatDiffers` may be empty in a draft; the gate refuses to publish a pair or band set
-  whose note is empty. The Light bar offers "What differs?" only when there is a note.
-- Tiles, measured: 2,422 files, 22.9 MB of JPEG (27.2 MB on disk), 2.8 to 6.2 MB per channel
-  (94 Å the heaviest, HMI the lightest). Committed, like the Hubble pair; staged tile trees stay
-  out of `out/` and the bucket until the records move to `data/`.
+  UTC) and the band set `sun-sdo-2024-05-10` (rail order 94, 171, 193, 211, 304, 1700 and
+  6173 Å) are approved and live in `data/`. Record: `docs/science/sun-sdo.md`.
+- `registration` "none" carries the residual a check measured and optional `notes` (synthetic
+  sets keep 0). The SDO set records one grid: limb centers within 3.5 px, 2.05 px RMS on
+  sunspots.
+- `whatDiffers` may be empty in a draft; the gate refuses to publish a pair or band set whose
+  note is empty. The Light bar offers "What differs?" only when there is a note.
+- Each band carries its `region` and its `shows` note; the bar shows the nearest band's note as
+  "Shows ...", and names the region under the current stop only.
+- `releasedAt` is null on a source and absent on an image when no source gives a release
+  date; About then shows no release row, and the info panel no "Released" line.
+- Tiles, measured: 2,422 files, 22.9 MB of JPEG (27.2 MB on disk), 2.8 to 6.2 MB per channel.
 
+### Journeys through a band set (G-04)
+
+- A Journey names `bandSetId`; its `imageId` must be the set's first image. A stop's `band`
+  names one of the set's images; a stop without one keeps the band before it, and the first
+  stops without one show the rail's first band. The validator checks all three; the gate
+  refuses a Journey whose band set is not approved.
+- The page brings the set along, and the rail shows in Story and Explore alike. Arriving at a
+  stop with a band crossfades from the band on screen to it in 700 ms, alongside the camera
+  (`blend(from, to, t)` in `src/viewer/light.ts`: whichever of the two is lower in the stack
+  stays opaque and the upper one carries the fade, so bands that are not neighbors on the rail
+  mix directly). Under reduced motion it is a cut. Touching the rail stops the fade.
+- A link to a stop opens on that stop's band. The URL holds the stop, not the band.
+- Below the desktop width the bar sits under the top bar; its bottom edge is a top margin of
+  the view, so the fit and the stops frame what is below it. In Story on a phone the bar keeps
+  only the rail (the stop card carries the band's text).
+- Band-dependent text (the bar, the credit, About) renders once the viewer opens, so the
+  static HTML and the first client render agree whichever band a link asks for.

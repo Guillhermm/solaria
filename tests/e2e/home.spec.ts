@@ -164,18 +164,26 @@ test.describe("desktop", () => {
     expect(await page.evaluate(() => document.getAnimations().length)).toBe(0);
   });
 
-  test("the Journeys index lists the published Journey from its file", async ({ page }) => {
+  test("the Journeys index lists the published Journeys from their files", async ({ page }) => {
     await page.goto("/");
     const index = page.getByRole("region", { name: "Journeys" });
-    const row = index.getByRole("listitem");
-    await expect(row).toHaveCount(1);
+    const rows = index.getByRole("listitem");
+    await expect(rows).toHaveCount(2);
+    const sun = JSON.parse(readFileSync("data/journeys/sun.json", "utf8"));
+    const second = rows.nth(1);
+    await expect(second.getByRole("heading", { level: 3 })).toHaveText(sun.title);
+    await expect(second).toContainText(sun.summary);
+    await expect(second).toContainText("7 stops · Story, Explore · SDO");
+    await expect(second).toContainText("4 096 × 4 096 px");
+    await expect(second.getByRole("link", { name: `Begin ${sun.title}` })).toHaveAttribute("href", "/sun/");
+    const row = rows.nth(0);
     await expect(row.getByRole("heading", { level: 3 })).toHaveText(journey.title);
     await expect(row).toContainText(journey.summary);
     await expect(row).toContainText("7 stops · Story, Explore · Hubble");
     await expect(row).toContainText("42 208 × 9 870 px");
     await expect(row.getByRole("link", { name: `Begin ${journey.title}` })).toHaveAttribute("href", "/andromeda/");
-    await expect(index.getByRole("heading", { name: "More journeys will appear here" })).toBeVisible();
-    await expect(index.getByText(/Planned|Pillars|Mars|Sun/)).toHaveCount(0);
+    await expect(index.getByRole("heading", { name: "More journeys will appear here" })).toHaveCount(0);
+    await expect(index.getByText(/Planned|Pillars|Mars/)).toHaveCount(0);
     // design.md 6.4: the thumbnail keeps its true shape inside the slot.
     const shape = await row.locator("img").evaluate((el) => {
       const img = el as HTMLImageElement;

@@ -360,6 +360,53 @@ describe("pairs and band sets", () => {
         'data/band-sets/demo-bands.json: imageIds[2]: image "demo-c" is 500 x 150, expected 1000 x 300 like "demo" (registration "none" means one pixel grid)',
       ]);
     });
+    describe("a Journey through a band set", () => {
+      const tour = (f: ReturnType<typeof withSet>) => f.find((x) => x.path === "data/journeys/demo-tour.json")!.raw as ReturnType<typeof fx.journey>;
+      const banded = () => {
+        const f = withSet();
+        const j = tour(f);
+        j.bandSetId = "demo-bands";
+        j.stops[1].band = "demo-c";
+        j.stops[3].band = "demo-b";
+        return f;
+      };
+      it("keeps the set and each stop's band", () => {
+        const r = validateContent(banded());
+        expect(errorsOf(r)).toEqual([]);
+        const j = r.ok ? r.value.journeys[0] : undefined;
+        expect([j?.bandSetId, j?.stops.map((s) => s.band ?? null)]).toEqual(["demo-bands", [null, "demo-c", null, "demo-b", null]]);
+      });
+      it("refuses a band that is not in the set", () => {
+        const f = banded();
+        tour(f).stops[1].band = "demo-x";
+        expect(errorsOf(validateContent(f))).toEqual(['data/journeys/demo-tour.json: stops[1].band: "demo-x" is not an image of band set "demo-bands"']);
+      });
+      it("refuses an unknown set, and a Journey whose image is not the set's first", () => {
+        const f = banded();
+        tour(f).bandSetId = "nope";
+        expect(errorsOf(validateContent(f))).toEqual(['data/journeys/demo-tour.json: bandSetId: no band set "nope" in data/band-sets/']);
+        const g = banded();
+        tour(g).imageId = "demo-b";
+        expect(errorsOf(validateContent(g))).toEqual(['data/journeys/demo-tour.json: imageId: expected "demo", the first image of band set "demo-bands", got "demo-b"']);
+      });
+      it("refuses a stop band in a Journey without a set", () => {
+        const f = banded();
+        delete tour(f).bandSetId;
+        expect(errorsOf(validateContent(f))).toEqual(["data/journeys/demo-tour.json: stops[1].band: a stop can pick a band only in a Journey with a bandSetId", "data/journeys/demo-tour.json: stops[3].band: a stop can pick a band only in a Journey with a bandSetId"]);
+      });
+    });
+    it("read a band's region and note, and an image or source without a release", () => {
+      const f = withSet();
+      const c = imageIn(f, "demo-c");
+      c.bands.value = [{ id: "c", region: "infrared", shows: "Mostly dust." }];
+      delete c.releasedAt;
+      (f[0].raw as ReturnType<typeof fx.source>).releasedAt = null;
+      const r = validateContent(f);
+      expect(errorsOf(r)).toEqual([]);
+      const img = r.ok ? r.value.images.find((i) => i.id === "demo-c") : undefined;
+      expect([img?.bands.value[0].shows, img && "releasedAt" in img]).toEqual(["Mostly dust.", false]);
+      expect(r.ok && r.value.sources[0].releasedAt).toBeNull();
+    });
     it("read a band's region", () => {
       const f = withSet();
       imageIn(f, "demo-c").bands.value = [{ id: "c", wavelength: { value: 1, unit: "µm" }, region: "infrared" }];

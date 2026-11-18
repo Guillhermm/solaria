@@ -1,0 +1,34 @@
+{
+  "id": "sun-sdo-2024-05-10",
+  "title": "The Sun in seven SDO channels, 2024-05-10 12:00 UTC",
+  "imageIds": [
+    "sun-sdo-2024-05-10-aia-94",
+    "sun-sdo-2024-05-10-aia-171",
+    "sun-sdo-2024-05-10-aia-193",
+    "sun-sdo-2024-05-10-aia-211",
+    "sun-sdo-2024-05-10-aia-304",
+    "sun-sdo-2024-05-10-aia-1700",
+    "sun-sdo-2024-05-10-hmi-6173"
+  ],
+  "differs": {
+    "instrument": true,
+    "band": true,
+    "date": false,
+    "illumination": false,
+    "geometry": false,
+    "processing": false
+  },
+  "registration": {
+    "method": "shared grid, checked by limb fit and 15 sunspots",
+    "transform": "none",
+    "residualPx": 2.05,
+    "notes": "All seven channels on one grid: limb-fit centers within 3.5 px of (2048, 2048); HMI 6173 against AIA 1700, 15 sunspots give scale 1.00081, rotation 0.0157 degrees, RMS 2.05 px; no flip or roll."
+  },
+  "whatDiffers": "Stops run by wavelength, not by temperature or height: 304 Å is cooler than 171 Å. The seven frames were taken within about 30 seconds, around 12:00 UTC on 2024-05-10. In the extreme ultraviolet bands the glow reaches past the Sun's visible edge, because hot gas above the limb shines there too. Colors are assigned to the AIA bands. NOAA active region 13664 is on the disk, lower right.",
+  "validation": {
+    "status": "approved",
+    "date": "2026-11-17",
+    "notes": "Science check passed 2026-11-17; the record and every claim's status are in docs/science/sun-sdo.md."
+  },
+  "mock": false
+}

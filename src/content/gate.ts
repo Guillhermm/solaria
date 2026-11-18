@@ -40,6 +40,8 @@ export const publishProblems = (content: Content): string[] => {
       out.push(`${what}: has ${j.stops.length} stops, expected ${MIN_STOPS} to ${MAX_STOPS}`);
     }
     if (!approvedImages.has(j.imageId)) out.push(`${what}: image "${j.imageId}" is not approved`);
+    const set = j.bandSetId ? content.bandSets.find((b) => b.id === j.bandSetId) : undefined;
+    if (set && set.validation.status !== "approved") out.push(`${what}: band set "${set.id}" is not approved`);
     for (const s of j.stops) review(`${what} stop ${s.id}`, s.validation);
   }
   const groups = [

@@ -34,7 +34,7 @@ import type { CompareView } from "@/components/compare/types";
 import { type Opened, useCompareLayer } from "@/components/compare/useCompareLayer";
 import LightBar from "@/components/light/LightBar";
 import type { LightView } from "@/components/light/types";
-import { useLightLayer } from "@/components/light/useLightLayer";
+import { type Fade, useLightLayer } from "@/components/light/useLightLayer";
 import { tileSource } from "@/content/tiles";
 import type { ImageManifest, Journey, Viewport } from "@/content/types";
 import type { Info } from "@/viewer/info";
@@ -42,7 +42,7 @@ import { overviewHeightRem, shapeOf } from "@/viewer/overview";
 import { keyAction, zoomAnnouncement } from "@/viewer/keys";
 import { type SheetState, stepSheet } from "@/viewer/sheet";
 import { type CompareOptions, type CompareState, DEFAULT_SPLIT, type Layout, type Mode, LAYOUTS, parseCompareParams, parseViewerParams, serializeViewerParams } from "@/viewer/url";
-import { bandValueText, type LightOptions, type LightState, nearestStop, parseLightParams, wavelengthLabel } from "@/viewer/light";
+import { bandValueText, type LightOptions, type LightState, nearestStop, parseLightParams, stopBand, wavelengthLabel } from "@/viewer/light";
 import { sides } from "@/viewer/compare";
 import { dividerValueText } from "@/viewer/divider";
 import { reticleSide } from "@/viewer/route";
@@ -164,6 +164,8 @@ const PHONE_STORY_FRAME = 0.6;
 const PHONE = "(max-width: 40rem)";
 const RETICLE_REM = 5.5;
 const REDUCED = "(prefers-reduced-motion: reduce)";
+// A Journey stop that changes band crossfades over this long, alongside the camera's flight.
+const BAND_FADE_MS = 700;
 
 const NO_PAIRS: CompareView[] = [];
 const NO_SETS: LightView[] = [];
@@ -216,13 +218,23 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     if (typeof window === "undefined" || !pairIds) return DEFAULT_SPLIT;
     return parseCompareParams(window.location.search, { pairs: pairIds.split(" "), side: false }).split;
   });
-  // Where the Light rail is, in bands from the first; whole at a stop. Like the divider, it
-  // starts where the link puts it.
-  const [position, setPosition] = useState(() =>
-    typeof window === "undefined" || !lightOptions ? 0 : parseLightParams(window.location.search, lightOptions).band,
+  // A Journey's band per stop, as rail indexes; -1 where a stop keeps the current band.
+  const stopBands = useMemo(
+    () => (journey && bandSets[0] ? journey.stops.map((s) => (s.band ? bandSets[0].set.imageIds.indexOf(s.band) : -1)) : null),
+    [journey, bandSets],
   );
+  // Where the Light rail is, in bands from the first; whole at a stop. Like the divider, it
+  // starts where the link puts it: the band, or on a Journey the stop's band.
+  const [position, setPosition] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    if (journey && stopBands) return stopBand(stopBands, parseStop(window.location.search, journey.stops.length));
+    return lightOptions ? parseLightParams(window.location.search, lightOptions).band : 0;
+  });
+  const [fade, setFade] = useState<Fade | null>(null);
+  const fadeFrame = useRef(0);
   const lighting = mode === "light";
-  const lightActive = lighting ? (bandSets.find((b) => b.set.id === routePair) ?? null) : null;
+  // A Journey with a band set shows the rail in Story and Explore alike.
+  const lightActive = journey ? (bandSets[0] ?? null) : lighting ? (bandSets.find((b) => b.set.id === routePair) ?? null) : null;
   const bandCount = lightActive?.bands.length ?? 1;
   const band = nearestStop(position, bandCount);
   const [opened, setOpened] = useState<Opened | null>(null);
@@ -259,12 +271,12 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   const size = { width: image.tiles.width, height: image.tiles.height };
   const modeUrl: ModeUrl | undefined = active
     ? { mode: "compare", state: { pair: active.pair.id, layout, split }, defaultPair: pairs[0].pair.id }
-    : lightActive && lightOptions
+    : lighting && lightActive && lightOptions
       ? { mode: "light", state: { set: lightActive.set.id, band }, opts: lightOptions }
       : undefined;
-  const pageRef = useRef({ story, stop, paused, journey, modeUrl, split });
+  const pageRef = useRef({ story, stop, paused, journey, modeUrl, split, band });
   useEffect(() => {
-    pageRef.current = { story, stop, paused, journey, modeUrl, split };
+    pageRef.current = { story, stop, paused, journey, modeUrl, split, band };
   });
   const home = homeView(size);
   const shape = shapeOf(size);
@@ -313,8 +325,12 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       const top = rulerTopRef.current;
       const left = rulerLeftRef.current;
       const phoneStory = pageRef.current.story && window.matchMedia(PHONE).matches;
+      // Below the desktop width the Light bar sits under the top bar, over the image: the fit and
+      // the stops frame what is below it.
+      const bar = root.querySelector<HTMLElement>("[data-testid='light-bar']");
+      const barBottom = bar && !window.matchMedia(DESKTOP).matches ? Math.round(bar.getBoundingClientRect().bottom - host.getBoundingClientRect().top) : 0;
       return {
-        top: top?.offsetParent ? top.offsetTop + top.offsetHeight : 0,
+        top: Math.max(top?.offsetParent ? top.offsetTop + top.offsetHeight : 0, barBottom),
         left: left?.offsetParent ? left.offsetLeft + left.offsetWidth : 0,
         right: 0,
         bottom: phoneStory ? Math.round(host.clientHeight * (1 - PHONE_STORY_FRAME)) : 0,
@@ -578,7 +594,58 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     fitOverlap: fitOverlapRef,
   });
 
-  useLightLayer({ opened, view: lightActive, position, tileBaseUrl });
+  useLightLayer({ opened, view: lightActive, position, fade, tileBaseUrl });
+
+  // The Light bar's height is a margin of the view below the desktop width; it changes as the
+  // bar appears, wraps or folds to the rail in Story.
+  const lightOn = !!(opened && lightActive);
+  useEffect(() => {
+    const bar = rootRef.current?.querySelector<HTMLElement>("[data-testid='light-bar']");
+    if (!bar) return;
+    const observer = new ResizeObserver(() => cameraRef.current?.syncMargins());
+    observer.observe(bar);
+    return () => {
+      observer.disconnect();
+      cameraRef.current?.syncMargins();
+    };
+  }, [lightOn]);
+
+  // A Journey stop switches the band with a crossfade between the two, whatever lies between
+  // them on the rail; a cut under reduced motion.
+  const showBand = useCallback((to: number) => {
+    cancelAnimationFrame(fadeFrame.current);
+    const from = pageRef.current.band;
+    setPosition(to);
+    if (from === to || window.matchMedia(REDUCED).matches) {
+      setFade(null);
+      return;
+    }
+    const start = performance.now();
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / BAND_FADE_MS);
+      if (t < 1) {
+        setFade({ from, to, t });
+        fadeFrame.current = requestAnimationFrame(step);
+      } else setFade(null);
+    };
+    setFade({ from, to, t: 0 });
+    fadeFrame.current = requestAnimationFrame(step);
+  }, []);
+  useEffect(() => () => cancelAnimationFrame(fadeFrame.current), []);
+
+  // The rail takes over from a stop's fade the moment it is touched.
+  const moveRail = useCallback((p: number) => {
+    cancelAnimationFrame(fadeFrame.current);
+    setFade(null);
+    setPosition(p);
+  }, []);
+
+  const bandForStop = useCallback(
+    (index: number) => {
+      if (stopBands) showBand(stopBand(stopBands, index));
+    },
+    [stopBands, showBand],
+  );
 
   // The divider and the band are mirrored to the URL once they rest, like the view (design.md 7.1).
   useEffect(() => {
@@ -755,16 +822,18 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       setPaused(false);
       replaceUrl(`${window.location.pathname}${storySearch(index)}`);
       cameraRef.current?.fly(journey.stops[index].viewport);
+      if (journey.stops[index].band) bandForStop(index);
       announce(`${stopOf(index, journey.stops.length)}: ${journey.stops[index].title}`);
     },
-    [journey, stop, announce],
+    [journey, stop, announce, bandForStop],
   );
 
   const resume = useCallback(() => {
     if (!journey) return;
     setPaused(false);
     cameraRef.current?.fly(journey.stops[stop].viewport);
-  }, [journey, stop]);
+    bandForStop(stop);
+  }, [journey, stop, bandForStop]);
 
   // The last stop hands the image over (design.md 7.2, "Explore freely").
   const toExplore = useCallback(() => {
@@ -778,8 +847,8 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
 
   // design.md 7.1: E, C and L switch between Explore, Compare and Light where they are offered.
   const offered = useMemo(
-    () => (opened ? modesFor(undefined, opened.rotates && pairs.length ? { pairs: [], side: false } : undefined, lightOptions) : ["explore" as Mode]),
-    [opened, pairs, lightOptions],
+    () => (opened && !journey ? modesFor(undefined, opened.rotates && pairs.length ? { pairs: [], side: false } : undefined, lightOptions) : ["explore" as Mode]),
+    [opened, journey, pairs, lightOptions],
   );
   useEffect(() => {
     if (offered.length < 2) return;
@@ -807,7 +876,10 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
     const camera = cameraRef.current;
     if (!camera) return;
     camera.syncMargins();
-    if (story && flyOnStory.current && journey) camera.fly(journey.stops[stop].viewport);
+    if (story && flyOnStory.current && journey) {
+      camera.fly(journey.stops[stop].viewport);
+      bandForStop(stop);
+    }
     flyOnStory.current = false;
     // Only a change of mode moves the camera here; stops fly from goTo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -890,11 +962,14 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
   const modeSwitch = offered.length > 1;
   // Light shows the band nearest the rail's position: its image's About panel and credit. While
   // two bands blend, both credits show.
-  const shownInfo = lightActive ? lightActive.bands[band].info : info;
-  const lightCredits = lightActive
-    ? [...new Set([Math.floor(position), Math.ceil(position)].map((i) => lightActive.bands[Math.min(i, bandCount - 1)].info.credit))]
+  // What the bands put on screen waits for the viewer: the static HTML cannot know the band a
+  // link or a stop asks for, and the first render must match it.
+  const lightShown = opened ? lightActive : null;
+  const shownInfo = lightShown ? lightShown.bands[band].info : info;
+  const lightCredits = lightShown
+    ? [...new Set([Math.floor(position), Math.ceil(position)].map((i) => lightShown.bands[Math.min(i, bandCount - 1)].info.credit))]
     : [];
-  const lightDraft = !!lightActive && (lightActive.set.validation.status !== "approved" || lightActive.bands[band].image.validation.status !== "approved");
+  const lightDraft = !!lightShown && (lightShown.set.validation.status !== "approved" || lightShown.bands[band].image.validation.status !== "approved");
   const pageTitle = lightActive ? lightActive.set.title : image.title;
   const layouts: Layout[] = desktop ? ["wipe", "side", "blink"] : ["wipe"];
 
@@ -1063,25 +1138,27 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
         </div>
       )}
 
-      {lightActive && (
+      {lightShown && (
         <div className={styles.compareBar}>
           <LightBar
-            stops={lightActive.bands.map(({ image: b }) => {
+            stops={lightShown.bands.map(({ image: b }) => {
               const spec = b.bands.value[0];
               return { label: wavelengthLabel(spec), region: spec.region, valueText: bandValueText(spec) };
             })}
             position={position}
-            onPosition={setPosition}
-            showing={lightActive.bands[band].image.title}
+            onPosition={moveRail}
+            showing={lightShown.bands[band].image.title}
+            shows={lightShown.bands[band].image.bands.value[0].shows}
             draft={lightDraft}
             credits={lightCredits}
+            compact={story}
           >
-            {lightActive.set.whatDiffers.trim() !== "" && (
+            {lightShown.set.whatDiffers.trim() !== "" && (
               <WhatDiffers
-                note={lightActive.set.whatDiffers}
-                differs={lightActive.set.differs}
-                caveats={[...new Set(lightActive.bands.flatMap((b) => b.info.caveats))]}
-                draft={lightActive.set.validation.status !== "approved"}
+                note={lightShown.set.whatDiffers}
+                differs={lightShown.set.differs}
+                caveats={[...new Set(lightShown.bands.flatMap((b) => b.info.caveats))]}
+                draft={lightShown.set.validation.status !== "approved"}
               />
             )}
           </LightBar>
@@ -1091,7 +1168,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
       {/* Credit and notes stack under the top bar, clear of the overview in every shape. */}
       <div className={styles.topLeft}>
         {/* The credit never fades: the license asks that every user can see it. */}
-        {!active && !lightActive && <p className={`${styles.credit} ${styles.glass}`}>{info.credit}</p>}
+        {!active && !lightShown && <p className={`${styles.credit} ${styles.glass}`}>{info.credit}</p>}
         <div className={styles.toasts} role="status">
           {toast && (
             <div className={`${styles.toast} ${styles.glass}`}>
@@ -1220,7 +1297,7 @@ const Explore = ({ image, info, tileBaseUrl, journey, pairs = NO_PAIRS, bandSets
                 <span className={styles.sheetCreditLine}>Left, {pairSides.left.short}: {info.credit}</span>
                 <span className={styles.sheetCreditLine}>Right, {pairSides.right.short}: {active.movingInfo.credit}</span>
               </>
-            ) : lightActive ? (
+            ) : lightShown ? (
               lightCredits.map((c) => (
                 <span key={c} className={styles.sheetCreditLine}>
                   {c}

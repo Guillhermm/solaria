@@ -97,6 +97,16 @@ describe("publishProblems", () => {
       ]);
     });
 
+    it("flags a Journey whose band set is not approved", () => {
+      const c = withGroups();
+      c.journeys[0].bandSetId = "demo-bands";
+      c.bandSets[0].validation.status = "in-review";
+      expect(publishProblems(c)).toEqual([
+        'journey demo-tour: band set "demo-bands" is not approved',
+        'band set demo-bands: validation.status is "in-review", expected "approved"',
+      ]);
+    });
+
     it("flags a group whose note is still empty", () => {
       const c = withGroups();
       c.bandSets[0].whatDiffers = " ";

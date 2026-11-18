@@ -7,20 +7,20 @@
       "name": "Sun",
       "type": "star"
     },
-    "source": "docs/science/sun-sdo.md#1",
-    "status": "unverified"
+    "source": "docs/science/sun-sdo.md#5",
+    "status": "verified"
   },
   "observatory": {
     "value": "SDO",
-    "source": "docs/science/sun-sdo.md#1",
-    "status": "unverified"
+    "source": "docs/science/sun-sdo.md#5",
+    "status": "verified"
   },
   "instruments": {
     "value": [
       "HMI"
     ],
-    "source": "docs/science/sun-sdo.md#1",
-    "status": "unverified"
+    "source": "docs/science/sun-sdo.md#5",
+    "status": "verified"
   },
   "bands": {
     "value": [
@@ -29,49 +29,46 @@
         "wavelength": {
           "value": 6173,
           "unit": "Å"
-        }
+        },
+        "region": "visible",
+        "shows": "Mostly the photosphere, the Sun's visible surface: the continuum intensity computed from the Fe I 6173 Å line, log T 3.7 (about 5,000 K). Shown in gray."
       }
     ],
-    "source": "docs/science/sun-sdo.md#1",
-    "status": "unverified"
+    "source": "docs/science/sun-sdo.md#6",
+    "status": "verified"
   },
   "colorMapping": {
     "value": {
       "kind": "grayscale"
     },
-    "source": "docs/science/sun-sdo.md#2",
-    "status": "unverified"
-  },
-  "releasedAt": {
-    "value": "2024-05-10",
     "source": "docs/science/sun-sdo.md#5",
-    "status": "unverified"
+    "status": "verified"
   },
   "productType": {
     "value": "single exposure",
-    "source": "docs/science/sun-sdo.md#1",
-    "status": "unverified"
+    "source": "docs/science/sun-sdo.md#5",
+    "status": "supported"
   },
   "observedAt": {
     "value": {
       "start": "2024-05-10",
       "end": "2024-05-10"
     },
-    "source": "docs/science/sun-sdo.md#1",
-    "status": "unverified"
+    "source": "docs/science/sun-sdo.md#5",
+    "status": "verified"
   },
   "pixelScale": {
     "value": {
       "value": 0.6,
       "unit": "arcsec/px"
     },
-    "source": "docs/science/sun-sdo.md#3",
-    "status": "unverified"
+    "source": "docs/science/sun-sdo.md#5",
+    "status": "verified"
   },
   "orientation": {
     "value": "Solar north up, west right",
-    "source": "docs/science/sun-sdo.md#3",
-    "status": "unverified"
+    "source": "docs/science/sun-sdo.md#5",
+    "status": "verified"
   },
   "tiles": {
     "format": "jpg",
@@ -91,9 +88,9 @@
     }
   },
   "validation": {
-    "status": "draft",
-    "date": null,
-    "notes": "Draft for science review (G-02). Facts and their status: docs/science/sun-sdo.md."
+    "status": "approved",
+    "date": "2026-11-17",
+    "notes": "Science check passed 2026-11-17; the record and every claim's status are in docs/science/sun-sdo.md."
   },
   "mock": false
 }

@@ -17,8 +17,10 @@ interface LightBarProps {
   position: number; // 0 to stops.length - 1; whole numbers at a stop
   onPosition: (position: number) => void;
   showing: string; // the nearest band's image title
+  shows?: string; // the nearest band's validated note, when it has one
   draft: boolean;
   credits: string[]; // of the bands on screen, one per distinct line
+  compact?: boolean; // Story: on a phone only the rail shows, since the stop card says the rest
   children?: React.ReactNode; // the "What differs?" control
 }
 
@@ -28,7 +30,7 @@ const REDUCED = "(prefers-reduced-motion: reduce)";
 // design.md 5.7 and 7.4: a neutral rail with a tick and a text label per band, ordered by
 // wavelength, as a WAI-ARIA slider. A pointer drags through the crossfade between two
 // neighbors and settles on the nearer stop when let go; the keyboard goes stop to stop.
-const LightBar = ({ stops, position, onPosition, showing, draft, credits, children }: LightBarProps) => {
+const LightBar = ({ stops, position, onPosition, showing, shows, draft, credits, compact, children }: LightBarProps) => {
   const ref = useRef<HTMLElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
@@ -90,7 +92,7 @@ const LightBar = ({ stops, position, onPosition, showing, draft, credits, childr
   const at = (p: number) => `${((p + 0.5) / count) * 100}%`;
 
   return (
-    <section ref={ref} className={`${compare.bar} ${compare.glass} ${styles.bar}`} aria-label="Light" data-testid="light-bar">
+    <section ref={ref} className={`${compare.bar} ${compare.glass} ${styles.bar}`} aria-label="Light" data-testid="light-bar" data-compact={compact || undefined}>
       <div
         ref={railRef}
         className={styles.rail}
@@ -122,18 +124,24 @@ const LightBar = ({ stops, position, onPosition, showing, draft, credits, childr
           {stops.map((s, i) => (
             <li key={s.label} data-current={i === band || undefined}>
               <span className={styles.wavelength}>{s.label}</span>
-              {s.region && <span className={styles.region}>{s.region}</span>}
+              {/* Only the current band names its region, so seven stops stay readable. */}
+              {s.region && i === band && <span className={styles.region}>{s.region}</span>}
             </li>
           ))}
         </ol>
       </div>
-      <div className={compare.row}>
+      <div className={`${compare.row} ${styles.detail}`}>
         <p className={compare.headline} data-testid="light-showing">
           {showing}
           {draft && <span className={compare.draft}>Draft</span>}
         </p>
         {children}
       </div>
+      {shows && (
+        <p className={`${styles.shows} ${styles.detail}`} data-testid="light-shows">
+          <span className={compare.creditLabel}>Shows</span> {shows}
+        </p>
+      )}
       <ul className={compare.credits} aria-label="Credits">
         {credits.map((c) => (
           <li key={c}>{c}</li>

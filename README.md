@@ -80,8 +80,10 @@ in [docs/science/](docs/science/).
 - Light mode on the page of a band set's first image (`?mode=light&band=<imageId>`): a rail
   of bands in wavelength order, labeled in text; dragging it crossfades between neighboring
   bands and settles on the nearer one, the keyboard steps band by band, and the URL holds the
-  band. Built and tested on the mock band set. The Sun from SDO in seven channels is staged
-  as a draft (`data/staging/`, shown in development only) while it is in science review.
+  band. The Sun from SDO in seven channels (2024-05-10) is the published band set, with a
+  checked note per band.
+- The Sun Journey at `/sun/`: seven stops through the SDO bands; each stop can switch the band,
+  with a crossfade (a cut under reduced motion), and the rail stays in hand to switch freely.
 - Unit and integration tests (Vitest) and end-to-end tests (Playwright). The end-to-end suite
   also runs axe-core on Home and About and measures LCP, CLS and interaction latency on a
   throttled phone profile (`tests/e2e/quality.spec.ts`; results in `docs/design.md` section 9).
@@ -89,8 +91,7 @@ in [docs/science/](docs/science/).
 
 ## Planned
 
-More Journeys, tiles served from R2, and a published Light band set (the Sun from SDO, in
-review) once it is validated. See the roadmap for order and status.
+More Journeys and tiles served from R2. See the roadmap for order and status.
 
 ## Run it
 

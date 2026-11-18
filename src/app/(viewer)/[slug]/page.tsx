@@ -53,11 +53,10 @@ const ViewerPage = async ({ params }: Params) => {
           return moving && movingSource ? [{ pair, moving, movingInfo: infoFor(moving, movingSource) }] : [];
         });
 
-  // Light is offered on the page of a band set's first image, never on a Journey (yet).
-  const bandSets: LightView[] = journey
-    ? []
-    : content.bandSets
-        .filter((set) => set.imageIds[0] === image.id)
+  // Light is offered on the page of a band set's first image; a Journey brings its own band set,
+  // whose stops pick the band.
+  const bandSets: LightView[] = content.bandSets
+        .filter((set) => (journey ? set.id === journey.bandSetId : set.imageIds[0] === image.id))
         .flatMap((set) => {
           const bands = set.imageIds.flatMap((id) => {
             const img = content.images.find((i) => i.id === id);

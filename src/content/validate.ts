@@ -135,7 +135,7 @@ export const validateSource = (raw: unknown, file: string): Result<Source> => {
     pageUrl: httpsUrl(c, o.pageUrl, "pageUrl"),
     fileUrl: httpsUrl(c, o.fileUrl, "fileUrl"),
     releaseId: o.releaseId === null ? null : str(c, o.releaseId, "releaseId"),
-    releasedAt: isoDate(c, o.releasedAt, "releasedAt"),
+    releasedAt: o.releasedAt === null ? null : isoDate(c, o.releasedAt, "releasedAt"),
     credit: str(c, o.credit, "credit"),
     terms,
     retrievedAt: isoDate(c, o.retrievedAt, "retrievedAt"),
@@ -148,7 +148,7 @@ export const validateSource = (raw: unknown, file: string): Result<Source> => {
 
 const band = (c: Ctx, v: unknown, path: string) => {
   const n = c.errors.length;
-  const o = object(c, v, path, ["id"], ["wavelength", "kind", "region"]);
+  const o = object(c, v, path, ["id"], ["wavelength", "kind", "region", "shows"]);
   if (!o) return undefined;
   let wavelength: Band["wavelength"];
   if ("wavelength" in o) {
@@ -166,11 +166,13 @@ const band = (c: Ctx, v: unknown, path: string) => {
     wavelength,
     kind: "kind" in o ? oneOf(c, o.kind, `${path}.kind`, ["line", "continuum", "broadband"]) : undefined,
     region: "region" in o ? str(c, o.region, `${path}.region`) : undefined,
+    shows: "shows" in o ? str(c, o.shows, `${path}.shows`) : undefined,
   });
   if (value) {
     if (value.wavelength === undefined) delete value.wavelength;
     if (value.kind === undefined) delete value.kind;
     if (value.region === undefined) delete value.region;
+    if (value.shows === undefined) delete value.shows;
   }
   return value;
 };
@@ -267,9 +269,9 @@ export const validateImage = (raw: unknown, file: string): Result<ImageManifest>
     "",
     [
       "id", "sourceId", "title", "target", "observatory", "instruments", "bands", "colorMapping",
-      "releasedAt", "productType", "tiles", "validation", "mock",
+      "productType", "tiles", "validation", "mock",
     ],
-    ["observedAt", "processing", "pixelScale", "fieldOfView", "orientation", "caveats", "footprint"],
+    ["releasedAt", "observedAt", "processing", "pixelScale", "fieldOfView", "orientation", "caveats", "footprint"],
   );
   if (!o) return bad(c);
   const n = c.errors.length;
@@ -287,7 +289,7 @@ export const validateImage = (raw: unknown, file: string): Result<ImageManifest>
     instruments: claim(c, o.instruments, "instruments", (v, p) => arrayOf(c, v, p, (x, q) => str(c, x, q), true)),
     bands: claim(c, o.bands, "bands", (v, p) => arrayOf(c, v, p, (x, q) => band(c, x, q), true)),
     colorMapping: claim(c, o.colorMapping, "colorMapping", (v, p) => colorMapping(c, v, p)),
-    releasedAt: claim(c, o.releasedAt, "releasedAt", (v, p) => isoDate(c, v, p)),
+    releasedAt: "releasedAt" in o ? claim(c, o.releasedAt, "releasedAt", (v, p) => isoDate(c, v, p)) : undefined,
     productType: claim(c, o.productType, "productType", (v, p) => oneOf<ProductType>(c, v, p, productTypes)),
     observedAt: optionalClaim(c, o, "observedAt", (v, p) => observedRange(c, v, p)),
     processing: optionalClaim(c, o, "processing", (v, p) => str(c, v, p)),
@@ -314,7 +316,7 @@ export const validateImage = (raw: unknown, file: string): Result<ImageManifest>
     mock: bool(c, o.mock, "mock"),
   });
   if (value) {
-    for (const k of ["observedAt", "processing", "pixelScale", "fieldOfView", "orientation", "caveats", "footprint"] as const) {
+    for (const k of ["releasedAt", "observedAt", "processing", "pixelScale", "fieldOfView", "orientation", "caveats", "footprint"] as const) {
       if (value[k] === undefined) delete value[k];
     }
   }
@@ -323,7 +325,7 @@ export const validateImage = (raw: unknown, file: string): Result<ImageManifest>
 
 const stop = (c: Ctx, v: unknown, path: string) => {
   const n = c.errors.length;
-  const o = object(c, v, path, ["id", "title", "body", "viewport", "sources", "validation"], ["marker"]);
+  const o = object(c, v, path, ["id", "title", "body", "viewport", "sources", "validation"], ["marker", "band"]);
   if (!o) return undefined;
   const vn = c.errors.length;
   const vo = object(c, o.viewport, `${path}.viewport`, ["x", "y", "z"]);
@@ -348,6 +350,7 @@ const stop = (c: Ctx, v: unknown, path: string) => {
     body: str(c, o.body, `${path}.body`),
     viewport,
     marker,
+    band: "band" in o ? str(c, o.band, `${path}.band`) : undefined,
     sources: arrayOf(
       c,
       o.sources,
@@ -362,23 +365,31 @@ const stop = (c: Ctx, v: unknown, path: string) => {
     validation: validation(c, o.validation, `${path}.validation`),
   });
   if (value && value.marker === undefined) delete value.marker;
+  if (value && value.band === undefined) delete value.band;
   return value;
 };
 
 export const validateJourney = (raw: unknown, file: string): Result<Journey> => {
   const c = newCtx(file);
-  const o = object(c, raw, "", ["slug", "imageId", "title", "summary", "stops", "validation", "mock"]);
+  const o = object(c, raw, "", ["slug", "imageId", "title", "summary", "stops", "validation", "mock"], ["bandSetId"]);
   if (!o) return bad(c);
   const n = c.errors.length;
   const value = finish<Journey>(c, n, {
     slug: str(c, o.slug, "slug"),
     imageId: str(c, o.imageId, "imageId"),
+    bandSetId: "bandSetId" in o ? str(c, o.bandSetId, "bandSetId") : undefined,
     title: str(c, o.title, "title"),
     summary: str(c, o.summary, "summary"),
     stops: arrayOf(c, o.stops, "stops", (s, p) => stop(c, s, p)),
     validation: validation(c, o.validation, "validation"),
     mock: bool(c, o.mock, "mock"),
   });
+  if (value && value.bandSetId === undefined) delete value.bandSetId;
+  if (value && !value.bandSetId) {
+    value.stops.forEach((s, i) => {
+      if (s.band !== undefined) c.errors.push(`${file}: stops[${i}].band: a stop can pick a band only in a Journey with a bandSetId`);
+    });
+  }
   return result(c, value);
 };
 
@@ -612,6 +623,16 @@ export const validateContent = (files: { path: string; raw: unknown }[]): Result
     if (!img) {
       errors.push(`${file}: imageId: no image "${j.imageId}" in data/images/`);
       continue;
+    }
+    if (j.bandSetId !== undefined) {
+      const set = content.bandSets.find((b) => b.id === j.bandSetId);
+      if (!set) errors.push(`${file}: bandSetId: no band set "${j.bandSetId}" in data/band-sets/`);
+      else {
+        if (set.imageIds[0] !== j.imageId) errors.push(`${file}: imageId: expected "${set.imageIds[0]}", the first image of band set "${set.id}", got "${j.imageId}"`);
+        j.stops.forEach((s, i) => {
+          if (s.band !== undefined && !set.imageIds.includes(s.band)) errors.push(`${file}: stops[${i}].band: "${s.band}" is not an image of band set "${set.id}"`);
+        });
+      }
     }
     const { width, height } = img.tiles;
     j.stops.forEach((s, i) => {

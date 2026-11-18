@@ -40,29 +40,47 @@ describe("the real data directory", () => {
     expect(() => loadContent({ root: process.cwd(), mode: "production" })).not.toThrow();
   });
 
-  it("loads the mock and the Hubble pairs, the mock band set and the staged SDO set in development", () => {
+  it("loads the mock and the Hubble pairs and both band sets in development", () => {
     const c = loadContent({ root: process.cwd(), mode: "development" });
     expect(c.pairs.map((p) => p.id)).toEqual(["pillars-hubble-1995-2014", "mock-compare"]);
     expect(c.bandSets.map((b) => [b.id, b.mock, b.validation.status])).toEqual([
+      ["sun-sdo-2024-05-10", false, "approved"],
       ["mock-light", true, "draft"],
-      ["sun-sdo-2024-05-10", false, "draft"],
     ]);
   });
 
-  // G-02: drafts only; every note and caption waits for G-03.
-  it("stages the SDO set with no note, caveat or band region written", () => {
-    const c = loadContent({ root: process.cwd(), mode: "development" });
+  // G-02 and G-03: docs/science/sun-sdo.md.
+  it("publishes the SDO set with a note per band, its kind, and no release date", () => {
+    const c = loadContent({ root: process.cwd(), mode: "production" });
     const sun = c.bandSets.find((b) => b.id === "sun-sdo-2024-05-10")!;
-    expect(sun.whatDiffers).toBe("");
+    expect(sun.whatDiffers).toContain("NOAA active region 13664 is on the disk, lower right.");
+    expect(sun.differs).toEqual({ instrument: true, band: true, date: false, illumination: false, geometry: false, processing: false });
     expect(sun.registration).toMatchObject({ transform: "none", residualPx: 2.05 });
     const images = sun.imageIds.map((id) => c.images.find((i) => i.id === id)!);
-    expect(images.map((i) => i.bands.value[0].wavelength?.value)).toEqual([94, 171, 193, 211, 304, 1700, 6173]);
+    expect(images.map((i) => [i.bands.value[0].wavelength?.value, i.bands.value[0].region])).toEqual([
+      [94, "extreme ultraviolet"], [171, "extreme ultraviolet"], [193, "extreme ultraviolet"], [211, "extreme ultraviolet"],
+      [304, "extreme ultraviolet"], [1700, "ultraviolet"], [6173, "visible"],
+    ]);
+    expect(images[0].bands.value[0].shows).toContain("about 6.3 million K");
+    expect(images[6].bands.value[0].shows).not.toContain("beside");
+    expect(images[5].bands.value[0].shows).not.toContain("just above");
     for (const i of images) {
-      expect(i.caveats).toBeUndefined();
-      expect(i.bands.value[0].region).toBeUndefined();
+      expect(i.bands.value[0].shows).toBeTruthy();
+      expect(i.releasedAt).toBeUndefined();
       expect([i.tiles.width, i.tiles.height]).toEqual([4096, 4096]);
-      expect(c.sources.find((s) => s.id === i.sourceId)!.credit).toBe("Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams.");
+      const src = c.sources.find((s) => s.id === i.sourceId)!;
+      expect([src.releasedAt, src.credit]).toEqual([null, "Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams."]);
     }
+  });
+
+  it("publishes the Sun Journey through that set, each stop's band one of its images", () => {
+    const c = loadContent({ root: process.cwd(), mode: "production" });
+    const sun = c.journeys.find((j) => j.slug === "sun")!;
+    const set = c.bandSets.find((b) => b.id === sun.bandSetId)!;
+    expect(sun.imageId).toBe(set.imageIds[0]);
+    expect(sun.stops.map((s) => s.band?.replace("sun-sdo-2024-05-10-", "") ?? null)).toEqual([
+      "hmi-6173", "hmi-6173", "aia-304", "aia-171", "aia-211", "aia-193", null,
+    ]);
   });
 
   it("publishes the approved Hubble pair and its images", () => {
@@ -73,7 +91,7 @@ describe("the real data directory", () => {
 
   it("leaves the mock pair and band set out of a production load", () => {
     const c = loadContent({ root: process.cwd(), mode: "production" });
-    expect([c.pairs.some((p) => p.mock), c.bandSets.length]).toEqual([false, 0]);
+    expect([c.pairs.some((p) => p.mock), c.bandSets.map((b) => b.id)]).toEqual([false, ["sun-sdo-2024-05-10"]]);
     expect(c.images.some((i) => i.mock)).toBe(false);
   });
 });

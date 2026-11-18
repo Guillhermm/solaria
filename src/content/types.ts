@@ -26,7 +26,9 @@ export interface Source {
   pageUrl: string; // the page the credit was copied from
   fileUrl: string; // direct download of the original
   releaseId: string | null; // e.g. "heic2501a"
-  releasedAt: IsoDate;
+  // null when the source states no release (archive frames, for instance); never an
+  // observation date standing in for one.
+  releasedAt: IsoDate | null;
   credit: string; // unaltered from pageUrl
   terms: { name: string; url: string };
   retrievedAt: IsoDate;
@@ -49,6 +51,8 @@ export interface Band {
   // Part of the spectrum in words, e.g. "extreme ultraviolet"; read with the wavelength on the
   // Light rail. Absent until science review states it.
   region?: string;
+  // What the band mostly shows, one validated sentence or two, under the Light rail. Sprint 8.
+  shows?: string;
 }
 
 // Never empty: an absent mapping would read as natural color.
@@ -81,7 +85,7 @@ export interface ImageManifest {
   instruments: Claim<string[]>; // mosaics may combine cameras
   bands: Claim<Band[]>;
   colorMapping: Claim<ColorMapping>;
-  releasedAt: Claim<IsoDate>;
+  releasedAt?: Claim<IsoDate>; // absent when no source gives a release date
   productType: Claim<ProductType>;
   // Optional: absent means the app says nothing about it.
   // Both ends days, or both months when the source gives no day.
@@ -113,6 +117,7 @@ export interface Stop {
   body: string; // plain text; blank lines separate paragraphs; rendered as text nodes
   viewport: Viewport;
   marker?: { x: number; y: number; r: number }; // image pixels
+  band?: string; // an image id of the Journey's band set: the band shown at this stop; absent keeps the current one
   sources: { label: string; url: string }[]; // at least one
   validation: Validation;
 }
@@ -120,6 +125,7 @@ export interface Stop {
 export interface Journey {
   slug: string; // file name and URL segment
   imageId: string;
+  bandSetId?: string; // a band set whose first image is imageId; its stops may pick a band
   title: string;
   summary: string;
   stops: Stop[];

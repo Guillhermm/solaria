@@ -118,12 +118,26 @@
 }
 
 .stops li[data-current] .region {
+  max-width: 7rem;
   color: var(--text-2);
 }
 
-/* Phone: the numbers stay, the region words give way. */
+/* The band's note, design.md 5.7: "Shows: ...". */
+.shows {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+
+/* Phone: the numbers stay, the region words give way; in Story the stop card carries the
+   band's text, so the bar keeps only the rail. */
 @media (max-width: 40rem) {
   .region {
+    display: none;
+  }
+
+  .bar[data-compact] .detail {
     display: none;
   }
 

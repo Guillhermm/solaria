@@ -568,14 +568,17 @@ r = width / height of the image file:
 - As built (G-01, Sprint 8): the rail sits in a bar where the compare bar does (between the
   overview and the zoom controls on desktop, under the top bar below 64rem). Stops are equal
   columns in `imageIds` order, each labeled with the wavelength as the manifest states it
-  ("171 Å") and, when the manifest gives one, the band's region in small capitals (hidden on a
-  phone). The spoken value spells the unit out: "171 angstroms, extreme ultraviolet". Left,
+  ("171 Å"); the current stop also names its region in small capitals (hidden on a phone).
+  Under the title, "Shows" and the band's validated note. The spoken value spells the unit out: "171 angstroms, extreme ultraviolet". Left,
   Right, Up, Down, Page Up and Page Down move one band; Home and End go to the ends. A pointer
   can press anywhere on the rail, labels included, and drags a continuous position; on release
   it settles on the nearer stop in 160 ms (at once under reduced motion), so the URL and the
   slider value always name one band. Under the rail: the shown band's image title, the "What
   differs?" note when the set has one, and the credit of each band on screen (in the sheet on
   a phone). About this image shows the nearest band's image. `L` opens Light, `E` Explore.
+- Journeys through a band set (G-04): the same bar in Story and Explore; a stop's band
+  crossfades in over 700 ms with the flight (a cut under reduced motion). In Story on a phone
+  the bar keeps only the rail, and the view frames the stop below it.
 
 ## 8. Accessibility (WCAG 2.2 AA)
 

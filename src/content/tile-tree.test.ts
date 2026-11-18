@@ -45,7 +45,7 @@ describe("every manifest matches its tile tree", () => {
   it("carries the Andromeda numbers checked in docs/science/andromeda.md", () => {
     const a = images.find((i) => i.id === "andromeda-phat-phast-2025")!;
     expect(a.tiles).toMatchObject({ width: 42208, height: 9870, tileSize: 256, minLevel: 0, maxLevel: 6 });
-    expect(a.releasedAt.value).toBe("2025-01-16");
+    expect(a.releasedAt?.value).toBe("2025-01-16");
     expect(a.instruments.value).toEqual(["Advanced Camera for Surveys (ACS)"]);
     expect(a.pixelScale?.status).toBe("supported");
     expect(a.caveats).toHaveLength(5);

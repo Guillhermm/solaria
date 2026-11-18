@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   bandValueText,
+  blend,
+  stopBand,
   crossfade,
   lightParams,
   nearestStop,
@@ -145,5 +147,53 @@ describe("band text", () => {
     expect(bandValueText({ id: "F", wavelength: { value: 1, unit: "µm" } })).toBe("1 micrometer");
     expect(bandValueText({ id: "F", wavelength: { value: 2.5, unit: "nm" }, region: "x" })).toBe("2.5 nanometers, x");
     expect(bandValueText({ id: "AIA 171" })).toBe("AIA 171");
+  });
+});
+
+describe("blend", () => {
+  const screen = (o: number[], from: number, to: number) => {
+    // Stacked in index order: each band covers what is below it by its opacity.
+    const w = o.map(() => 0);
+    o.forEach((a, i) => {
+      for (let j = 0; j < i; j++) w[j] *= 1 - a;
+      w[i] = a;
+    });
+    return [w[from], w[to], w.reduce((s, v, i) => (i === from || i === to ? s : s + v), 0)];
+  };
+
+  it("mixes any two bands as (1 - t) from + t to, up or down the stack", () => {
+    for (const [from, to] of [[6, 4], [4, 6], [0, 3], [3, 1]]) {
+      for (const t of [0, 0.25, 0.5, 0.9]) {
+        const [a, b, rest] = screen(blend(from, to, t, 7), from, to);
+        expect(a).toBeCloseTo(1 - t, 12);
+        expect(b).toBeCloseTo(t, 12);
+        expect(rest).toBe(0);
+      }
+    }
+  });
+
+  it("ends on the target alone", () => {
+    expect(blend(6, 4, 1, 7)).toEqual([0, 0, 0, 0, 1, 0, 0]);
+    expect(blend(2, 2, 0.3, 3)).toEqual([0, 0, 1]);
+  });
+
+  it("matches the rail's crossfade for neighbors", () => {
+    crossfade(1.4, 3).forEach((v, i) => expect(blend(1, 2, 0.4, 3)[i]).toBeCloseTo(v, 12));
+  });
+});
+
+describe("stopBand", () => {
+  const bands = [6, 6, 4, 1, -1, 3, -1];
+  it("takes the stop's own band", () => {
+    expect(stopBand(bands, 2)).toBe(4);
+    expect(stopBand(bands, 5)).toBe(3);
+  });
+  it("keeps the last band picked before a stop without one", () => {
+    expect(stopBand(bands, 4)).toBe(1);
+    expect(stopBand(bands, 6)).toBe(3);
+  });
+  it("starts on the first band when no stop picked one yet", () => {
+    expect(stopBand([-1, 2], 0)).toBe(0);
+    expect(stopBand([], 0)).toBe(0);
   });
 });

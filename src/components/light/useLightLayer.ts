@@ -4,15 +4,28 @@ import { useEffect, useRef } from "react";
 import type OpenSeadragon from "openseadragon";
 import type { Opened } from "@/components/compare/useCompareLayer";
 import { tileSource } from "@/content/tiles";
-import { crossfade, preloaded } from "@/viewer/light";
+import { blend, crossfade, preloaded } from "@/viewer/light";
 import type { LightView } from "./types";
 
 interface Options {
   opened: Opened | null;
   view: LightView | null; // null outside light mode
   position: number; // on the rail, 0 to bands - 1
+  fade: Fade | null; // a Journey stop changing band, which may skip over others on the rail
   tileBaseUrl: string;
 }
+
+export interface Fade {
+  from: number;
+  to: number;
+  t: number; // 0 to 1
+}
+
+const opacities = (position: number, fade: Fade | null, count: number) =>
+  fade ? blend(fade.from, fade.to, fade.t, count) : crossfade(position, count);
+
+const loading = (position: number, fade: Fade | null, count: number) =>
+  preloaded(position, count).map((p, i) => p || (!!fade && (i === fade.from || i === fade.to)));
 
 // A hidden image keeps the "fully loaded" flag it had when it was hidden and skips its update
 // until the view moves (OpenSeadragon 5.0.1, TiledImage.update), so one shown again without a
@@ -25,13 +38,13 @@ const refresh = (item: OpenSeadragon.TiledImage) => {
 // pixel grid, in rail order, so the world's first image is the page's own and keeps the home
 // bounds. Moving along the rail only changes opacities; the navigator mirrors each image and
 // copies its opacity, so the overview crossfades with the view.
-export const useLightLayer = ({ opened, view, position, tileBaseUrl }: Options) => {
-  const positionRef = useRef(position);
+export const useLightLayer = ({ opened, view, position, fade, tileBaseUrl }: Options) => {
+  const stateRef = useRef({ position, fade });
   const apply = useRef<() => void>(() => {});
   useEffect(() => {
-    positionRef.current = position;
+    stateRef.current = { position, fade };
     apply.current();
-  }, [position]);
+  }, [position, fade]);
 
   useEffect(() => {
     if (!opened || !view) return;
@@ -41,8 +54,9 @@ export const useLightLayer = ({ opened, view, position, tileBaseUrl }: Options) 
     let cancelled = false;
 
     apply.current = () => {
-      const opacity = crossfade(positionRef.current, count);
-      const preload = preloaded(positionRef.current, count);
+      const { position: p, fade: f } = stateRef.current;
+      const opacity = opacities(p, f, count);
+      const preload = loading(p, f, count);
       items.forEach((item, i) => {
         if (!item) return;
         if (item.getOpacity() === 0 && opacity[i] > 0) refresh(item);
@@ -73,8 +87,8 @@ export const useLightLayer = ({ opened, view, position, tileBaseUrl }: Options) 
         x: 0,
         y: 0,
         width: 1,
-        opacity: crossfade(positionRef.current, count)[i],
-        preload: preloaded(positionRef.current, count)[i],
+        opacity: opacities(stateRef.current.position, stateRef.current.fade, count)[i],
+        preload: loading(stateRef.current.position, stateRef.current.fade, count)[i],
         success: (e: { item: OpenSeadragon.TiledImage }) => {
           if (cancelled) {
             viewer.world.removeItem(e.item);

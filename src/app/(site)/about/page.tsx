@@ -96,13 +96,13 @@ const About = () => {
                 <dt>Credit</dt>
                 <dd>{source.credit}</dd>
               </div>
-              <div>
-                <dt>Release</dt>
-                <dd>
-                  {source.releaseId ? `${source.releaseId}, ` : ""}
-                  {source.releasedAt}
-                </dd>
-              </div>
+              {/* Archive frames have no release; the row goes rather than show a stand-in date. */}
+              {(source.releaseId || source.releasedAt) && (
+                <div>
+                  <dt>Release</dt>
+                  <dd>{[source.releaseId, source.releasedAt].filter(Boolean).join(", ")}</dd>
+                </div>
+              )}
               <div>
                 <dt>Source page</dt>
                 <dd>

@@ -1,0 +1,228 @@
+{
+  "slug": "sun",
+  "imageId": "sun-sdo-2024-05-10-aia-94",
+  "bandSetId": "sun-sdo-2024-05-10",
+  "title": "One Sun, seven bands",
+  "summary": "Seven stops through the SDO bands of 10 May 2024, from the Earth-facing disk to an active region and the limb, ending with free band switching.",
+  "stops": [
+    {
+      "id": "sdo-disk",
+      "title": "One Sun, seven bands",
+      "body": "This is the Earth-facing disk of the Sun on 10 May 2024, around 12:00 UTC, in visible light. Mostly the photosphere, the Sun's visible surface, shown in gray. Seven frames, one per band, were taken within about 30 seconds. Colors are assigned to the AIA bands.",
+      "viewport": {
+        "x": 2048,
+        "y": 2048,
+        "z": 1
+      },
+      "band": "sun-sdo-2024-05-10-hmi-6173",
+      "sources": [
+        {
+          "label": "Helioviewer JP2 header of the HMI frame",
+          "url": "https://api.helioviewer.org/v2/getJP2Header/?id=156614210"
+        },
+        {
+          "label": "SDO channels page",
+          "url": "https://sdo.gsfc.nasa.gov/data/channels.php"
+        },
+        {
+          "label": "SDO AIA and HMI color names",
+          "url": "https://sdo.gsfc.nasa.gov/data/aiahmi/"
+        },
+        {
+          "label": "Schou et al. 2012, HMI instrument paper",
+          "url": "https://doi.org/10.1007/s11207-011-9842-2"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Science check passed 2026-11-17; docs/science/sun-sdo.md, section 7."
+      }
+    },
+    {
+      "id": "sdo-ar-photosphere",
+      "title": "Active region 13664",
+      "body": "NOAA active region 13664 is on the disk, lower right. This band shows mostly the photosphere, log T 3.7 (about 5,000 K). Sunspots look dark because they are cooler than the gas around them. The next three stops stay on this same place, in bands of different characteristic temperature.",
+      "viewport": {
+        "x": 3010,
+        "y": 2510,
+        "z": 4.5
+      },
+      "band": "sun-sdo-2024-05-10-hmi-6173",
+      "sources": [
+        {
+          "label": "NOAA SWPC Solar Region Summary, 10 May 2024",
+          "url": "https://www.ngdc.noaa.gov/stp/space-weather/swpc-products/daily_reports/solar_region_summaries/2024/05/20240510SRS.txt"
+        },
+        {
+          "label": "NOAA SWPC Solar Region Summary, 11 May 2024",
+          "url": "https://www.ngdc.noaa.gov/stp/space-weather/swpc-products/daily_reports/solar_region_summaries/2024/05/20240511SRS.txt"
+        },
+        {
+          "label": "SDO channels page",
+          "url": "https://sdo.gsfc.nasa.gov/data/channels.php"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Science check passed 2026-11-17; docs/science/sun-sdo.md, section 7."
+      }
+    },
+    {
+      "id": "sdo-ar-304",
+      "title": "304 Å, the same view",
+      "body": "Extreme ultraviolet, 304 Å: the chromosphere and transition region, light from He II, log T 4.7 (about 50,000 K). This is cooler than the 171 Å band that follows. Red is an assigned color.",
+      "viewport": {
+        "x": 3010,
+        "y": 2510,
+        "z": 4.5
+      },
+      "band": "sun-sdo-2024-05-10-aia-304",
+      "sources": [
+        {
+          "label": "SDO channels page",
+          "url": "https://sdo.gsfc.nasa.gov/data/channels.php"
+        },
+        {
+          "label": "Lemen et al. 2012, AIA instrument paper",
+          "url": "https://doi.org/10.1007/s11207-011-9776-8"
+        },
+        {
+          "label": "SDO AIA and HMI color names",
+          "url": "https://sdo.gsfc.nasa.gov/data/aiahmi/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Science check passed 2026-11-17; docs/science/sun-sdo.md, section 7."
+      }
+    },
+    {
+      "id": "sdo-ar-171",
+      "title": "171 Å, the same view",
+      "body": "Extreme ultraviolet, 171 Å: light from Fe IX, log T 5.8 (about 630,000 K), the temperature of the quiet corona and upper transition region. Gold is an assigned color.",
+      "viewport": {
+        "x": 3010,
+        "y": 2510,
+        "z": 4.5
+      },
+      "band": "sun-sdo-2024-05-10-aia-171",
+      "sources": [
+        {
+          "label": "SDO channels page",
+          "url": "https://sdo.gsfc.nasa.gov/data/channels.php"
+        },
+        {
+          "label": "Lemen et al. 2012, AIA instrument paper",
+          "url": "https://doi.org/10.1007/s11207-011-9776-8"
+        },
+        {
+          "label": "SDO AIA and HMI color names",
+          "url": "https://sdo.gsfc.nasa.gov/data/aiahmi/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Science check passed 2026-11-17; docs/science/sun-sdo.md, section 7."
+      }
+    },
+    {
+      "id": "sdo-ar-211",
+      "title": "211 Å, the same view",
+      "body": "Extreme ultraviolet, 211 Å: the corona over active regions, light from Fe XIV, log T 6.3 (about 2 million K). Purple is an assigned color.",
+      "viewport": {
+        "x": 3010,
+        "y": 2510,
+        "z": 4.5
+      },
+      "band": "sun-sdo-2024-05-10-aia-211",
+      "sources": [
+        {
+          "label": "SDO channels page",
+          "url": "https://sdo.gsfc.nasa.gov/data/channels.php"
+        },
+        {
+          "label": "Lemen et al. 2012, AIA instrument paper",
+          "url": "https://doi.org/10.1007/s11207-011-9776-8"
+        },
+        {
+          "label": "SDO AIA and HMI color names",
+          "url": "https://sdo.gsfc.nasa.gov/data/aiahmi/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Science check passed 2026-11-17; docs/science/sun-sdo.md, section 7."
+      }
+    },
+    {
+      "id": "sdo-limb-193",
+      "title": "Past the edge",
+      "body": "Extreme ultraviolet, 193 Å: the corona, light from Fe XII, log T 6.1 (about 1.3 million K), a little cooler than 211 Å. Here the glow reaches past the Sun's visible edge, because hot gas above the limb shines there too; switch to HMI to see where the visible edge is. Bronze is an assigned color.",
+      "viewport": {
+        "x": 3277,
+        "y": 2724,
+        "z": 4
+      },
+      "band": "sun-sdo-2024-05-10-aia-193",
+      "sources": [
+        {
+          "label": "SDO channels page",
+          "url": "https://sdo.gsfc.nasa.gov/data/channels.php"
+        },
+        {
+          "label": "Lemen et al. 2012, AIA instrument paper",
+          "url": "https://doi.org/10.1007/s11207-011-9776-8"
+        },
+        {
+          "label": "SDO AIA and HMI color names",
+          "url": "https://sdo.gsfc.nasa.gov/data/aiahmi/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Science check passed 2026-11-17; docs/science/sun-sdo.md, section 7."
+      }
+    },
+    {
+      "id": "sdo-free",
+      "title": "Your turn",
+      "body": "Now the bands are yours. Switch freely between all seven, including 1700 Å, ultraviolet continuum from the photosphere and temperature minimum, and 94 Å, mostly flaring regions of the corona, log T 6.8 (about 6.3 million K). Pink and green are assigned colors.",
+      "viewport": {
+        "x": 2048,
+        "y": 2048,
+        "z": 1
+      },
+      "sources": [
+        {
+          "label": "SDO channels page",
+          "url": "https://sdo.gsfc.nasa.gov/data/channels.php"
+        },
+        {
+          "label": "Lemen et al. 2012, AIA instrument paper",
+          "url": "https://doi.org/10.1007/s11207-011-9776-8"
+        },
+        {
+          "label": "SDO AIA and HMI color names",
+          "url": "https://sdo.gsfc.nasa.gov/data/aiahmi/"
+        }
+      ],
+      "validation": {
+        "status": "approved",
+        "date": "2026-11-17",
+        "notes": "Science check passed 2026-11-17; docs/science/sun-sdo.md, section 7."
+      }
+    }
+  ],
+  "validation": {
+    "status": "approved",
+    "date": "2026-11-17",
+    "notes": "Science check passed 2026-11-17; docs/science/sun-sdo.md, section 7."
+  },
+  "mock": false
+}
