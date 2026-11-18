@@ -54,18 +54,17 @@ const longSide = (image: VipsImage, side: number) => {
   return { width: Math.max(1, Math.round(image.width * k)), height: Math.max(1, Math.round(image.height * k)) };
 };
 
+// The preview is cut first and held in memory, and the thumbnail comes from it: the original
+// can be opened for sequential reads only, and a second pass over it fails.
 export const writeThumbnails = async (image: VipsImage, outDir: string) => {
   await mkdir(outDir, { recursive: true });
-  const out: Record<"thumbnail" | "preview", { width: number; height: number }> = {
-    thumbnail: longSide(image, THUMBNAIL_SIDE),
-    preview: longSide(image, PREVIEW_SIDE),
-  };
-  for (const name of ["thumbnail", "preview"] as const) {
-    const { width, height } = out[name];
-    const img = width === image.width && height === image.height ? image : resizeTo(image, width, height, name);
-    await writeFile(join(outDir, `${name}.jpg`), toJpeg(img));
-  }
-  return out;
+  const sizes = { thumbnail: longSide(image, THUMBNAIL_SIDE), preview: longSide(image, PREVIEW_SIDE) };
+  const same = sizes.preview.width === image.width && sizes.preview.height === image.height;
+  const preview = same ? image : resizeTo(image, sizes.preview.width, sizes.preview.height, "preview").copyMemory();
+  await writeFile(join(outDir, "preview.jpg"), toJpeg(preview));
+  const { width, height } = sizes.thumbnail;
+  await writeFile(join(outDir, "thumbnail.jpg"), toJpeg(resizeTo(preview, width, height, "thumbnail")));
+  return sizes;
 };
 
 export const tilesBlock = (

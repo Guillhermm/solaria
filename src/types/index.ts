@@ -1,15 +1,4 @@
-export interface ImageMeta {
-  id: string;
-  name: string;
-  mission: string;
-  timestamp: string;
-  width: number;
-  height: number;
-  tileSize: number;
-  minLevel: number;
-  maxLevel: number;
-  credit: string;
-}
+import type { ImageManifest } from "@/content/types";
 
 // Deep Viewer types and interfaces
 export interface ImageResolution {
@@ -33,7 +22,7 @@ export interface Position {
 
 export interface DeepViewerProps {
   title: string;
-  id: string;
+  image: ImageManifest;
   initialFlags?: Flag[];
   onFlagsChange?: (flags: Flag[]) => void;
 }

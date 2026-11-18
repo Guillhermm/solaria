@@ -159,8 +159,9 @@ export interface Source {
 
 export interface Band {
   id: string; // filter or channel, e.g. "F475W", "AIA 171"
-  wavelength: { value: number; unit: "Å" | "nm" | "µm" };
-  kind: "line" | "continuum" | "broadband";
+  // Absent until a source states it; the filter name alone is not a source for a number.
+  wavelength?: { value: number; unit: "Å" | "nm" | "µm" };
+  kind?: "line" | "continuum" | "broadband";
 }
 
 // Never empty: an absent mapping would read as natural color.

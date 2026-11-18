@@ -4,9 +4,9 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "react-bootstrap";
 import { BsAlexa, BsFullscreen, BsFullscreenExit } from "react-icons/bs";
 import OpenSeadragon from "openseadragon";
-import { DeepViewerProps, ImageMeta } from "@/types";
+import { DeepViewerProps } from "@/types";
 
-export default function DeepViewer({ title, id }: DeepViewerProps) {
+export default function DeepViewer({ title, image }: DeepViewerProps) {
   const viewerRef = useRef<OpenSeadragon.Viewer | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -15,34 +15,25 @@ export default function DeepViewer({ title, id }: DeepViewerProps) {
     x: 0,
     y: 0,
   });
-  const [imageMeta, setImageMeta] = useState<ImageMeta | null>(null);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (!id) return;
-    fetch(`/api/image/${id}`)
-      .then((res) => res.json())
-      .then((data: ImageMeta) => setImageMeta(data))
-      .catch(console.error);
-  }, [id]);
 
   // Initialize viewer
   useEffect(() => {
     // only run on client
     if (typeof window === "undefined") return;
-    if (!imageMeta) return;
     if (!containerRef.current) return;
 
     const viewer = OpenSeadragon({
       element: containerRef.current,
       tileSources: {
-        width: imageMeta.width,
-        height: imageMeta.height,
-        tileSize: imageMeta.tileSize,
-        minLevel: imageMeta.minLevel,
-        maxLevel: imageMeta.maxLevel,
+        width: image.tiles.width,
+        height: image.tiles.height,
+        tileSize: image.tiles.tileSize,
+        tileOverlap: image.tiles.overlap,
+        minLevel: image.tiles.minLevel,
+        maxLevel: image.tiles.maxLevel,
         getTileUrl: (level, x, y) => {
-          return `/tiles/${imageMeta.id}/${level}/${x}/${y}.jpg`;
+          return `/tiles/${image.id}/${level}/${x}/${y}.jpg`;
         },
       },
       showZoomControl: false,
@@ -76,7 +67,7 @@ export default function DeepViewer({ title, id }: DeepViewerProps) {
       viewer.destroy();
       viewerRef.current = null;
     };
-  }, [imageMeta]);
+  }, [image]);
 
   const handleZoomTo = useCallback((percent: number) => {
     if (!viewerRef.current) return;
@@ -115,9 +106,7 @@ export default function DeepViewer({ title, id }: DeepViewerProps) {
         your browser or network. It is designed to be fast, responsive, and
         intuitive, so you can spend more time discovering and less time waiting.
       </div>
-      {imageMeta && (
-        <h3>{imageMeta.name}</h3>
-      )}
+      <h3>{image.title}</h3>
       <div className="deep-viewer-container position-relative" ref={wrapperRef}>
         <div
           className={`w-100 mb-4 ${

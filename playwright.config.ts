@@ -7,7 +7,7 @@ export default defineConfig({
   testDir: "tests/e2e",
   use: { baseURL: ORIGIN },
   webServer: {
-    command: `npm run build && npx next start -H 127.0.0.1 -p ${PORT}`,
+    command: `npm run build && npx tsx scripts/serve-static.ts out ${PORT}`,
     url: ORIGIN,
     reuseExistingServer: false,
     timeout: 300_000,

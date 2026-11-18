@@ -1,0 +1,112 @@
+{
+  "id": "andromeda-phat-phast-2025",
+  "sourceId": "andromeda-phat-phast-2025",
+  "title": "Andromeda Galaxy (M31), Hubble PHAT+PHAST panorama",
+  "target": {
+    "value": {
+      "name": "M31, the Andromeda Galaxy",
+      "type": "galaxy"
+    },
+    "source": "https://esahubble.org/news/heic2501",
+    "status": "verified"
+  },
+  "observatory": {
+    "value": "Hubble",
+    "source": "https://science.nasa.gov/asset/hubble/hubble-m31-phatphast-mosaic/",
+    "status": "verified"
+  },
+  "instruments": {
+    "value": [
+      "Advanced Camera for Surveys (ACS)"
+    ],
+    "source": "https://science.nasa.gov/asset/hubble/hubble-m31-phatphast-mosaic/",
+    "status": "verified"
+  },
+  "bands": {
+    "value": [
+      {
+        "id": "F475W"
+      },
+      {
+        "id": "F814W"
+      }
+    ],
+    "source": "https://science.nasa.gov/asset/hubble/hubble-m31-phatphast-mosaic/",
+    "status": "verified"
+  },
+  "colorMapping": {
+    "value": {
+      "kind": "per-band",
+      "entries": [
+        {
+          "bandId": "F475W",
+          "color": "blue"
+        },
+        {
+          "bandId": "F814W",
+          "color": "yellow"
+        }
+      ]
+    },
+    "source": "https://science.nasa.gov/asset/hubble/hubble-m31-phatphast-mosaic/",
+    "status": "verified"
+  },
+  "releasedAt": {
+    "value": "2025-01-16",
+    "source": "https://esahubble.org/images/heic2501a/",
+    "status": "verified"
+  },
+  "productType": {
+    "value": "mosaic",
+    "source": "https://esahubble.org/news/heic2501",
+    "status": "verified"
+  },
+  "pixelScale": {
+    "value": {
+      "value": 0.2,
+      "unit": "arcsec/px"
+    },
+    "source": "docs/science/andromeda.md",
+    "status": "supported"
+  },
+  "fieldOfView": {
+    "value": "140.60 x 32.88 arcmin",
+    "source": "https://esahubble.org/images/heic2501a/",
+    "status": "verified"
+  },
+  "orientation": {
+    "value": "North is 125.0 degrees right of vertical",
+    "source": "https://esahubble.org/images/heic2501a/",
+    "status": "verified"
+  },
+  "caveats": [
+    "Colors are assigned to two filters, not natural color.",
+    "The mosaic covers the disk, not the whole galaxy; the black stepped border is where no data were taken, not structure.",
+    "The viewer shows a quarter-resolution rendition, not the 2.5 billion pixel original.",
+    "Color describes regions on average (bluer where young stars dominate, yellower where older stars do, brown dust lanes); a single dot's color does not give one star's age or temperature.",
+    "The bright bulge is the blended light of many stars, not one object."
+  ],
+  "tiles": {
+    "format": "jpg",
+    "tileSize": 256,
+    "overlap": 0,
+    "width": 42208,
+    "height": 9870,
+    "minLevel": 0,
+    "maxLevel": 6,
+    "thumbnail": {
+      "width": 512,
+      "height": 120
+    },
+    "preview": {
+      "width": 2048,
+      "height": 479
+    }
+  },
+  "validation": {
+    "status": "approved",
+    "date": "2026-11-17",
+    "notes": "Science review accepted with caveats: docs/science/andromeda.md. Only the facts in its table are stated; observation dates, wavelengths and filter kinds are left out because the table gives no day or number for them."
+  },
+  "mock": false
+}

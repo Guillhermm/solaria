@@ -11,7 +11,12 @@ in [docs/science/](docs/science/).
 
 - Deep Viewer: OpenSeadragon over pre-cut tiles of the Hubble Andromeda (M31) PHAT+PHAST
   panorama released on 2025-01-16 (42208 x 9870 px, a quarter-resolution rendition).
-- `/api/images` and `/api/image/[id]`: image metadata, including the credit line.
+- Content from JSON files in `data/` (sources, image manifests), checked by a validator at
+  build time. The site is a static export (`out/`).
+- Scripts: `npm run fetch-source -- <sourceId>` downloads an original into `.cache/` and
+  checks its size and sha256; `npm run generate-tiles -- <input> <imageId> [--no-pyramid]`
+  cuts the tile pyramid, a thumbnail and a preview, and writes the manifest's `tiles` block.
+  Architecture: [docs/architecture.md](docs/architecture.md).
 - Unit and integration tests (Vitest) and end-to-end tests (Playwright).
 
 ## Planned
@@ -29,7 +34,8 @@ npm install
 npm run dev
 ```
 
-The app is at [http://127.0.0.1:8434](http://127.0.0.1:8434).
+The app is at [http://127.0.0.1:8434](http://127.0.0.1:8434). To serve the static export
+instead, run `npm run build && npm start` (same port).
 
 ## Test it
 

@@ -24,3 +24,12 @@ test("the unvalidated gallery is gone", async ({ page }) => {
   await expect(page.getByText("Spectral Gallery")).toHaveCount(0);
   await expect(page.getByText("PIA")).toHaveCount(0);
 });
+
+test("the viewer requests its tiles under /tiles/", async ({ page }) => {
+  const tile = page.waitForRequest((r) => r.url().includes("/tiles/andromeda-phat-phast-2025/"));
+  await page.goto("/");
+  expect((await tile).url()).toMatch(/\/tiles\/andromeda-phat-phast-2025\/\d+\/\d+\/\d+\.jpg$/);
+  await expect(page.getByRole("heading", { level: 3 })).toHaveText(
+    "Andromeda Galaxy (M31), Hubble PHAT+PHAST panorama"
+  );
+});

@@ -134,22 +134,29 @@ export const validateSource = (raw: unknown, file: string): Result<Source> => {
 
 const band = (c: Ctx, v: unknown, path: string) => {
   const n = c.errors.length;
-  const o = object(c, v, path, ["id", "wavelength", "kind"]);
+  const o = object(c, v, path, ["id"], ["wavelength", "kind"]);
   if (!o) return undefined;
-  let wavelength: Band["wavelength"] | undefined;
-  const wn = c.errors.length;
-  const w = object(c, o.wavelength, `${path}.wavelength`, ["value", "unit"]);
-  if (w) {
-    wavelength = finish<Band["wavelength"]>(c, wn, {
-      value: num(c, w.value, `${path}.wavelength.value`, true),
-      unit: oneOf(c, w.unit, `${path}.wavelength.unit`, ["Å", "nm", "µm"]),
-    });
+  let wavelength: Band["wavelength"];
+  if ("wavelength" in o) {
+    const wn = c.errors.length;
+    const w = object(c, o.wavelength, `${path}.wavelength`, ["value", "unit"]);
+    if (w) {
+      wavelength = finish<NonNullable<Band["wavelength"]>>(c, wn, {
+        value: num(c, w.value, `${path}.wavelength.value`, true),
+        unit: oneOf(c, w.unit, `${path}.wavelength.unit`, ["Å", "nm", "µm"]),
+      });
+    }
   }
-  return finish<Band>(c, n, {
+  const value = finish<Band>(c, n, {
     id: str(c, o.id, `${path}.id`),
     wavelength,
-    kind: oneOf(c, o.kind, `${path}.kind`, ["line", "continuum", "broadband"]),
+    kind: "kind" in o ? oneOf(c, o.kind, `${path}.kind`, ["line", "continuum", "broadband"]) : undefined,
   });
+  if (value) {
+    if (value.wavelength === undefined) delete value.wavelength;
+    if (value.kind === undefined) delete value.kind;
+  }
+  return value;
 };
 
 const colorMapping = (c: Ctx, v: unknown, path: string): ColorMapping | undefined => {

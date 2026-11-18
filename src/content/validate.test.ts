@@ -25,6 +25,15 @@ describe("valid fixtures", () => {
   });
 });
 
+describe("bands", () => {
+  it("accept a filter id with no wavelength or kind", () => {
+    const img = clone(fx.image()) as unknown as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+    img.bands.value = [{ id: "F475W" }];
+    const r = validateImage(img, "data/images/demo.json");
+    expect(r.ok && r.value.bands.value).toEqual([{ id: "F475W" }]);
+  });
+});
+
 describe("source rules", () => {
   const run = (edit: (s: Record<string, any>) => void) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     const s = clone(fx.source()) as unknown as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
