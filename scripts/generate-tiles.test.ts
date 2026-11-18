@@ -5,7 +5,7 @@ import Vips from "wasm-vips";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { jpegSize } from "../src/content/__fixtures__/jpeg";
 import { levelSize, tileCount } from "../src/content/pyramid";
-import { cropTo, cutPyramid, stitchPoster, tilesBlock, updateManifestTiles, writeThumbnails } from "./generate-tiles";
+import { cropTo, cutPyramid, openForCutting, stitchPoster, tilesBlock, updateManifestTiles, writeThumbnails } from "./generate-tiles";
 
 const W = 1000;
 const H = 300;
@@ -143,5 +143,45 @@ describe("cropTo", () => {
 
   it("refuses a box past the input's edge", () => {
     expect(() => cropTo(image(10, 8), { x: 6, y: 0, width: 5, height: 8 })).toThrow("crop: (6, 0) + 5 x 8 lies outside the input (10 x 8)");
+  });
+});
+
+describe("openForCutting", () => {
+  let path: string;
+  beforeAll(() => {
+    path = join(dir, "open.tif");
+    // 200 x 120 = 24 kpx; each pixel holds its own x.
+    vips.Image.xyz(200, 120).extractBand(0).writeToFile(path);
+  });
+
+  it("opens a file under the limit for random access and crops it", () => {
+    const out = openForCutting(vips, path, { x: 3, y: 2, width: 5, height: 4 });
+    expect([out.width, out.height]).toEqual([5, 4]);
+    expect(out.getpoint(4, 3)).toEqual([7]);
+  });
+
+  it("copies the crop of a file over the limit into memory, readable more than once", () => {
+    const out = openForCutting(vips, path, { x: 10, y: 20, width: 50, height: 40 }, 10_000);
+    expect([out.width, out.height]).toEqual([50, 40]);
+    expect(out.getpoint(0, 0)).toEqual([10]);
+    expect(out.getpoint(49, 39)).toEqual([59]);
+    expect(out.getpoint(0, 0)).toEqual([10]);
+  });
+
+  it("reads the bottom of a tall crop before its top, which a sequential reader refuses", () => {
+    // Tall enough that the sequential reader's line cache no longer holds row 0; each pixel holds its own y.
+    const tall = join(dir, "tall.tif");
+    vips.Image.xyz(64, 4000).extractBand(1).cast("ushort").writeToFile(tall);
+    const out = openForCutting(vips, tall, { x: 0, y: 0, width: 2, height: 4000 }, 10_000);
+    expect(out.getpoint(0, 3999)).toEqual([3999]);
+    expect(out.getpoint(0, 0)).toEqual([0]);
+  });
+
+  it("refuses a file over the limit without a crop", () => {
+    expect(() => openForCutting(vips, path, undefined, 10_000)).toThrow(/give its manifest a crop/);
+  });
+
+  it("refuses a crop that is itself over the limit", () => {
+    expect(() => openForCutting(vips, path, { x: 0, y: 0, width: 200, height: 100 }, 10_000)).toThrow(/crop 200 x 100 is over/);
   });
 });

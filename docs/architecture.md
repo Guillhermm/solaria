@@ -597,6 +597,13 @@ npm run sync-r2 -- [--dir public/tiles] [--apply]
   A failed fetch, hash, cut or mismatch is reported per id, leaves nothing for that id, and the
   exit code is 1 so the sync step does not run. The workflow cannot commit, so a mismatch is
   how CI catches a drifted manifest.
+  Originals over 200 Mpx (`RANDOM_ACCESS_PIXELS`) cannot be opened for random access, and a
+  sequential read fails the cutter with `out of order read`. `openForCutting` therefore needs a
+  manifest `crop` for them: one sequential pass copies the crop into memory (at most 200 Mpx),
+  and that copy is cut. A large original without a crop fails with "give its manifest a crop".
+  Checked on the 510 Mpx LROC NAC mosaic with a 4000 x 4000 crop: 111 s, peak 0.58 GB.
+  `--write-manifest` also accepts a staged id (a new image starts in `data/staging/`); building
+  a staged id stays refused, and `sync-r2` skips staged trees.
   With more than one id, each image is built in its own child process: wasm-vips does not
   return its heap between images, and the first CI run of `all` ran out of memory on the ninth.
 - Adding an image needs no local download: write the manifest without a `tiles` block, run
