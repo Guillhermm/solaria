@@ -7,6 +7,7 @@ import { getContent } from "@/content/load";
 import { resolveTileBase } from "@/content/tiles";
 import { nextJourney } from "@/kiosk/kiosk";
 import { buildSearchIndex } from "@/search/build";
+import { journeyImage, pageMetadata, SITE_DESCRIPTION, thumbnailFor } from "@/seo/seo";
 import { infoFor } from "@/viewer/info";
 
 interface Params {
@@ -33,7 +34,18 @@ const pageFor = (slug: string) => {
 export const generateMetadata = async ({ params }: Params): Promise<Metadata> => {
   const page = pageFor((await params).slug);
   if (!page) return { title: "Solaria" };
-  return { title: `${page.journey?.title ?? page.image.title} | Solaria` };
+  const { image, journey } = page;
+  const title = journey?.title ?? image.title;
+  const card = (journey && journeyImage(getContent(), journey)) ?? image;
+  return {
+    title: `${title} | Solaria`,
+    ...pageMetadata({
+      path: `/${journey?.slug ?? image.id}/`,
+      title,
+      description: journey?.summary ?? SITE_DESCRIPTION,
+      image: thumbnailFor(resolveTileBase(process.env.TILE_BASE_URL), card),
+    }),
+  };
 };
 
 const ViewerPage = async ({ params }: Params) => {

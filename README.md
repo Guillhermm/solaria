@@ -119,6 +119,9 @@ in [docs/science/](docs/science/).
   no link that leaves the app, no Share, Fullscreen or theme toggle, uses 3.5rem targets,
   plays every Journey's Story in a loop until the first touch, and after 90 s without input
   counts down 10 s and starts over at Home.
+- Search engines: `/robots.txt`, `/sitemap.xml` with every published page, a canonical URL
+  without the view query on every page, Open Graph and Twitter cards using the page's
+  thumbnail, and the Search Console verification tag (`docs/architecture.md` section 16).
 - Unit and integration tests (Vitest) and end-to-end tests (Playwright). The end-to-end suite
   also runs axe-core on Home and About and measures LCP, CLS and interaction latency on a
   throttled phone profile (`tests/e2e/quality.spec.ts`; results in `docs/design.md` section 9).

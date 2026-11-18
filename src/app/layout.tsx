@@ -4,12 +4,16 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import Kiosk from "@/components/kiosk/Kiosk";
 import { getContent } from "@/content/load";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/seo/seo";
 import { GROUND } from "./theme-color";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Solaria",
-  description: "Explore very large NASA images in the browser, one guided zoom at a time.",
+  metadataBase: new URL(SITE_URL),
+  title: SITE_NAME,
+  description: SITE_DESCRIPTION,
+  // Search Console ownership token; public by design.
+  verification: { google: "rkg6DyBZ44QyNpVlFY7fIc9RAp6hZkBTdyDLKzNcZQI" },
 };
 
 export const viewport: Viewport = {

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import HomeHero from "@/components/home/HomeHero";
 import InstrumentKey from "@/components/home/InstrumentKey";
 import JourneyIndex, { type JourneyEntry } from "@/components/home/JourneyIndex";
@@ -5,9 +6,13 @@ import WeeklyDetail from "@/components/home/WeeklyDetail";
 import { getContent } from "@/content/load";
 import { resolveTileBase } from "@/content/tiles";
 import { aimableStops, lensField } from "@/home/lens";
+import { homeCard } from "@/seo/home-card";
+import { pageMetadata, SITE_DESCRIPTION, SITE_NAME } from "@/seo/seo";
 import { weeklyCard } from "@/weekly/card";
 import { buildDate } from "@/weekly/pick";
 import styles from "./page.module.css";
+
+export const metadata: Metadata = pageMetadata({ path: "/", title: SITE_NAME, description: SITE_DESCRIPTION, image: homeCard() });
 
 const entries = (): JourneyEntry[] => {
   const { journeys, images, sources } = getContent();

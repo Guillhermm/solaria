@@ -2,10 +2,15 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import OutLink from "@/components/OutLink";
 import { getContent } from "@/content/load";
+import { homeCard } from "@/seo/home-card";
+import { pageMetadata, SITE_DESCRIPTION } from "@/seo/seo";
 import { formatInt } from "@/viewer/view";
 import styles from "./page.module.css";
 
-export const metadata: Metadata = { title: "About | Solaria" };
+export const metadata: Metadata = {
+  title: "About | Solaria",
+  ...pageMetadata({ path: "/about/", title: "About Solaria", description: SITE_DESCRIPTION, image: homeCard() }),
+};
 
 const REPO = "https://github.com/Guillhermm/solaria";
 const ARCHIVED_REPO = "https://github.com/Guillhermm/nasa-2025-solaria";

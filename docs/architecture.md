@@ -852,4 +852,27 @@ disables camera, microphone, geolocation, payment and USB. `/manifest.webmanifes
 - **R2 CORS.** The tile bucket must send `Access-Control-Allow-Origin` for the site origin, or
   `fetch` of tile metadata is blocked.
 - **Test.** `scripts/vercel-config.test.ts` parses `vercel.json` and asserts these.
-- **Planned.** `robots.txt` and a sitemap are not built yet.
+
+## 16. Search engines (L-07)
+
+Next's metadata conventions, all exported as static files or head tags under `output:
+'export'` (checked in `out/`). The helpers live in `src/seo/seo.ts`.
+
+- **`/robots.txt`** (`src/app/robots.ts`): every crawler may fetch everything; it names the
+  sitemap.
+- **`/sitemap.xml`** (`src/app/sitemap.ts`): Home, About, every image page and every Journey,
+  as absolute URLs on https://solaria.zenus.systems with the trailing slash the export serves.
+  It loads content in production mode whatever `SOLARIA_CONTENT` says, so the end-to-end build
+  still lists no mock or staged page. `lastModified` is the record's validation date; Home and
+  About have none.
+- **Head tags.** The root layout sets `metadataBase` and the Search Console verification token
+  (public by design, so it is in the code). Each page sets a canonical URL that keeps the path
+  only, since viewer URLs carry `?mode`, `x`, `y`, `z` and `stop`, plus Open Graph and Twitter
+  card fields: title, description, URL, site name and image.
+- **Card image.** The page's existing `thumbnail.jpg` (long side 512), as an absolute URL
+  under `TILE_BASE_URL`: the image itself on an image page, the band a Journey opens on (as on
+  Home's cards) on a Journey page, and the first Journey's on Home and About.
+- **Descriptions** reuse validated text only: a Journey's summary on its page, and the site
+  description everywhere else.
+- **Tests.** `src/seo/seo.test.ts` and `src/app/sitemap.test.ts`; `tests/e2e/seo.spec.ts`
+  checks the served files and the head of a viewer page and of Home.

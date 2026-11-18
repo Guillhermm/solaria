@@ -104,6 +104,9 @@ S-04 decision (2026-11-17): tiling the half-resolution file gives about 34,400 t
 | L-04 | Security headers, deploy workflow, domain solaria.zenus.systems | todo | L-03 | Headers checked on the live site |
 | L-05 | Performance and accessibility pass on a mid-range phone | done | L-01 | Targets in `docs/design.md` section 9 met |
 | L-06 | Launch | todo | L-01 to L-05 | Site live |
+| L-07 | SEO: robots.txt, sitemap, canonical URLs, Open Graph and Twitter cards, Search Console verification | done | L-01, L-02 | Files and head tags present in the static export |
+
+L-07 (2026-11-17, owner Guilherme): `docs/architecture.md` section 16 describes what is built.
 
 L-05 (2026-11-17): every target in `docs/design.md` section 9 is met and tested. The CLS target
 became "below 0.1, 0 on Home and the viewer" by decision, keeping `font-display: swap`; About
