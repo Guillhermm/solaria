@@ -32,7 +32,8 @@ src/content/              no React, no browser
   load.ts                 the only module that touches the file system
 src/viewer/               no React: view math (zoom relative to fit, image pixels), overview
                           sizing by aspect ratio, ruler ticks, the `?mode=&x=&y=&z=` URL
-                          (parsed and clamped at the boundary, url.ts)
+                          (parsed and clamped at the boundary, url.ts), the info panel's
+                          fields picked from a manifest and its source record (info.ts)
 src/app/                  server components: call getContent(), pass plain objects down
 src/components/           client components: receive a manifest and a tile base as props
   explore/                the Explore viewer page (OpenSeadragon, rulers, overview, readout)

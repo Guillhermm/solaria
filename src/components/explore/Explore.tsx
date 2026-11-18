@@ -1,21 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { type CSSProperties, useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
-import { LuArrowLeft, LuMaximize, LuMinimize, LuMinus, LuPlus, LuRotateCcw, LuShare } from "react-icons/lu";
+import { type CSSProperties, type KeyboardEvent, useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import { LuArrowLeft, LuInfo, LuMaximize, LuMinimize, LuMinus, LuPlus, LuRotateCcw, LuShare } from "react-icons/lu";
 import type OpenSeadragon from "openseadragon";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { tileSource } from "@/content/tiles";
-import type { ImageManifest, Source } from "@/content/types";
+import type { ImageManifest } from "@/content/types";
+import type { Info } from "@/viewer/info";
 import { overviewHeightRem, shapeOf } from "@/viewer/overview";
 import { parseViewerParams, serializeViewerParams } from "@/viewer/url";
 import { formatInt, formatZoom, homeView, osdFromView, type Size, viewFromOsd } from "@/viewer/view";
 import { drawRuler } from "./drawRuler";
+import InfoPanel from "./InfoPanel";
 import styles from "./Explore.module.css";
 
 interface ExploreProps {
   image: ImageManifest;
-  source: Source;
+  info: Info;
   tileBaseUrl: string;
 }
 
@@ -33,7 +35,7 @@ const viewUrl = (viewer: OpenSeadragon.Viewer, size: Size) =>
 // Next.js keeps its router state in history.state, so it is passed back unchanged.
 const replaceUrl = (url: string) => window.history.replaceState(window.history.state, "", url);
 
-const Explore = ({ image, source, tileBaseUrl }: ExploreProps) => {
+const Explore = ({ image, info, tileBaseUrl }: ExploreProps) => {
   const rootRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
@@ -45,6 +47,10 @@ const Explore = ({ image, source, tileBaseUrl }: ExploreProps) => {
   const viewerRef = useRef<OpenSeadragon.Viewer | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const infoId = useId();
+  const infoTitleRef = useRef<HTMLHeadingElement>(null);
+  const aboutRef = useRef<HTMLButtonElement>(null);
   // iPhone Safari has no element fullscreen; the button goes rather than doing nothing.
   const canFullscreen = useSyncExternalStore(noSubscribe, () => document.fullscreenEnabled, () => true);
   const navId = useId();
@@ -183,6 +189,27 @@ const Explore = ({ image, source, tileBaseUrl }: ExploreProps) => {
     }
   }, [image]);
 
+  const openInfo = useCallback(() => {
+    setInfoOpen(true);
+    // The panel is hidden until this render commits, so focus waits a frame.
+    requestAnimationFrame(() => infoTitleRef.current?.focus());
+  }, []);
+
+  const closeInfo = useCallback(() => {
+    setInfoOpen(false);
+    aboutRef.current?.focus();
+  }, []);
+
+  const onKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape" && infoOpen) {
+        e.preventDefault();
+        closeInfo();
+      }
+    },
+    [infoOpen, closeInfo],
+  );
+
   const zoomBy = useCallback((factor: number) => {
     const vp = viewerRef.current?.viewport;
     if (!vp) return;
@@ -202,7 +229,13 @@ const Explore = ({ image, source, tileBaseUrl }: ExploreProps) => {
   }, []);
 
   return (
-    <main ref={rootRef} className={styles.root} data-shape={shape}>
+    <main
+      ref={rootRef}
+      className={styles.root}
+      data-shape={shape}
+      data-info={infoOpen || undefined}
+      onKeyDown={onKeyDown}
+    >
       <div ref={canvasRef} className={styles.canvas} data-theme="dark" data-testid="viewer" />
 
       <div className={styles.rulers} data-theme="dark" aria-hidden>
@@ -224,6 +257,17 @@ const Explore = ({ image, source, tileBaseUrl }: ExploreProps) => {
           <span className={styles.mode}>Explore</span>
         </div>
         <div className={`${styles.bar} ${styles.glass}`}>
+          <button
+            ref={aboutRef}
+            type="button"
+            className={styles.about}
+            onClick={infoOpen ? closeInfo : openInfo}
+            aria-expanded={infoOpen}
+            aria-controls={infoId}
+          >
+            <LuInfo aria-hidden />
+            About this image
+          </button>
           <button type="button" className={styles.iconButton} onClick={share} aria-label="Share this view">
             <LuShare aria-hidden />
           </button>
@@ -231,7 +275,7 @@ const Explore = ({ image, source, tileBaseUrl }: ExploreProps) => {
         </div>
       </header>
 
-      <p className={`${styles.credit} ${styles.glass}`}>{source.credit}</p>
+      <p className={`${styles.credit} ${styles.glass}`}>{info.credit}</p>
 
       <div className={styles.sheet}>
         <div className={`${styles.controls} ${styles.glass}`} role="group" aria-label="View controls">
@@ -274,6 +318,9 @@ const Explore = ({ image, source, tileBaseUrl }: ExploreProps) => {
           <span className={styles.key}>Zoom</span>
           <span ref={zRef} className={styles.zoom}>{formatZoom(home.z)}</span>
         </p>
+        <div className={`${styles.info} ${styles.glass}`} hidden={!infoOpen}>
+          <InfoPanel id={infoId} info={info} onClose={closeInfo} titleRef={infoTitleRef} />
+        </div>
       </div>
 
       <div className={styles.toasts} role="status">

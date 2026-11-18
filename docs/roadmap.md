@@ -76,7 +76,7 @@ Each item leaves the app working.
 |---|---|---|---|---|
 | X-01 | `/[slug]` route with full-bleed Explore mode | done | D-05, V-03 | Andromeda opens full-bleed |
 | X-02 | Viewport and mode in the URL; share button | done | X-01 | Reloading a shared link restores the view |
-| X-03 | Info panel: target, instrument, dates, color mapping, credit, source link | todo | X-01, D-02 | Fields come from the manifest only |
+| X-03 | Info panel: target, instrument, dates, color mapping, credit, source link | done | X-01, D-02 | Fields come from the manifest only |
 | X-04 | Keyboard control, live region, loading and error states | todo | X-01 | End-to-end test covers keyboard zoom and pan |
 | X-05 | Phone layout with bottom sheet and gestures | todo | X-01 | Works at 390 px wide |
 

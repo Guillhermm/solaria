@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { expect, type Page, test } from "@playwright/test";
 
 const PATH = "/andromeda-phat-phast-2025/";
@@ -95,4 +96,37 @@ test("the share button copies a link that reopens the same view", async ({ page,
   await other.goto(link);
   await ready(other);
   await expect(readout(other)).toHaveText(/Center x\s*30 000\s*y\s*6 000\s*Zoom\s*4\.0×/);
+});
+
+test("the info panel shows the manifest's fields, every caveat and the source link", async ({ page }) => {
+  const manifest = JSON.parse(readFileSync("data/images/andromeda-phat-phast-2025.json", "utf8"));
+  const source = JSON.parse(readFileSync("data/sources/andromeda-phat-phast-2025.json", "utf8"));
+  await page.goto(PATH);
+  await ready(page);
+  const about = page.getByRole("button", { name: "About this image" });
+  await about.click();
+  await expect(about).toHaveAttribute("aria-expanded", "true");
+  const panel = page.getByRole("region", { name: manifest.title });
+  await expect(panel.getByRole("heading", { level: 2 })).toBeFocused();
+  const fields = await panel.locator("dl > div").evaluateAll((rows) =>
+    rows.map((row) => [row.querySelector("dt")!.textContent, row.querySelector("dd")!.innerText]),
+  );
+  expect(fields).toEqual([
+    ["Target", "M31, the Andromeda Galaxy"],
+    ["Observatory", "Hubble"],
+    ["Camera", "Advanced Camera for Surveys (ACS)"],
+    ["Filters", "F475W shown as blue\nF814W shown as yellow"],
+    ["Observed", "2010-07 to 2022-12"],
+    ["Released", "2025-01-16"],
+    ["Credit", source.credit],
+  ]);
+  await expect(panel.getByRole("listitem")).toHaveText(manifest.caveats);
+  const link = panel.getByRole("link", { name: /Source page/ });
+  await expect(link).toHaveAttribute("href", source.pageUrl);
+  await expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  await expect(link).toHaveAccessibleName(/\(opens in a new tab\)$/);
+
+  await page.keyboard.press("Escape");
+  await expect(panel).toBeHidden();
+  await expect(about).toBeFocused();
 });

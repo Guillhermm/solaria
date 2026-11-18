@@ -16,6 +16,9 @@ in [docs/science/](docs/science/).
   of the center and the zoom relative to fit, and zoom, reset and fullscreen controls.
   The URL carries the view (`?mode=explore&x=&y=&z=`, center in image pixels, zoom relative
   to fit) and the share button copies it, so a shared link reopens the same view.
+  "About this image" opens a panel with the target, observatory, camera, filters and the
+  colors assigned to them, observation and release dates, credit, every caveat and a link
+  to the source page, all taken from the manifest and its source record.
 - Content from JSON files in `data/` (sources, image manifests), checked by a validator at
   build time. The site is a static export (`out/`).
 - Scripts: `npm run fetch-source -- <sourceId>` downloads an original into `.cache/` and
